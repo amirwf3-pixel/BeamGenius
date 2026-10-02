@@ -1,0 +1,69 @@
+"""Domain package for BeamGenius Phase 1 engineering core."""
+
+from beamgenius.domain.enums import (
+    DiagnosticSeverity,
+    EvaluationOutcome,
+    FlangeCondition,
+    JurisdictionMode,
+    OverallComplianceStatus,
+    RuleCategory,
+    SectionType,
+    VerificationStatus,
+)
+from beamgenius.domain.models import (
+    BeamGeometry,
+    ConcreteMaterial,
+    RebarGroup,
+    RebarMaterial,
+    StirrupLayout,
+)
+from beamgenius.domain.trace import (
+    BeamComplianceReport,
+    CalculationTraceStep,
+    EngineeringDiagnostic,
+    RuleReference,
+    ScalarInputValue,
+    select_dominant_outcome,
+)
+from beamgenius.domain.validation import (
+    EffectiveDepthResolution,
+    MABHAS9_FLEX_MIN_MAX_FY_MPA,
+    resolve_effective_depth,
+    validate_beam_geometry,
+    validate_concrete_material,
+    validate_non_negative_force,
+    validate_rebar_group,
+    validate_rebar_material,
+    validate_stirrup_layout,
+)
+
+__all__ = [
+    "BeamComplianceReport",
+    "BeamGeometry",
+    "CalculationTraceStep",
+    "ConcreteMaterial",
+    "DiagnosticSeverity",
+    "EffectiveDepthResolution",
+    "EngineeringDiagnostic",
+    "EvaluationOutcome",
+    "FlangeCondition",
+    "JurisdictionMode",
+    "MABHAS9_FLEX_MIN_MAX_FY_MPA",
+    "OverallComplianceStatus",
+    "RebarGroup",
+    "RebarMaterial",
+    "RuleCategory",
+    "RuleReference",
+    "ScalarInputValue",
+    "SectionType",
+    "StirrupLayout",
+    "VerificationStatus",
+    "resolve_effective_depth",
+    "select_dominant_outcome",
+    "validate_beam_geometry",
+    "validate_concrete_material",
+    "validate_non_negative_force",
+    "validate_rebar_group",
+    "validate_rebar_material",
+    "validate_stirrup_layout",
+]
