@@ -525,6 +525,131 @@ RULE_BG_MOST_5_62 = RuleReference(
 # 4. BLOCKED UNVERIFIED MABHAS 9 & CHAPTER 7 WORKFLOWS
 # ============================================================================
 
+RULE_BG_FLEX_STRESS_BLOCK_PENDING = RuleReference(
+    rule_id="BG-FLEX-STRESS-BLOCK-PENDING",
+    title="Mabhas 9 Equivalent Rectangular Compression Stress-Block Parameters",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=None,
+    printed_page=None,
+    clause_or_equation="UNAVAILABLE (Pending visual verification of Mabhas 9 stress-block clauses)",
+    symbolic_formula="UNAVAILABLE",
+    description=(
+        "Mabhas 9 equivalent rectangular concrete compression stress-block "
+        "intensity and depth factors (alpha_1, beta_1)."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Mabhas 9 equivalent rectangular stress-block parameters are not yet "
+        "visually verified from the Mabhas 9 source PDF in docs/VERIFIED_RULES.md; "
+        "ACI/CSA stress-block formulas must not be substituted."
+    ),
+    dependencies=(),
+)
+
+RULE_BG_FLEX_PHI_FACTOR_PENDING = RuleReference(
+    rule_id="BG-FLEX-PHI-FACTOR-PENDING",
+    title="Mabhas 9 Flexural Strength / Material Reduction Factors",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=None,
+    printed_page=None,
+    clause_or_equation="UNAVAILABLE (Pending visual verification of Mabhas 9 resistance factor clauses)",
+    symbolic_formula="UNAVAILABLE",
+    description=(
+        "Mabhas 9 flexural resistance reduction factor phi (or material partial "
+        "factors) and transition-zone strain interpolation."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Mabhas 9 flexural resistance reduction factors are not yet visually "
+        "verified from the Mabhas 9 source PDF in docs/VERIFIED_RULES.md."
+    ),
+    dependencies=(),
+)
+
+RULE_BG_FLEX_STRAIN_LIMIT_PENDING = RuleReference(
+    rule_id="BG-FLEX-STRAIN-LIMIT-PENDING",
+    title="Mabhas 9 Flexural Strain Compatibility and Ductility / Maximum Steel Limits",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=None,
+    printed_page=None,
+    clause_or_equation="UNAVAILABLE (Pending visual verification of Mabhas 9 strain/ductility limits)",
+    symbolic_formula="UNAVAILABLE",
+    description=(
+        "Mabhas 9 maximum usable concrete compressive strain epsilon_cu, minimum "
+        "net tensile strain epsilon_t, neutral-axis ratio c/d limit, and maximum "
+        "reinforcement limit."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Mabhas 9 ultimate concrete strain and tension-controlled ductility limits "
+        "are not yet visually verified from the Mabhas 9 source PDF in docs/VERIFIED_RULES.md."
+    ),
+    dependencies=(),
+)
+
+RULE_BG_FLEX_DOUBLY_REINF_PENDING = RuleReference(
+    rule_id="BG-FLEX-DOUBLY-REINF-PENDING",
+    title="Mabhas 9 Doubly Reinforced Beam Flexural Resistance",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=None,
+    printed_page=None,
+    clause_or_equation="UNAVAILABLE (Pending visual verification of Mabhas 9 compression-steel flexure clauses)",
+    symbolic_formula="UNAVAILABLE",
+    description=(
+        "Mabhas 9 flexural resistance procedure for doubly reinforced sections "
+        "with compression reinforcement As'."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Mabhas 9 doubly reinforced beam flexural resistance and compression-steel "
+        "strain-compatibility clauses are not yet visually verified in docs/VERIFIED_RULES.md."
+    ),
+    dependencies=(
+        "BG-FLEX-STRESS-BLOCK-PENDING",
+        "BG-FLEX-PHI-FACTOR-PENDING",
+        "BG-FLEX-STRAIN-LIMIT-PENDING",
+    ),
+)
+
+RULE_BG_FLEX_FLANGE_WIDTH_PENDING = RuleReference(
+    rule_id="BG-FLEX-FLANGE-WIDTH-PENDING",
+    title="Mabhas 9 T- and L-Beam Effective Flange Width and Flanged Flexural Resistance",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=None,
+    printed_page=None,
+    clause_or_equation="UNAVAILABLE (Pending visual verification of Mabhas 9 T/L-beam clauses)",
+    symbolic_formula="UNAVAILABLE",
+    description=(
+        "Mabhas 9 effective flange width bf and flanged flexural resistance for "
+        "T- and L-sections."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Mabhas 9 T- and L-section effective flange width and flanged flexural "
+        "resistance clauses are not yet visually verified in docs/VERIFIED_RULES.md."
+    ),
+    dependencies=(
+        "BG-FLEX-STRESS-BLOCK-PENDING",
+        "BG-FLEX-PHI-FACTOR-PENDING",
+        "BG-FLEX-STRAIN-LIMIT-PENDING",
+    ),
+)
+
 RULE_BG_MABHAS9_FLEX_CAP_BLOCKED = RuleReference(
     rule_id="BG-MABHAS9-FLEX-CAP-BLOCKED",
     title="Mabhas 9 Flexural Capacity and Resistance Check",
@@ -545,7 +670,11 @@ RULE_BG_MABHAS9_FLEX_CAP_BLOCKED = RuleReference(
         "Mabhas 9 flexural resistance equations, material/strength reduction factors, "
         "and maximum reinforcement limits are not yet verified in docs/VERIFIED_RULES.md."
     ),
-    dependencies=(),
+    dependencies=(
+        "BG-FLEX-STRESS-BLOCK-PENDING",
+        "BG-FLEX-PHI-FACTOR-PENDING",
+        "BG-FLEX-STRAIN-LIMIT-PENDING",
+    ),
 )
 
 RULE_BG_SHEAR_CAP_BLOCKED = RuleReference(
@@ -982,6 +1111,11 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_MOST_5_60,
     RULE_BG_MOST_5_62,
     # Blocked Mabhas 9 & Ch. 7 workflows
+    RULE_BG_FLEX_STRESS_BLOCK_PENDING,
+    RULE_BG_FLEX_PHI_FACTOR_PENDING,
+    RULE_BG_FLEX_STRAIN_LIMIT_PENDING,
+    RULE_BG_FLEX_DOUBLY_REINF_PENDING,
+    RULE_BG_FLEX_FLANGE_WIDTH_PENDING,
     RULE_BG_MABHAS9_FLEX_CAP_BLOCKED,
     RULE_BG_SHEAR_CAP_BLOCKED,
     RULE_BG_SHEAR_VC_BLOCKED,

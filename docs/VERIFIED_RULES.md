@@ -1,4 +1,4 @@
-﻿# BeamGenius — Verified Rule Registry
+# BeamGenius — Verified Rule Registry
 
 ## Status Definitions
 
@@ -146,6 +146,280 @@ st ≤ min(d/2, 300 mm)
 Verification:
 
 Source page visually verified.
+
+---
+
+# Transverse Reinforcement & Detailing
+
+## BG-DETAIL-TRANS-DIA-001 — Minimum Transverse Reinforcement Diameter
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9
+PDF Page: 228
+Printed Page: Not recorded (PDF Page 228 verified)
+Clause: 9-11-6-5-11 (OCR token in DESIGN_RULES.md: 11-5-6-11-9)
+
+Formula / Requirement:
+
+For transverse reinforcement (stirrups/ties) enclosing longitudinal bars in beams:
+
+- If longitudinal bar diameter db ≤ 32 mm (non-bundled):
+  dbt ≥ 10 mm
+- If longitudinal bar diameter db ≥ 36 mm (non-bundled):
+  dbt ≥ 12 mm
+- If longitudinal bars are bundled:
+  dbt ≥ 12 mm
+
+Applicability:
+
+Beams requiring transverse stirrups or ties enclosing longitudinal reinforcement.
+
+Inputs:
+
+- db: longitudinal bar diameter(s) enclosed by transverse reinforcement (mm)
+- dbt: transverse bar diameter (mm)
+- is_bundled: whether the longitudinal bars are bundled (boolean)
+
+Units:
+
+- db, dbt: mm
+
+Exceptions / Blocked Conditions:
+
+- The interval 32 mm < db < 36 mm for non-bundled bars MUST NOT be inferred and shall return an explicit blocked/unsupported status (`UNVERIFIED_RULE_BLOCKED` / `UNSUPPORTED_CONFIGURATION`).
+- Welded wire reinforcement exceptions remain `VERIFY_PENDING` unless independently verified from Mabhas 9.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, PDF Page 228, Clause 9-11-6-5-11).
+
+---
+
+## BG-DETAIL-COMP-LAT-001 — Compression Reinforcement Lateral Support Spacing
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9
+PDF Page: 229
+Printed Page: Not recorded (PDF Page 229 verified)
+Clause: 9-11-6-5-12 (OCR token in DESIGN_RULES.md: 12-5-6-11-9)
+
+Formula / Requirement:
+
+Longitudinal spacing of transverse reinforcement enclosing compression bars shall satisfy:
+
+sc ≤ min(
+16 × db,
+48 × dbt,
+bmin
+)
+
+Applicability:
+
+Beam sections containing longitudinal compression reinforcement required by analysis or design.
+
+Inputs:
+
+- db: smallest diameter of longitudinal compression bars (mm)
+- dbt: diameter of transverse stirrup/tie bar (mm)
+- bmin: least dimension of the compression member/section (mm)
+- sc: provided longitudinal center-to-center spacing of transverse ties supporting compression bars (mm)
+
+Units:
+
+- db, dbt, bmin, sc: mm
+
+Exceptions / Blocked Conditions:
+
+- Where no compression reinforcement is required, this check is `NOT_APPLICABLE`.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, PDF Page 229, Clause 9-11-6-5-12).
+
+---
+
+# Continuity, Support Reinforcement & Structural Integrity
+
+## BG-INTEG-PERIMETER-001 — Structural Integrity Reinforcement for Perimeter Beams
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9
+PDF Page: 229–230
+Printed Page: Not recorded (PDF Pages 229–230 verified)
+Clause: 9-11-6-6-1
+
+Formula / Requirement:
+
+For cast-in-place perimeter beams:
+
+1. Continuous positive reinforcement:
+   As,cont(+) ≥ (1/4) × As,max(+)
+   and
+   n_bars,cont(+) ≥ 2
+
+2. Continuous negative reinforcement:
+   As,cont(-) ≥ (1/6) × As,support(-)
+   and
+   n_bars,cont(-) ≥ 2
+
+3. Transverse enclosure:
+   Structural-integrity longitudinal reinforcement shall be enclosed by closed stirrups or closed ties along the clear span of the beam.
+
+Applicability:
+
+Cast-in-place perimeter beams governed by Clause 9-11-6-6-1.
+
+Inputs:
+
+- is_perimeter_beam: boolean (must be True for Clause 9-11-6-6-1)
+- as_max_positive_mm2: maximum positive flexural reinforcement area in span (mm²)
+- as_support_negative_mm2: negative flexural reinforcement area at support (mm²)
+- as_continuous_positive_provided_mm2: provided continuous positive reinforcement area (mm²)
+- continuous_positive_bar_count: number of continuous positive bars (integer)
+- as_continuous_negative_provided_mm2: provided continuous negative reinforcement area (mm²)
+- continuous_negative_bar_count: number of continuous negative bars (integer)
+- is_enclosed_by_closed_stirrups_over_clear_span: boolean
+
+Units:
+
+- Reinforcement areas: mm²
+- Bar counts: integer count
+
+Exceptions / Blocked Conditions:
+
+- Non-perimeter beams governed by Clause 9-11-6-6-2 are NOT fully verified and MUST remain `BLOCKED` (`VERIFY_PENDING`).
+- Mechanical/welded/lap splice compliance of integrity reinforcement remains `VERIFY_PENDING` unless bars are continuous without splices or splice rules are separately verified in `docs/VERIFIED_RULES.md`.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, PDF Pages 229–230, Clause 9-11-6-6-1).
+
+---
+
+## BG-INTEG-COL-001 — Structural Integrity Continuity Through Column Region
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9
+PDF Page: 230
+Printed Page: Not recorded (PDF Page 230 verified)
+Clause: 9-11-6-6-3 (OCR token in DESIGN_RULES.md: 11-6-6-3-9)
+
+Formula / Requirement:
+
+Structural-integrity longitudinal reinforcement shall pass through the region enclosed by the longitudinal reinforcement of the supporting column (`passes_through_column_core == True`).
+
+Applicability:
+
+Structural-integrity longitudinal reinforcement at continuous or interior column supports.
+
+Inputs:
+
+- passes_through_column_core: boolean indicating whether the continuous integrity bars pass inside the column longitudinal reinforcement cage.
+
+Units:
+
+- Boolean geometric detailing state.
+
+Exceptions / Blocked Conditions:
+
+- At non-continuous supports, anchorage is governed by Clause 9-11-6-6-4 (`BG-INTEG-ANCHOR-001`).
+
+Verification Method:
+
+Actual source page review (Mabhas 9, PDF Page 230, Clause 9-11-6-6-3).
+
+---
+
+## BG-INTEG-ANCHOR-001 — Structural Integrity Anchorage at Non-Continuous Supports
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9
+PDF Page: 230
+Printed Page: Not recorded (PDF Page 230 verified)
+Clause: 9-11-6-6-4 (OCR token in DESIGN_RULES.md: 11-6-6-4-9)
+
+Formula / Requirement:
+
+At non-continuous supports, structural-integrity longitudinal reinforcement shall be anchored into the support so that it can develop the specified yield stress fy at the face of the support.
+
+Applicability:
+
+Structural-integrity longitudinal reinforcement terminating at non-continuous supports.
+
+Inputs:
+
+- is_non_continuous_support: boolean
+- develops_fy_at_support_face: boolean (when externally verified)
+
+Units:
+
+- Boolean / mm (when quantitative development length rules are verified).
+
+Exceptions / Blocked Conditions:
+
+- Quantitative calculation of required straight development length Ld (`BG-DEV-LENGTH-PENDING`) or standard hook development length ldh (`BG-BENT-ANCHOR-PENDING`) remains `BLOCKED` (`VERIFY_PENDING`) until the governing Mabhas 9 development/hook equations are visually verified and added to `docs/VERIFIED_RULES.md`.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, PDF Page 230, Clause 9-11-6-6-4).
+
+---
+
+## BG-SUPPORT-POS-001 — Positive Flexural Reinforcement Continuation at Supports
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9
+PDF Page: 225
+Printed Page: Not recorded (PDF Page 225 verified)
+Clause: 9-11-6-3-2 (OCR token in DESIGN_RULES.md: 2-3-6-11-9)
+
+Formula / Requirement:
+
+1. Simple support:
+   As,support(+) ≥ (1/3) × As,max(+)
+   and
+   l_embed,support ≥ 150 mm
+
+2. Interior support:
+   As,support(+) ≥ (1/4) × As,max(+)
+   and
+   l_embed,support ≥ 150 mm
+
+3. Primary lateral-load-resisting system beams:
+   Positive reinforcement continued into the support shall be anchored to develop the specified yield stress fy at the face of the support.
+
+Applicability:
+
+Positive flexural reinforcement continuation into simple and interior supports of beams.
+
+Inputs:
+
+- support_type: `SIMPLE` or `INTERIOR`
+- as_max_positive_mm2: maximum positive flexural reinforcement area in the span (mm²)
+- as_positive_into_support_mm2: positive flexural reinforcement area continued into the support (mm²)
+- support_embedment_length_mm: embedment length of continued positive reinforcement into the support (mm)
+- is_primary_lateral_load_resisting: boolean
+- develops_fy_at_support_face: optional boolean (required when `is_primary_lateral_load_resisting == True`)
+
+Units:
+
+- Areas: mm²
+- Lengths: mm
+
+Exceptions / Blocked Conditions:
+
+- Supersedes the older 1/4 simple-support transcription in `docs/DESIGN_RULES.md`; simple supports require at least 1/3 of maximum positive reinforcement.
+- Quantitative calculation of the required yield development/hook length (Ld or ldh) for primary lateral-load-resisting beams remains `BLOCKED` (`VERIFY_PENDING`) until `BG-DEV-LENGTH-PENDING` and `BG-BENT-ANCHOR-PENDING` are verified in `docs/VERIFIED_RULES.md`.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, PDF Page 225, Clause 9-11-6-3-2).
 
 ---
 

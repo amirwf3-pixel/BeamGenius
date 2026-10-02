@@ -1,4 +1,4 @@
-﻿# BeamGenius — Design Rules
+# BeamGenius — Design Rules
 
 
 
@@ -144,9 +144,9 @@ s2 ≤ min(d/2, 300 mm)
 
 ### Minimum Transverse Reinforcement Diameter
 
-Status: CODE\_RULE
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-DETAIL-TRANS-DIA-001`)
 
-Source: Mabhas 9, file page 228, Clause 11-5-6-11-9
+Source: Mabhas 9, file page 228, Clause 9-11-6-5-11 (OCR token: 11-5-6-11-9)
 
 
 
@@ -164,9 +164,9 @@ The 32–36 mm interval is not inferred.
 
 ### Compression Reinforcement Lateral Support
 
-Status: CODE\_RULE
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-DETAIL-COMP-LAT-001`)
 
-Source: Mabhas 9, file page 229, Clause 12-5-6-11-9
+Source: Mabhas 9, file page 229, Clause 9-11-6-5-12 (OCR token: 12-5-6-11-9)
 
 
 
@@ -182,27 +182,29 @@ sc ≤ min(
 
 
 
-### Structural Integrity Reinforcement
+### Structural Integrity Reinforcement (Perimeter Beams)
 
-Status: CODE\_RULE
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-INTEG-PERIMETER-001`)
 
-Source: Mabhas 9, file pages 229–230
+Source: Mabhas 9, file pages 229–230, Clause 9-11-6-6-1
 
 
 
-- Minimum 1/4 of maximum positive flexural reinforcement, but not less than 2 bars, continuous.
+- Perimeter beams: minimum 1/4 of maximum positive flexural reinforcement, but not less than 2 bars, continuous.
 
-- Minimum 1/6 of negative flexural reinforcement at support, but not less than 2 bars, continuous.
+- Perimeter beams: minimum 1/6 of negative flexural reinforcement at support, but not less than 2 bars, continuous.
 
-- Structural-integrity reinforcement shall satisfy the applicable continuity and enclosure requirements.
+- Enclosed by closed stirrups or closed ties over the clear span.
+
+- Note: Clause 9-11-6-6-2 for non-perimeter beams remains `VERIFY_PENDING` and blocked.
 
 
 
 ### Continuity Through Column Region
 
-Status: CODE\_RULE
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-INTEG-COL-001`)
 
-Source: Mabhas 9, file page 230, Clause 11-6-6-3-9
+Source: Mabhas 9, file page 230, Clause 9-11-6-6-3 (OCR token: 11-6-6-3-9)
 
 
 
@@ -212,41 +214,41 @@ Structural-integrity longitudinal reinforcement shall pass through the region en
 
 ### Non-Continuous Supports
 
-Status: CODE\_RULE
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-INTEG-ANCHOR-001`)
 
-Source: Mabhas 9, file page 230, Clause 11-6-6-4-9
+Source: Mabhas 9, file page 230, Clause 9-11-6-6-4 (OCR token: 11-6-6-4-9)
 
 
 
-Structural-integrity longitudinal reinforcement shall be fully anchored so that reinforcement at the face of support can develop yield stress.
+Structural-integrity longitudinal reinforcement shall be fully anchored so that reinforcement at the face of support can develop yield stress (quantitative development/hook length equation remains `VERIFY_PENDING`).
 
 
 
 ### Flexural Bar Extension
 
-Status: CODE\_RULE
+Status: VERIFY\_PENDING
 
-Source: Mabhas 9, file page 224, Clause 4-2-6-11-9
-
-
-
-Tension reinforcement that remains in the member shall extend at least development length Ld beyond the point where reinforcement is no longer required for flexure.
+Source: Mabhas 9, file page 224, Clause 9-11-6-2-4 (OCR token: 4-2-6-11-9)
 
 
 
-### Positive Reinforcement at Simple Supports
-
-Status: CODE\_RULE
-
-Source: Mabhas 9, file page 225, Clause 2-3-6-11-9
+General concept: tension reinforcement that remains in the member extends beyond the point where reinforcement is no longer required for flexure; exact clause/equation (including comparison with effective depth d, 12db, and development length Ld) remains `VERIFY_PENDING` and blocked until source verification is complete.
 
 
 
-At least 1/4 of the maximum positive flexural reinforcement shall continue through the support and extend at least 150 mm into the support.
+### Positive Reinforcement at Simple and Interior Supports
+
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-SUPPORT-POS-001`)
+
+Source: Mabhas 9, file page 225, Clause 9-11-6-3-2 (OCR token: 2-3-6-11-9)
 
 
 
-For beams forming part of the primary lateral-load-resisting system, the reinforcement shall be anchored to develop yield stress.
+- Simple support: at least 1/3 of the maximum positive flexural reinforcement shall continue into the support and extend at least 150 mm into the support.
+
+- Interior support: at least 1/4 of the maximum positive flexural reinforcement shall continue into the support and extend at least 150 mm into the support where applicable.
+
+- For beams forming part of the primary lateral-load-resisting system, the reinforcement shall be anchored to develop yield stress fy at the face of the support.
 
 
 
@@ -258,9 +260,19 @@ The following shall NOT be implemented as executable engineering rules until sou
 
 
 
-- Clause 5-2-6-11-9 cutoff conditions
+- Mabhas 9 flexural resistance equations, stress-block parameters, strain/ductility limits, and resistance factors φ
 
-- Clause 2-3-6-9 development-length equations
+- Mabhas 9 concrete shear resistance Vc, shear reinforcement demand Vs, and maximum shear resistance Vs,max
+
+- Mabhas 9 minimum concrete cover and longitudinal/layer bar clear spacing rules
+
+- Clause 9-11-6-6-2 non-perimeter beam structural integrity reinforcement
+
+- Clause 9-11-6-2-4 (OCR 4-2-6-11-9) exact flexural bar extension equation
+
+- Clause 9-11-6-2-5 (OCR 5-2-6-11-9) cutoff conditions
+
+- Clause 2-3-6-9 (OCR token) development-length equations
 
 - Negative reinforcement extension equation
 
@@ -270,7 +282,7 @@ The following shall NOT be implemented as executable engineering rules until sou
 
 - Remaining torsion rules
 
-- Table 2-11-99 exceptions
+- Table 9-11-2 (OCR Table 2-11-99) remaining exceptions (one-way joists)
 
 - Other OCR-corrupted numerical requirements
 

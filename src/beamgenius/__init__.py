@@ -23,10 +23,12 @@ from beamgenius.domain import (
 from beamgenius.engine import (
     DEFAULT_MABHAS9_CHECK_RULES,
     aggregate_compliance_report,
+    evaluate_mabhas9_flexural_capacity,
     evaluate_maximum_stirrup_spacing,
     evaluate_minimum_flexural_reinforcement,
     evaluate_minimum_shear_reinforcement,
     run_mabhas9_beam_check,
+    run_mabhas9_flexural_workflow,
 )
 from beamgenius.registry import (
     RULE_REGISTRY,
@@ -64,6 +66,7 @@ __all__ = [
     "VerificationStatus",
     "__version__",
     "aggregate_compliance_report",
+    "evaluate_mabhas9_flexural_capacity",
     "evaluate_maximum_stirrup_spacing",
     "evaluate_minimum_flexural_reinforcement",
     "evaluate_minimum_shear_reinforcement",
@@ -75,4 +78,5 @@ __all__ = [
     "list_reference_executable_rules",
     "require_rule",
     "run_mabhas9_beam_check",
+    "run_mabhas9_flexural_workflow",
 ]

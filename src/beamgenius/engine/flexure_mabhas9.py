@@ -10,6 +10,7 @@ from beamgenius.domain.enums import (
     EvaluationOutcome,
     FlangeCondition,
     JurisdictionMode,
+    OverallComplianceStatus,
     SectionType,
 )
 from beamgenius.domain.models import (
@@ -18,9 +19,11 @@ from beamgenius.domain.models import (
     RebarMaterial,
 )
 from beamgenius.domain.trace import (
+    BeamComplianceReport,
     CalculationTraceStep,
     EngineeringDiagnostic,
     ScalarInputValue,
+    select_dominant_outcome,
 )
 from beamgenius.domain.validation import (
     resolve_effective_depth,
@@ -29,6 +32,8 @@ from beamgenius.domain.validation import (
     validate_rebar_material,
 )
 from beamgenius.registry.catalog import (
+    RULE_BG_FLEX_DOUBLY_REINF_PENDING,
+    RULE_BG_FLEX_FLANGE_WIDTH_PENDING,
     RULE_BG_FLEX_MIN_001,
     RULE_BG_MABHAS9_FLEX_CAP_BLOCKED,
 )
@@ -325,27 +330,336 @@ def evaluate_mabhas9_flexural_capacity(
     rebar: RebarMaterial,
     *,
     mu_nmm: Optional[float] = None,
+    as_provided_mm2: Optional[float] = None,
+    as_compression_mm2: Optional[float] = None,
+    require_design_inputs: bool = False,
     jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
 ) -> CalculationTraceStep:
-    """Explicitly blocked workflow for Mabhas 9 flexural capacity/resistance.
+    """Evaluate Mabhas 9 flexural resistance workflow (`BG-MABHAS9-FLEX-CAP-BLOCKED`).
 
-    Returns UNVERIFIED_RULE_BLOCKED until Mabhas 9 stress-block parameters,
-    material resistance factors, and strain limits are verified in
-    docs/VERIFIED_RULES.md.
+    Governance & Execution Order:
+    1. Enforces jurisdiction gate (`MABHAS_9_COMPLIANCE` required; otherwise returns
+       `EvaluationOutcome.JURISDICTION_BLOCKED`).
+    2. Validates section geometry (`bw_mm`, `h_mm`, flange consistency), concrete
+       (`fc_prime_mpa > 0`), steel (`fy_mpa > 0`), `as_provided_mm2`, `as_compression_mm2`,
+       `mu_nmm`, and resolves effective depth `d` via Phase 1 precedence
+       (`EXPLICIT_D -> ACTUAL_REBAR_GEOMETRY -> UNRESOLVED`, never `h - 65` or `h - 90`).
+       Returns `EvaluationOutcome.INVALID_INPUT` when any physical input or `d` is invalid.
+    3. Explicitly blocks T- and L-sections (`FLANGED_SECTION_FLEXURAL_RESISTANCE_UNVERIFIED`)
+       without silently falling back to rectangular behavior.
+    4. Explicitly blocks doubly reinforced sections with compression reinforcement
+       (`DOUBLY_REINFORCED_FLEXURAL_RESISTANCE_UNVERIFIED`) without silently ignoring `As'`.
+    5. Returns `EvaluationOutcome.UNVERIFIED_RULE_BLOCKED` for rectangular singly
+       reinforced sections until the Mabhas 9 stress-block parameters
+       (`BG-FLEX-STRESS-BLOCK-PENDING`), resistance factor (`BG-FLEX-PHI-FACTOR-PENDING`),
+       and strain/ductility limits (`BG-FLEX-STRAIN-LIMIT-PENDING`) are visually verified
+       from the Mabhas 9 source PDF and registered in `docs/VERIFIED_RULES.md`.
     """
+    rule_id = RULE_BG_MABHAS9_FLEX_CAP_BLOCKED.rule_id
+    resolved_as_provided = (
+        as_provided_mm2
+        if as_provided_mm2 is not None
+        else geometry.provided_tensile_area_mm2
+    )
+
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "bw_mm": geometry.bw_mm,
+        "h_mm": geometry.h_mm,
+        "d_effective_mm": geometry.d_effective_mm,
+        "section_type": geometry.section_type.value,
+        "flange_condition": geometry.flange_condition.value,
+        "fc_prime_mpa": concrete.fc_prime_mpa,
+        "fy_mpa": rebar.fy_mpa,
+        "as_provided_mm2": resolved_as_provided,
+        "as_compression_mm2": as_compression_mm2,
+        "mu_nmm": mu_nmm,
+    }
+
+    # 1. Jurisdiction check
+    if jurisdiction_mode != JurisdictionMode.MABHAS_9_COMPLIANCE:
+        jur_diag = EngineeringDiagnostic(
+            code="JURISDICTION_MISMATCH_BLOCKED",
+            severity=DiagnosticSeverity.BLOCK,
+            message=(
+                f"Rule '{rule_id}' belongs to jurisdiction "
+                f"'{JurisdictionMode.MABHAS_9_COMPLIANCE.value}' and cannot execute "
+                f"in '{jurisdiction_mode.value}'."
+            ),
+            rule_id=rule_id,
+        )
+        return CalculationTraceStep.from_rule(
+            RULE_BG_MABHAS9_FLEX_CAP_BLOCKED,
+            normalized_inputs=raw_inputs,
+            intermediate_values={},
+            final_result=None,
+            unit="N*mm",
+            outcome=EvaluationOutcome.JURISDICTION_BLOCKED,
+            diagnostics=(jur_diag,),
+            message=jur_diag.message,
+        )
+
+    # 2. Deterministic physical input & effective-depth validation
+    diagnostics: List[EngineeringDiagnostic] = []
+    diagnostics.extend(
+        validate_beam_geometry(geometry, require_effective_depth=False, rule_id=rule_id)
+    )
+    diagnostics.extend(validate_concrete_material(concrete, rule_id=rule_id))
+    diagnostics.extend(
+        validate_rebar_material(
+            rebar,
+            enforce_mabhas9_flex_min_fy_limit=False,
+            rule_id=rule_id,
+        )
+    )
+
+    if as_provided_mm2 is not None and (
+        not math.isfinite(as_provided_mm2) or as_provided_mm2 <= 0.0
+    ):
+        diagnostics.append(
+            EngineeringDiagnostic(
+                code="INVALID_AS_PROVIDED",
+                severity=DiagnosticSeverity.ERROR,
+                message=f"as_provided_mm2 must be finite and > 0 mm^2, got {as_provided_mm2}.",
+                rule_id=rule_id,
+                field_name="as_provided_mm2",
+            )
+        )
+    elif require_design_inputs and resolved_as_provided is None:
+        diagnostics.append(
+            EngineeringDiagnostic(
+                code="MISSING_PROVIDED_TENSILE_REINFORCEMENT",
+                severity=DiagnosticSeverity.ERROR,
+                message=(
+                    "Provided tensile reinforcement area (as_provided_mm2 or "
+                    "geometry.tension_rebar_groups) is required for flexural resistance evaluation."
+                ),
+                rule_id=rule_id,
+                field_name="as_provided_mm2",
+            )
+        )
+
+    if as_compression_mm2 is not None and (
+        not math.isfinite(as_compression_mm2) or as_compression_mm2 < 0.0
+    ):
+        diagnostics.append(
+            EngineeringDiagnostic(
+                code="INVALID_AS_COMPRESSION",
+                severity=DiagnosticSeverity.ERROR,
+                message=(
+                    f"as_compression_mm2 must be finite and >= 0 mm^2 when supplied, "
+                    f"got {as_compression_mm2}."
+                ),
+                rule_id=rule_id,
+                field_name="as_compression_mm2",
+            )
+        )
+
+    if mu_nmm is not None and (not math.isfinite(mu_nmm) or mu_nmm < 0.0):
+        diagnostics.append(
+            EngineeringDiagnostic(
+                code="INVALID_FACTORED_MOMENT_MU",
+                severity=DiagnosticSeverity.ERROR,
+                message=f"Factored moment mu_nmm must be finite and >= 0 N*mm, got {mu_nmm}.",
+                rule_id=rule_id,
+                field_name="mu_nmm",
+            )
+        )
+    elif require_design_inputs and mu_nmm is None:
+        diagnostics.append(
+            EngineeringDiagnostic(
+                code="MISSING_FACTORED_MOMENT_MU",
+                severity=DiagnosticSeverity.ERROR,
+                message="Factored moment mu_nmm (>= 0 N*mm) is required for flexural resistance evaluation.",
+                rule_id=rule_id,
+                field_name="mu_nmm",
+            )
+        )
+
+    if diagnostics:
+        return CalculationTraceStep.from_rule(
+            RULE_BG_MABHAS9_FLEX_CAP_BLOCKED,
+            normalized_inputs=raw_inputs,
+            intermediate_values={},
+            final_result=None,
+            unit="N*mm",
+            outcome=EvaluationOutcome.INVALID_INPUT,
+            diagnostics=diagnostics,
+            message=diagnostics[0].message,
+        )
+
+    d_res = resolve_effective_depth(geometry, rule_id=rule_id)
+    if not d_res.is_valid or d_res.d_mm is None:
+        return CalculationTraceStep.from_rule(
+            RULE_BG_MABHAS9_FLEX_CAP_BLOCKED,
+            normalized_inputs=raw_inputs,
+            intermediate_values={},
+            final_result=None,
+            unit="N*mm",
+            outcome=EvaluationOutcome.INVALID_INPUT,
+            diagnostics=d_res.diagnostics,
+            message=(
+                d_res.diagnostics[0].message
+                if d_res.diagnostics
+                else "Failed to resolve effective depth d for flexural resistance check."
+            ),
+        )
+
+    raw_inputs["d_effective_mm"] = d_res.d_mm
+    raw_inputs["d_resolution_source"] = d_res.source
+
+    # 3. Configuration gate: T- and L-sections must never silently fall back to rectangular
+    if geometry.section_type in (SectionType.T_SECTION, SectionType.L_SECTION):
+        flanged_diag = EngineeringDiagnostic(
+            code="FLANGED_SECTION_FLEXURAL_RESISTANCE_UNVERIFIED",
+            severity=DiagnosticSeverity.BLOCK,
+            message=(
+                f"Flexural resistance is blocked for {geometry.section_type.value} "
+                f"({RULE_BG_FLEX_FLANGE_WIDTH_PENDING.rule_id}): Mabhas 9 effective flange "
+                "width and flanged section flexural capacity rules are not yet visually "
+                "verified in docs/VERIFIED_RULES.md. Silent fallback to rectangular "
+                "behavior is prohibited."
+            ),
+            rule_id=rule_id,
+            field_name="section_type",
+            required_verification=(
+                "Visually verify Mabhas 9 T- and L-beam effective flange width and "
+                "flanged flexural resistance clauses and register in docs/VERIFIED_RULES.md."
+            ),
+        )
+        return CalculationTraceStep.from_rule(
+            RULE_BG_MABHAS9_FLEX_CAP_BLOCKED,
+            normalized_inputs=raw_inputs,
+            intermediate_values={"d_effective_mm": d_res.d_mm},
+            final_result=None,
+            unit="N*mm",
+            outcome=EvaluationOutcome.UNVERIFIED_RULE_BLOCKED,
+            diagnostics=(flanged_diag,),
+            message=flanged_diag.message,
+        )
+
+    # 4. Configuration gate: Doubly reinforced sections must never silently ignore As'
+    if as_compression_mm2 is not None and as_compression_mm2 > 0.0:
+        doubly_diag = EngineeringDiagnostic(
+            code="DOUBLY_REINFORCED_FLEXURAL_RESISTANCE_UNVERIFIED",
+            severity=DiagnosticSeverity.BLOCK,
+            message=(
+                f"Flexural resistance is blocked for doubly reinforced section with "
+                f"as_compression_mm2 = {as_compression_mm2} mm^2 "
+                f"({RULE_BG_FLEX_DOUBLY_REINF_PENDING.rule_id}): Mabhas 9 compression "
+                "reinforcement flexural capacity rules are not yet visually verified in "
+                "docs/VERIFIED_RULES.md."
+            ),
+            rule_id=rule_id,
+            field_name="as_compression_mm2",
+            required_verification=(
+                "Visually verify Mabhas 9 doubly reinforced beam flexural capacity "
+                "clauses and register in docs/VERIFIED_RULES.md."
+            ),
+        )
+        return CalculationTraceStep.from_rule(
+            RULE_BG_MABHAS9_FLEX_CAP_BLOCKED,
+            normalized_inputs=raw_inputs,
+            intermediate_values={
+                "d_effective_mm": d_res.d_mm,
+                "as_compression_mm2": as_compression_mm2,
+            },
+            final_result=None,
+            unit="N*mm",
+            outcome=EvaluationOutcome.UNVERIFIED_RULE_BLOCKED,
+            diagnostics=(doubly_diag,),
+            message=doubly_diag.message,
+        )
+
+    # 5. Singly reinforced rectangular beam: evaluate central verification gate
     return build_blocked_workflow_trace(
-        RULE_BG_MABHAS9_FLEX_CAP_BLOCKED.rule_id,
+        rule_id,
         active_jurisdiction=jurisdiction_mode,
-        normalized_inputs={
-            "bw_mm": geometry.bw_mm,
-            "h_mm": geometry.h_mm,
-            "d_effective_mm": geometry.d_effective_mm,
-            "fc_prime_mpa": concrete.fc_prime_mpa,
-            "fy_mpa": rebar.fy_mpa,
-            "mu_nmm": mu_nmm,
-        },
+        normalized_inputs=raw_inputs,
         additional_context=(
             "Mabhas 9 flexural capacity calculation cannot execute until Mabhas 9 "
-            "flexural resistance rules are verified and added to docs/VERIFIED_RULES.md."
+            "flexural resistance rules (BG-FLEX-STRESS-BLOCK-PENDING, "
+            "BG-FLEX-PHI-FACTOR-PENDING, BG-FLEX-STRAIN-LIMIT-PENDING) are visually "
+            "verified from the Mabhas 9 source PDF and added to docs/VERIFIED_RULES.md."
         ),
+        unit="N*mm",
+    )
+
+
+def run_mabhas9_flexural_workflow(
+    geometry: BeamGeometry,
+    concrete: ConcreteMaterial,
+    rebar: RebarMaterial,
+    *,
+    as_provided_mm2: Optional[float] = None,
+    mu_nmm: Optional[float] = None,
+    as_required_by_analysis_mm2: Optional[float] = None,
+    as_compression_mm2: Optional[float] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> BeamComplianceReport:
+    """Run the deterministic Mabhas 9 flexural evaluation workflow (Phase 2B).
+
+    Executes:
+    1. Verified `BG-FLEX-MIN-001` (`evaluate_minimum_flexural_reinforcement`)
+    2. Flexural capacity evaluation (`evaluate_mabhas9_flexural_capacity` with
+       `require_design_inputs=True`)
+
+    Aggregates both trace steps under the Anti-Misleading-PASS dominance hierarchy
+    (`INVALID_INPUT > FAIL > BLOCKED > PARTIAL > PASS`). Never returns `PASS` when
+    flexural capacity rules are `UNVERIFIED_RULE_BLOCKED`.
+    """
+    min_step = evaluate_minimum_flexural_reinforcement(
+        geometry,
+        concrete,
+        rebar,
+        as_provided_mm2=as_provided_mm2,
+        as_required_by_analysis_mm2=as_required_by_analysis_mm2,
+        require_provided_rebar=True,
+        jurisdiction_mode=jurisdiction_mode,
+    )
+    cap_step = evaluate_mabhas9_flexural_capacity(
+        geometry,
+        concrete,
+        rebar,
+        mu_nmm=mu_nmm,
+        as_provided_mm2=as_provided_mm2,
+        as_compression_mm2=as_compression_mm2,
+        require_design_inputs=True,
+        jurisdiction_mode=jurisdiction_mode,
+    )
+
+    steps = (min_step, cap_step)
+    diagnostics = (*min_step.diagnostics, *cap_step.diagnostics)
+    outcomes_by_rule: Dict[str, EvaluationOutcome] = {}
+    for step in steps:
+        if step.rule_id in outcomes_by_rule:
+            outcomes_by_rule[step.rule_id] = select_dominant_outcome(
+                outcomes_by_rule[step.rule_id], step.outcome
+            )
+        else:
+            outcomes_by_rule[step.rule_id] = step.outcome
+
+    outcomes_set = {step.outcome for step in steps}
+    if EvaluationOutcome.INVALID_INPUT in outcomes_set:
+        overall_status = OverallComplianceStatus.INVALID_INPUT
+    elif EvaluationOutcome.FAIL in outcomes_set:
+        overall_status = OverallComplianceStatus.FAIL
+    elif (
+        EvaluationOutcome.UNVERIFIED_RULE_BLOCKED in outcomes_set
+        or EvaluationOutcome.JURISDICTION_BLOCKED in outcomes_set
+    ):
+        overall_status = OverallComplianceStatus.BLOCKED
+    elif (
+        EvaluationOutcome.COMPUTED in outcomes_set
+        or EvaluationOutcome.NOT_APPLICABLE in outcomes_set
+    ):
+        overall_status = OverallComplianceStatus.PARTIAL
+    else:
+        overall_status = OverallComplianceStatus.PASS
+
+    return BeamComplianceReport(
+        overall_status=overall_status,
+        jurisdiction_mode=jurisdiction_mode,
+        trace_steps=steps,
+        diagnostics=diagnostics,
+        outcomes_by_rule=outcomes_by_rule,
     )

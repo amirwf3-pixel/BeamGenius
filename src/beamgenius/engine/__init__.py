@@ -28,6 +28,7 @@ from beamgenius.engine.flexure_mabhas9 import (
     BG_FLEX_MIN_001_WAIVER_FACTOR,
     evaluate_mabhas9_flexural_capacity,
     evaluate_minimum_flexural_reinforcement,
+    run_mabhas9_flexural_workflow,
 )
 from beamgenius.engine.shear_mabhas9 import (
     BG_SHEAR_MIN_001_CONST_STRESS_MPA,
@@ -104,4 +105,5 @@ __all__ = [
     "evaluate_table_9_11_2_remaining_exceptions",
     "evaluate_torsion",
     "run_mabhas9_beam_check",
+    "run_mabhas9_flexural_workflow",
 ]

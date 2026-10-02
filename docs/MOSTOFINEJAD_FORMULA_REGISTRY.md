@@ -440,6 +440,34 @@ this registry alone:
 5.  Source-specific reinforcement limits
 6.  Source-specific cover/detailing requirements
 7.  Practical heuristics as mandatory constraints
+8.  Chapter 7 shear equations (7-21-a through 7-36) prior to visual source-page verification and Mabhas 9 reconciliation
+
+------------------------------------------------------------------------
+
+# Chapter 7 Shear Methodology Candidates (Pending Source-Page Verification & Mabhas 9 Reconciliation)
+
+The following Mostofinejad Vol. 1 Chapter 7 equations have been identified for Phase 2 investigation. None of these equations may be copied into `src/beamgenius/engine/shear_mabhas9.py` or executed in production (`MABHAS_9_COMPLIANCE`). Even in `src/beamgenius/reference/`, each equation remains `UNRESOLVED` / `CODE_REVIEW_REQUIRED` until its exact Chapter 7 PDF page, printed page, and symbolic formula are visually verified against the Mostofinejad Vol. 1 source pages.
+
+| Registry ID | Source Equation | Chapter | Status | Permitted Use |
+| :--- | :--- | :--- | :--- | :--- |
+| `BG-MOST-7-21A` | Eq. (7-21-a) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-21B` | Eq. (7-21-b) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-21C` | Eq. (7-21-c) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-22` | Eq. (7-22) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-23` | Eq. (7-23) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-24` | Eq. (7-24) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-25` | Eq. (7-25) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-26` | Eq. (7-26) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-27` | Eq. (7-27) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-28` | Eq. (7-28) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-29` | Eq. (7-29) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-30` | Eq. (7-30) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-31` | Eq. (7-31) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-32` | Eq. (7-32) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-33` | Eq. (7-33) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-34` | Eq. (7-34) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-35` | Eq. (7-35) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
+| `BG-MOST-7-36` | Eq. (7-36) | Ch. 7 (Shear) | `UNRESOLVED` / `CODE_REVIEW_REQUIRED` | Blocked pending visual source page verification & Mabhas 9 reconciliation |
 
 ------------------------------------------------------------------------
 
