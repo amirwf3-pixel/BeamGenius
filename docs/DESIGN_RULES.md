@@ -2,17 +2,37 @@
 
 
 
-## Governing Code
+## Source Hierarchy
 
+### Primary Engineering Reference
+**Davood Mostofinejad — Reinforced Concrete Structures, Vol. 1**
 
+Use as the primary engineering source for:
+- Design formulas
+- Calculation logic and methodology
+- Design procedures
+- Worked examples
+- Engineering interpretation of reinforced-concrete beam behavior
 
-- Iranian National Building Regulations
+### Governing Code
+**Iranian National Building Regulations — Mabhas 9**
 
-- Mabhas 9 — Design and Construction of Reinforced Concrete Buildings
+Use for:
+- Mandatory code requirements
+- Limits and restrictions
+- Detailing requirements
+- Required checks and compliance conditions
+- Code-specific applicability conditions
 
-- Governing edition: 1399 / v5.0
+### Conflict Rule
+If an engineering method or interpretation from the reference conflicts with an explicit requirement of Mabhas 9, **Mabhas 9 governs**.
 
-
+### Source Integrity
+- Every executable engineering rule must have a traceable source.
+- OCR text is evidence for locating source material, not an authoritative engineering source by itself.
+- No unverified OCR value may become an executable engineering rule.
+- Numerical formulas and design logic must be verified against Mostofinejad Vol. 1 before implementation.
+- Code limits and detailing requirements must be verified against Mabhas 9.
 
 ## Rule Status
 
@@ -259,6 +279,7 @@ The following shall NOT be implemented as executable engineering rules until sou
 No unverified OCR value shall be used as an engineering calculation rule.
 
 '@ | Set-Content "D:\\BeamGenius\\project\\docs\\DESIGN\_RULES.md" -Encoding UTF8
+
 
 
 
