@@ -98,6 +98,12 @@ class BeamGeometry:
         clear_cover_mm: Concrete clear cover to stirrups/outer bars in mm.
         stirrup_diameter_mm: Stirrup bar diameter in mm used for geometry calculation.
         layer_clear_spacing_mm: Vertical clear spacing between rebar layers in mm.
+        clear_web_spacing_sw_mm: Clear distance between adjacent webs sw in mm
+            (for T/L effective flange width per Mabhas 9 Table 9-6-1).
+        clear_span_ln_mm: Beam clear span ln in mm (for T/L effective flange width
+            per Mabhas 9 Table 9-6-1).
+        is_isolated_t_beam: True if the section is an isolated T-beam governed by
+            Mabhas 9 Clause 9-6-3-3-2.
     """
 
     bw_mm: float
@@ -113,6 +119,9 @@ class BeamGeometry:
     clear_cover_mm: Optional[float] = None
     stirrup_diameter_mm: Optional[float] = None
     layer_clear_spacing_mm: Optional[float] = None
+    clear_web_spacing_sw_mm: Optional[float] = None
+    clear_span_ln_mm: Optional[float] = None
+    is_isolated_t_beam: bool = False
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "tension_rebar_groups", tuple(self.tension_rebar_groups))

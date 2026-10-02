@@ -57,7 +57,14 @@ def test_all_blocked_mabhas9_workflows_return_unverified_rule_blocked() -> None:
     rebar = RebarMaterial(fy_mpa=400.0)
 
     blocked_steps = [
-        evaluate_mabhas9_flexural_capacity(geom, concrete, rebar, mu_nmm=250e6),
+        evaluate_mabhas9_flexural_capacity(
+            geom,
+            concrete,
+            rebar,
+            as_provided_mm2=1800.0,
+            as_compression_mm2=500.0,
+            mu_nmm=250e6,
+        ),
         evaluate_full_shear_capacity(geom, concrete, rebar, vu_n=180_000.0),
         evaluate_concrete_shear_capacity_vc(geom, concrete),
         evaluate_required_shear_steel_demand_vs(geom, concrete, vu_n=180_000.0),

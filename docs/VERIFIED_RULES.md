@@ -52,6 +52,291 @@ Source page visually verified.
 
 ---
 
+## BG-FLEX-STRESS-BLOCK — Equivalent Rectangular Concrete Compression Stress-Block Parameters
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399)
+PDF Page: 22–23
+Printed Page: 113–114
+Clause: 9-8-2-2-6 / 9-8-2-2-7, Eq. (9-8-2), Eq. (9-8-3-الف), Eq. (9-8-3-ب), Eq. (9-8-4) (with f'c limits per Clause 9-3-3-3)
+
+Formula / Requirement:
+
+1. Equivalent rectangular compression stress block depth:
+   a = β1 × c   [Eq. (9-8-2)]
+
+2. Equivalent stress-block depth factor β1 (Clause 9-8-2-2-6):
+   - For 20 MPa ≤ f'c ≤ 28 MPa:
+     β1 = 0.85   [Eq. (9-8-3-الف)]
+   - For f'c > 28 MPa:
+     β1 = max(0.85 - 0.05 × (f'c - 28) / 7, 0.65)   [Eq. (9-8-3-ب)]
+
+3. Equivalent uniform concrete compressive stress intensity α0 × f'c (Clauses 9-8-2-2-6 and 9-8-2-2-7):
+   - For f'c ≤ 55 MPa:
+     α0 = 0.85   [Clause 9-8-2-2-6]
+   - For f'c > 55 MPa:
+     α0 = max(0.85 - 0.004 × (f'c - 55), 0.75)   [Eq. (9-8-4)]
+
+Applicability:
+
+Non-prestressed reinforced concrete flexural members designed under Mabhas 9 Chapter 9-8 with specified concrete compressive strength 20 MPa ≤ f'c ≤ 70 MPa (Clause 9-3-3-3).
+
+Inputs:
+
+- fc_prime_mpa: specified concrete compressive strength f'c (MPa)
+- c_mm: optional neutral-axis depth c measured from extreme compression fiber (mm)
+
+Units:
+
+- fc_prime_mpa: MPa
+- c_mm, a_mm: mm
+- α0, β1: dimensionless
+
+Exceptions / Blocked Conditions:
+
+- Concrete strengths outside the Mabhas 9 structural concrete range (f'c < 20 MPa or f'c > 70 MPa per Clause 9-3-3-3) are rejected as `INVALID_INPUT` when code bounds are enforced.
+- CSA A23.3-14 stress-block equations (`BG-MOST-5-49`, `BG-MOST-5-50`) belong exclusively to `MOSTOFINEJAD_METHODOLOGY_ONLY` and must never be used in `MABHAS_9_COMPLIANCE`.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, 1399 Edition, Chapter 9-8, PDF Pages 22–23, Printed Pages 113–114, Clauses 9-8-2-2-6 and 9-8-2-2-7).
+
+---
+
+## BG-FLEX-STRAIN-LIMIT — Flexural Strain Compatibility and Tension-Controlled Beam Ductility Limit
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399)
+PDF Page: 16–18, 22, 41
+Printed Page: 107–109, 113, 132
+Clause: 9-8-2-2-2 / 9-8-2-2-3 / 9-7-4-2 / 9-7-4-3 / 9-11-2-3 (with Es = 200,000 MPa per Clause 9-4-8-4 and fy ≤ 550 MPa per Table 9-4-4)
+
+Formula / Requirement:
+
+1. Maximum usable concrete compressive strain at extreme compression fiber (Clause 9-8-2-2-3):
+   εcu = 0.003
+
+2. Linear strain compatibility across section depth (Clause 9-8-2-2-2):
+   εt = εcu × (dt - c) / c = 0.003 × (dt - c) / c
+
+3. Reinforcement tension yield strain (Clause 9-2-2 / Clause 9-7-4-2 / Clause 9-4-8-4):
+   εty = fy / Es, where Es = 200,000 MPa
+
+4. Tension-controlled section limit and mandatory beam ductility requirement (Clause 9-7-4-2, Table 9-7-2, and Clause 9-11-2-3):
+   For non-prestressed beams with factored axial load Pu < 0.10 × f'c × Ag, the section at nominal flexural strength shall be tension-controlled:
+   εt ≥ εty + 0.003
+   Equivalently in terms of neutral-axis ratio:
+   c / dt ≤ 0.003 / (εty + 0.006)
+
+Applicability:
+
+Non-prestressed reinforced concrete beams with Pu < 0.10 × f'c × Ag and longitudinal flexural reinforcement yield strength fy ≤ 550 MPa (Table 9-4-4).
+
+Inputs:
+
+- c_mm: neutral-axis depth from extreme compression fiber (mm)
+- dt_mm: distance from extreme compression fiber to extreme tension steel (mm)
+- fy_mpa: specified longitudinal reinforcement yield strength fy (MPa)
+- es_mpa: reinforcement modulus of elasticity Es (MPa, default 200,000 MPa)
+
+Units:
+
+- c_mm, dt_mm: mm
+- fy_mpa, es_mpa: MPa
+- εcu, εty, εt, c/dt: dimensionless
+
+Exceptions / Blocked Conditions:
+
+- Sections with εt < εty + 0.003 (i.e., transition-zone or compression-controlled sections) do not satisfy Clause 9-11-2-3 for non-prestressed beams with Pu < 0.10 × f'c × Ag and return `FAIL`.
+- The older ACI/legacy approximation ρmax = 0.75 × ρb is NOT part of Mabhas 9 (1399) and must not be used.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, 1399 Edition, Chapters 9-7, 9-8, and 9-11, PDF Pages 16–18, 22, 41, Printed Pages 107–109, 113, 132).
+
+---
+
+## BG-FLEX-PHI-FACTOR — Flexural Strength Reduction Factor φ
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399)
+PDF Page: 16–18
+Printed Page: 107–109
+Clause: 9-7-4-1 / 9-7-4-2 / 9-7-4-3 / 9-7-4-4, Table 9-7-2, Eq. (9-7-10-الف), Eq. (9-7-10-ب)
+
+Formula / Requirement:
+
+For members subject to moment, axial force, or combined moment and axial force (Table 9-7-2, Item 1):
+
+1. Tension-controlled sections (Clause 9-7-4-2, εt ≥ εty + 0.003):
+   φ = 0.90
+
+2. Compression-controlled sections (Clause 9-7-4-3, εt ≤ εty):
+   - Members with spiral reinforcement: φ = 0.75
+   - Other members (tied beams/columns): φ = 0.65
+
+3. Transition-zone sections (Clause 9-7-4-4, εty < εt < εty + 0.003):
+   - Members with spiral reinforcement [Eq. (9-7-10-الف)]:
+     φ = 0.75 + 0.15 × (εt - εty) / 0.003
+   - Other members (tied beams) [Eq. (9-7-10-ب)]:
+     φ = 0.65 + 0.25 × (εt - εty) / 0.003
+
+Applicability:
+
+Reinforced concrete sections under flexure or combined flexure and axial load governed by Mabhas 9 Chapter 9-7.
+
+Inputs:
+
+- epsilon_t: net tensile strain in extreme tension steel at nominal strength εt (dimensionless)
+- fy_mpa: specified longitudinal reinforcement yield strength fy (MPa)
+- es_mpa: reinforcement modulus of elasticity Es (MPa, default 200,000 MPa)
+- is_spiral_transverse: boolean indicating spiral confinement (default False for tied beams)
+
+Units:
+
+- epsilon_t, εty, φ: dimensionless
+- fy_mpa, es_mpa: MPa
+
+Exceptions / Blocked Conditions:
+
+- While Table 9-7-2 and Eqs. (9-7-10-الف)/(9-7-10-ب) define φ across all three strain regimes, Clause 9-11-2-3 requires non-prestressed beams with Pu < 0.10 × f'c × Ag to be tension-controlled (εt ≥ εty + 0.003, where φ = 0.90).
+
+Verification Method:
+
+Actual source page review (Mabhas 9, 1399 Edition, Chapter 9-7, PDF Pages 16–18, Printed Pages 107–109, Table 9-7-2 and Clauses 9-7-4-1 through 9-7-4-4).
+
+---
+
+## BG-FLEX-RECT-SINGLY-001 — Rectangular Singly-Reinforced Beam Flexural Resistance
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399)
+PDF Page: 16–18, 21–23, 41
+Printed Page: 107–109, 112–114, 132
+Clause: 9-8-1-4 Eq. (9-8-1-الف), 9-8-2-1-1, 9-8-2-2-1 through 9-8-2-2-8, 9-7-4-2, Table 9-7-2, 9-11-2-3, 9-3-3-3, 9-4-8-3 through 9-4-8-5, Table 9-4-4
+
+Formula / Requirement:
+
+For a rectangular singly-reinforced non-prestressed beam section of width b = bw and effective depth d with tensile reinforcement area As:
+
+1. Stress-block parameters (`BG-FLEX-STRESS-BLOCK`):
+   - α0 = 0.85 for f'c ≤ 55 MPa; α0 = max(0.85 - 0.004 × (f'c - 55), 0.75) for f'c > 55 MPa
+   - β1 = 0.85 for f'c ≤ 28 MPa; β1 = max(0.85 - 0.05 × (f'c - 28) / 7, 0.65) for f'c > 28 MPa
+
+2. Equilibrium and strain compatibility (`BG-FLEX-STRAIN-LIMIT`):
+   - For yielding tension reinforcement (εt ≥ εty = fy / Es):
+     a = (As × fy) / (α0 × f'c × bw)
+     c = a / β1
+     εt = 0.003 × (dt - c) / c
+     fs = fy
+   - Maximum tension-controlled reinforcement limit per Clause 9-11-2-3 (εt ≥ εty + 0.003):
+     c_max,tc = (0.003 / (εty + 0.006)) × dt
+     a_max,tc = β1 × c_max,tc
+     As,max,tc = (α0 × f'c × bw × a_max,tc) / fy
+     ρ_max,tc = As,max,tc / (bw × d)
+
+3. Nominal and design flexural resistance (`BG-FLEX-PHI-FACTOR` and Clause 9-8-1-4):
+   Mn = As × fs × (d - a / 2)
+   φMn = φ × Mn ≥ Mu   [Eq. (9-8-1-الف)]
+   with φ = 0.90 in the required tension-controlled regime (εt ≥ εty + 0.003).
+
+Applicability:
+
+Singly-reinforced rectangular non-prestressed concrete beams (Pu < 0.10 × f'c × Ag) with 20 MPa ≤ f'c ≤ 70 MPa and fy ≤ 550 MPa.
+
+Inputs:
+
+- bw_mm: rectangular beam width bw (mm)
+- h_mm: total section depth h (mm)
+- d_effective_mm: effective depth d from extreme compression fiber to centroid of tension reinforcement (mm), resolved via Phase 1 effective-depth precedence
+- fc_prime_mpa: specified concrete compressive strength f'c (MPa)
+- fy_mpa: specified longitudinal reinforcement yield strength fy (MPa)
+- es_mpa: modulus of elasticity Es (MPa, default 200,000 MPa)
+- as_provided_mm2: provided tensile reinforcement area As (mm²)
+- mu_nmm: optional factored bending moment demand Mu (N·mm)
+
+Units:
+
+- bw_mm, h_mm, d_effective_mm, dt_mm, a_mm, c_mm: mm
+- as_provided_mm2, as_max_tc_mm2: mm²
+- fc_prime_mpa, fy_mpa, es_mpa, fs_mpa: MPa
+- mn_nmm, phi_mn_nmm, mu_nmm: N·mm
+
+Exceptions / Blocked Conditions:
+
+- Doubly-reinforced sections with compression reinforcement (`as_compression_mm2 > 0`) are NOT covered by this rule and MUST return `UNVERIFIED_RULE_BLOCKED` (`BG-FLEX-RECT-DOUBLY-001`).
+- T-beam and L-beam sections (`SectionType.T_SECTION`, `SectionType.L_SECTION`) MUST NOT silently fall back to rectangular flexural capacity and MUST return `UNVERIFIED_RULE_BLOCKED` (`BG-FLEX-TBEAM-CAP-001`, `BG-FLEX-LBEAM-CAP-001`).
+- Never uses Mostofinejad initial depth estimates `d ≈ h - 65` or `d ≈ h - 90`.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, 1399 Edition, Chapters 9-3, 9-4, 9-7, 9-8, and 9-11, PDF Pages 16–18, 21–23, 41, Printed Pages 107–109, 112–114, 132).
+
+---
+
+## BG-FLEX-TBEAM-B-EFF-001 — Non-Prestressed T-Beam and L-Beam Effective Compression Flange Width
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399)
+PDF Page: 12–13, 41
+Printed Page: 103–104, 132
+Clause: 9-6-3-3-1, Table 9-6-1, 9-6-3-3-2, and 9-11-2-5
+
+Formula / Requirement:
+
+1. Non-prestressed T-beams and L-beams integral with slab (Clause 9-6-3-3-1, Table 9-6-1, and Clause 9-11-2-5):
+   - Flange on both sides of web (T-section, `SectionType.T_SECTION`):
+     Effective overhanging flange width on each side of the web shall not exceed:
+     b_overhang,each ≤ min(8 × hf, sw / 2, ln / 8)
+     Total effective compression flange width:
+     bf ≤ bw + 2 × min(8 × hf, sw / 2, ln / 8)
+   - Flange on one side of web only (L-section, `SectionType.L_SECTION`):
+     Effective overhanging flange width from the web face shall not exceed:
+     b_overhang ≤ min(6 × hf, sw / 2, ln / 12)
+     Total effective compression flange width:
+     bf ≤ bw + min(6 × hf, sw / 2, ln / 12)
+
+2. Isolated non-prestressed T-beams (Clause 9-6-3-3-2):
+   Where an isolated T-beam shape is used to provide additional compression area:
+   - Flange thickness: hf ≥ 0.5 × bw
+   - Effective flange width: bf ≤ 4 × bw
+
+Applicability:
+
+Non-prestressed T-beams and L-beams with the flange in compression (`FlangeCondition.FLANGE_IN_COMPRESSION`).
+
+Inputs:
+
+- section_type: `T_SECTION` or `L_SECTION`
+- flange_condition: `FLANGE_IN_COMPRESSION`
+- bw_mm: web width bw (mm)
+- h_mm: total beam depth h (mm)
+- tf_mm: slab/flange thickness hf (mm, denoted h in Table 9-6-1)
+- clear_web_spacing_sw_mm: clear distance between adjacent webs sw (mm, for slab-integral T/L beams)
+- clear_span_ln_mm: clear beam span ln (mm, for slab-integral T/L beams)
+- is_isolated_t_beam: boolean (True for isolated T-beams governed by Clause 9-6-3-3-2)
+- bf_provided_mm: optional provided/assumed flange width bf (mm) checked against the code limit
+
+Units:
+
+- bw_mm, h_mm, tf_mm, clear_web_spacing_sw_mm, clear_span_ln_mm, bf_provided_mm, bf_limit_mm: mm
+
+Exceptions / Blocked Conditions:
+
+- T- and L-sections with the flange in tension (`FlangeCondition.FLANGE_IN_TENSION`) are NOT governed by Table 9-6-1 compression flange limits and remain `UNVERIFIED_RULE_BLOCKED`.
+- Verification of effective compression flange width `bf` (`BG-FLEX-TBEAM-B-EFF-001`) does NOT unlock full T-beam or L-beam flexural capacity (`BG-FLEX-TBEAM-CAP-001`, `BG-FLEX-LBEAM-CAP-001`), which remain `VERIFY_PENDING` and `UNVERIFIED_RULE_BLOCKED`.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, 1399 Edition, Chapters 9-6 and 9-11, PDF Pages 12–13 and 41, Printed Pages 103–104 and 132, Clauses 9-6-3-3-1, 9-6-3-3-2, Table 9-6-1, and Clause 9-11-2-5).
+
+---
+
 # Shear
 
 ## BG-SHEAR-MIN-001 — Minimum Shear Reinforcement

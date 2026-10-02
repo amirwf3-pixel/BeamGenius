@@ -41,6 +41,141 @@ RULE_BG_FLEX_MIN_001 = RuleReference(
     dependencies=(),
 )
 
+RULE_BG_FLEX_STRESS_BLOCK = RuleReference(
+    rule_id="BG-FLEX-STRESS-BLOCK",
+    title="Mabhas 9 Equivalent Rectangular Concrete Compression Stress-Block Parameters",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=22,
+    printed_page=113,
+    clause_or_equation=(
+        "Clauses 9-8-2-2-6 & 9-8-2-2-7, Eq. (9-8-2), Eq. (9-8-3-الف), "
+        "Eq. (9-8-3-ب), Eq. (9-8-4) (f'c limits: Clause 9-3-3-3)"
+    ),
+    symbolic_formula=(
+        "a = beta_1 * c; beta_1 = 0.85 (f'c <= 28) else max(0.85 - 0.05*(f'c - 28)/7, 0.65); "
+        "alpha_0 = 0.85 (f'c <= 55) else max(0.85 - 0.004*(f'c - 55), 0.75)"
+    ),
+    description=(
+        "Equivalent rectangular concrete compression stress-block intensity factor "
+        "alpha_0 and depth factor beta_1 under Mabhas 9 (1399) Chapter 9-8."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_FLEX_STRAIN_LIMIT = RuleReference(
+    rule_id="BG-FLEX-STRAIN-LIMIT",
+    title="Mabhas 9 Flexural Strain Compatibility and Tension-Controlled Beam Ductility Limit",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=22,
+    printed_page=113,
+    clause_or_equation=(
+        "Clauses 9-8-2-2-2, 9-8-2-2-3, 9-7-4-2, 9-11-2-3 "
+        "(Es = 200,000 MPa per 9-4-8-4; fy <= 550 MPa per Table 9-4-4)"
+    ),
+    symbolic_formula=(
+        "epsilon_cu = 0.003; epsilon_ty = fy / Es; "
+        "epsilon_t = 0.003 * (dt - c) / c >= epsilon_ty + 0.003 "
+        "(c / dt <= 0.003 / (epsilon_ty + 0.006))"
+    ),
+    description=(
+        "Linear strain compatibility at ultimate concrete strain epsilon_cu = 0.003 "
+        "and mandatory tension-controlled ductility limit (epsilon_t >= epsilon_ty + 0.003) "
+        "for non-prestressed beams with Pu < 0.10 * f'c * Ag."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_FLEX_PHI_FACTOR = RuleReference(
+    rule_id="BG-FLEX-PHI-FACTOR",
+    title="Mabhas 9 Flexural Strength Reduction Factor phi",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=16,
+    printed_page=107,
+    clause_or_equation=(
+        "Clauses 9-7-4-1 through 9-7-4-4, Table 9-7-2, "
+        "Eq. (9-7-10-الف), Eq. (9-7-10-ب)"
+    ),
+    symbolic_formula=(
+        "phi = 0.90 (epsilon_t >= epsilon_ty + 0.003); "
+        "phi = 0.75 spiral / 0.65 other (epsilon_t <= epsilon_ty); "
+        "linear transition Eq. (9-7-10-الف)/(9-7-10-ب) for epsilon_ty < epsilon_t < epsilon_ty + 0.003"
+    ),
+    description=(
+        "Strength reduction factor phi for flexure and axial force as a function "
+        "of extreme net tensile strain epsilon_t and yield strain epsilon_ty."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_FLEX_RECT_SINGLY_001 = RuleReference(
+    rule_id="BG-FLEX-RECT-SINGLY-001",
+    title="Mabhas 9 Rectangular Singly-Reinforced Beam Flexural Resistance",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=22,
+    printed_page=113,
+    clause_or_equation=(
+        "Clauses 9-8-1-4 Eq. (9-8-1-الف), 9-8-2-1-1, 9-8-2-2-1 through 9-8-2-2-8, "
+        "9-7-4-2, Table 9-7-2, 9-11-2-3, 9-3-3-3, Table 9-4-4"
+    ),
+    symbolic_formula=(
+        "a = (As * fy) / (alpha_0 * f'c * bw); c = a / beta_1; "
+        "Mn = As * fy * (d - a / 2); phi * Mn >= Mu (with epsilon_t >= epsilon_ty + 0.003, phi = 0.90)"
+    ),
+    description=(
+        "Nominal and design flexural capacity (Mn, phi*Mn >= Mu) and tension-controlled "
+        "ductility check for rectangular singly-reinforced non-prestressed concrete beams."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(
+        "BG-FLEX-STRESS-BLOCK",
+        "BG-FLEX-STRAIN-LIMIT",
+        "BG-FLEX-PHI-FACTOR",
+    ),
+)
+
+RULE_BG_FLEX_TBEAM_B_EFF_001 = RuleReference(
+    rule_id="BG-FLEX-TBEAM-B-EFF-001",
+    title="Mabhas 9 Non-Prestressed T-Beam and L-Beam Effective Compression Flange Width",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=12,
+    printed_page=103,
+    clause_or_equation="Clauses 9-6-3-3-1, Table 9-6-1, 9-6-3-3-2, and 9-11-2-5",
+    symbolic_formula=(
+        "T-beam: bf <= bw + 2 * min(8*hf, sw/2, ln/8); "
+        "L-beam: bf <= bw + min(6*hf, sw/2, ln/12); "
+        "Isolated T-beam: hf >= 0.5*bw and bf <= 4*bw"
+    ),
+    description=(
+        "Effective compression flange width bf for non-prestressed T-beams and L-beams "
+        "integral with slabs (Table 9-6-1) and isolated T-beams (Clause 9-6-3-3-2)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
 RULE_BG_SHEAR_MIN_001 = RuleReference(
     rule_id="BG-SHEAR-MIN-001",
     title="Minimum Shear Reinforcement",
@@ -524,6 +659,103 @@ RULE_BG_MOST_5_62 = RuleReference(
 # ============================================================================
 # 4. BLOCKED UNVERIFIED MABHAS 9 & CHAPTER 7 WORKFLOWS
 # ============================================================================
+
+RULE_BG_FLEX_RECT_DOUBLY_001 = RuleReference(
+    rule_id="BG-FLEX-RECT-DOUBLY-001",
+    title="Mabhas 9 Doubly-Reinforced Rectangular Beam Flexural Resistance",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=22,
+    printed_page=113,
+    clause_or_equation=(
+        "Clause 9-8-2-2 (general principles only; procedural doubly-reinforced "
+        "decomposition VERIFY_PENDING)"
+    ),
+    symbolic_formula="UNAVAILABLE (Pending verification of doubly-reinforced procedural rules)",
+    description=(
+        "Mabhas 9 flexural resistance for rectangular beams with compression "
+        "reinforcement As' > 0 (compression steel strain compatibility, displaced "
+        "concrete treatment, and Mn = Mn1 + Mn2 split)."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Mabhas 9 doubly-reinforced beam procedural equations (compression-steel "
+        "yielding/non-yielding formulation, displaced concrete area treatment, and "
+        "Mn1 + Mn2 split) are not yet verified in docs/VERIFIED_RULES.md."
+    ),
+    dependencies=(
+        "BG-FLEX-STRESS-BLOCK",
+        "BG-FLEX-STRAIN-LIMIT",
+        "BG-FLEX-PHI-FACTOR",
+    ),
+)
+
+RULE_BG_FLEX_TBEAM_CAP_001 = RuleReference(
+    rule_id="BG-FLEX-TBEAM-CAP-001",
+    title="Mabhas 9 T-Beam Flanged Flexural Resistance",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=12,
+    printed_page=103,
+    clause_or_equation=(
+        "Clauses 9-6-3-3-1 & 9-8-2-2 (bf verified in BG-FLEX-TBEAM-B-EFF-001; "
+        "flanged flexural capacity decomposition VERIFY_PENDING)"
+    ),
+    symbolic_formula="UNAVAILABLE (Pending verification of T-beam flanged flexural capacity rules)",
+    description=(
+        "Mabhas 9 flexural resistance for T-beams (neutral axis in flange vs web "
+        "decomposition and flange-in-tension slab reinforcement distribution)."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "While T-beam effective compression flange width bf is verified under "
+        "BG-FLEX-TBEAM-B-EFF-001, full T-beam flanged flexural capacity decomposition "
+        "is not yet verified in docs/VERIFIED_RULES.md; silent rectangular fallback "
+        "is prohibited."
+    ),
+    dependencies=(
+        "BG-FLEX-TBEAM-B-EFF-001",
+        "BG-FLEX-STRESS-BLOCK",
+        "BG-FLEX-STRAIN-LIMIT",
+        "BG-FLEX-PHI-FACTOR",
+    ),
+)
+
+RULE_BG_FLEX_LBEAM_CAP_001 = RuleReference(
+    rule_id="BG-FLEX-LBEAM-CAP-001",
+    title="Mabhas 9 L-Beam Flanged Flexural Resistance",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=12,
+    printed_page=103,
+    clause_or_equation=(
+        "Clauses 9-6-3-3-1 & 9-8-2-2 (bf verified in BG-FLEX-TBEAM-B-EFF-001; "
+        "L-beam flanged flexural capacity decomposition VERIFY_PENDING)"
+    ),
+    symbolic_formula="UNAVAILABLE (Pending verification of L-beam flanged flexural capacity rules)",
+    description=(
+        "Mabhas 9 flexural resistance for L-beams (flange on one side of web)."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "While L-beam effective compression flange width bf is verified under "
+        "BG-FLEX-TBEAM-B-EFF-001, full L-beam flanged flexural capacity decomposition "
+        "is not yet verified in docs/VERIFIED_RULES.md; silent rectangular fallback "
+        "is prohibited."
+    ),
+    dependencies=(
+        "BG-FLEX-TBEAM-B-EFF-001",
+        "BG-FLEX-STRESS-BLOCK",
+        "BG-FLEX-STRAIN-LIMIT",
+        "BG-FLEX-PHI-FACTOR",
+    ),
+)
 
 RULE_BG_FLEX_STRESS_BLOCK_PENDING = RuleReference(
     rule_id="BG-FLEX-STRESS-BLOCK-PENDING",
@@ -1086,6 +1318,11 @@ RULE_BG_TABLE_2_11_99_PENDING = RuleReference(
 _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     # Verified Mabhas 9 rules
     RULE_BG_FLEX_MIN_001,
+    RULE_BG_FLEX_STRESS_BLOCK,
+    RULE_BG_FLEX_STRAIN_LIMIT,
+    RULE_BG_FLEX_PHI_FACTOR,
+    RULE_BG_FLEX_RECT_SINGLY_001,
+    RULE_BG_FLEX_TBEAM_B_EFF_001,
     RULE_BG_SHEAR_MIN_001,
     RULE_BG_SHEAR_SPACING_001,
     # Isolated Mostofinejad reference rules
@@ -1111,6 +1348,9 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_MOST_5_60,
     RULE_BG_MOST_5_62,
     # Blocked Mabhas 9 & Ch. 7 workflows
+    RULE_BG_FLEX_RECT_DOUBLY_001,
+    RULE_BG_FLEX_TBEAM_CAP_001,
+    RULE_BG_FLEX_LBEAM_CAP_001,
     RULE_BG_FLEX_STRESS_BLOCK_PENDING,
     RULE_BG_FLEX_PHI_FACTOR_PENDING,
     RULE_BG_FLEX_STRAIN_LIMIT_PENDING,

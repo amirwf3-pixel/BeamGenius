@@ -28,6 +28,11 @@ Only rules with `Status = VERIFIED` and `Type = CODE_RULE` in `docs/VERIFIED_RUL
 | Rule ID | Title | Mabhas 9 Clause & Page |
 | :--- | :--- | :--- |
 | `BG-FLEX-MIN-001` | Minimum Flexural Reinforcement | Clause 9-11-5-1-1 / 9-11-5-1-2 (Waiver: 9-11-5-1-3), PDF p. 220, Printed p. 199 |
+| `BG-FLEX-STRESS-BLOCK` | Equivalent Rectangular Compression Stress-Block Parameters ($\alpha_0$, $\beta_1$, $a = \beta_1 c$) | Clause 9-8-2-2-6, PDF pp. 22–23, Printed pp. 113–114 |
+| `BG-FLEX-STRAIN-LIMIT` | Flexural Strain Compatibility & Tension-Controlled Beam Ductility Limit ($\varepsilon_{cu} = 0.003$, $\varepsilon_t \ge \varepsilon_{ty} + 0.003$) | Clauses 9-8-2-1-1, 9-8-2-2-3, 9-11-2-3, 9-7-4-2, PDF pp. 16–22, 209 |
+| `BG-FLEX-PHI-FACTOR` | Flexural Strength Reduction Factor $\phi$ | Clause 9-7-4-2..9-7-4-4 & Table 9-7-2, PDF pp. 16–18, Printed pp. 107–109 |
+| `BG-FLEX-RECT-SINGLY-001` | Rectangular Singly-Reinforced Beam Flexural Resistance ($\phi M_n \ge M_u$) | Clauses 9-8-1-4, 9-8-2-2, 9-7-4, 9-11-2-3, PDF pp. 16–23, 209 |
+| `BG-FLEX-TBEAM-B-EFF-001` | Non-Prestressed T-Beam and L-Beam Effective Compression Flange Width ($b_f$) | Clauses 9-6-3-3-1, 9-6-3-3-2, 9-11-2-5 & Table 9-6-1, Printed p. 91 |
 | `BG-SHEAR-MIN-001` | Minimum Shear Reinforcement & Table 9-11-2 Exceptions | Clause 9-11-5-2 & Table 9-11-2, PDF p. 221 |
 | `BG-SHEAR-SPACING-001` | Maximum Stirrup Spacing ($s$ and $s_t$) | Clause 9-11-6-5-3, PDF p. 227 |
 
@@ -39,7 +44,7 @@ Permitted verified equations from `docs/MOSTOFINEJAD_FORMULA_REGISTRY.md` (`BG-M
 
 ## Jurisdiction Modes
 
-- `JurisdictionMode.MABHAS_9_COMPLIANCE`: Production Iranian code compliance mode. Executes only `BG-FLEX-MIN-001`, `BG-SHEAR-MIN-001`, and `BG-SHEAR-SPACING-001`.
+- `JurisdictionMode.MABHAS_9_COMPLIANCE`: Production Iranian code compliance mode. Executes only verified `CODE_RULE`s (`BG-FLEX-MIN-001`, `BG-FLEX-STRESS-BLOCK`, `BG-FLEX-STRAIN-LIMIT`, `BG-FLEX-PHI-FACTOR`, `BG-FLEX-RECT-SINGLY-001`, `BG-FLEX-TBEAM-B-EFF-001`, `BG-SHEAR-MIN-001`, and `BG-SHEAR-SPACING-001`).
 - `JurisdictionMode.MOSTOFINEJAD_METHODOLOGY_ONLY`: Isolated reference methodology mode for textbook verification. Never implies Iranian Mabhas 9 code compliance.
 
 ---
@@ -48,7 +53,7 @@ Permitted verified equations from `docs/MOSTOFINEJAD_FORMULA_REGISTRY.md` (`BG-M
 
 Until primary source pages are visually verified and promoted to `docs/VERIFIED_RULES.md`, the following workflows deterministically return `EvaluationOutcome.UNVERIFIED_RULE_BLOCKED` with full diagnostic trace steps:
 
-- **Mabhas 9 Flexural Capacity / Resistance** (`BG-MABHAS9-FLEX-CAP-BLOCKED`)
+- **Doubly-Reinforced & Flanged (T/L) Flexural Resistance** (`BG-FLEX-RECT-DOUBLY-001`, `BG-FLEX-TBEAM-CAP-001`, `BG-FLEX-LBEAM-CAP-001`, `BG-MABHAS9-FLEX-CAP-BLOCKED`)
 - **Full Shear Capacity Design & Check** (`BG-SHEAR-CAP-BLOCKED`, `BG-SHEAR-VC-BLOCKED`, `BG-SHEAR-VS-DEMAND-BLOCKED`, `BG-SHEAR-VS-MAX-BLOCKED`)
 - **T/L Section Flange-in-Tension Effective Width** (under `BG-FLEX-MIN-001`)
 - **Table 9-11-2 Steel-Fiber RC Exception without Explicit $\phi$** and **One-Way Joist Exception** (under `BG-SHEAR-MIN-001`)

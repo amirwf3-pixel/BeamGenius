@@ -30,6 +30,11 @@ def test_mabhas9_executable_rules_exact_set() -> None:
     executable_ids = tuple(rule.rule_id for rule in list_mabhas9_executable_rules())
     assert executable_ids == (
         "BG-FLEX-MIN-001",
+        "BG-FLEX-STRESS-BLOCK",
+        "BG-FLEX-STRAIN-LIMIT",
+        "BG-FLEX-PHI-FACTOR",
+        "BG-FLEX-RECT-SINGLY-001",
+        "BG-FLEX-TBEAM-B-EFF-001",
         "BG-SHEAR-MIN-001",
         "BG-SHEAR-SPACING-001",
     )
@@ -98,13 +103,43 @@ def test_gatekeeper_mandatory_examples_from_spec() -> None:
         assert dec_52.blocked_outcome == EvaluationOutcome.UNVERIFIED_RULE_BLOCKED
         assert any("BG-MOST-5-51" in d.message for d in dec_52.diagnostics)
 
-    # Example 4: BG-MABHAS9-FLEX-CAP-BLOCKED -> UNVERIFIED_RULE_BLOCKED
-    dec_flex_cap = evaluate_rule_gate(
+    # Example 4: BG-FLEX-RECT-DOUBLY-001, BG-FLEX-TBEAM-CAP-001, BG-FLEX-LBEAM-CAP-001,
+    # and BG-MABHAS9-FLEX-CAP-BLOCKED -> UNVERIFIED_RULE_BLOCKED
+    for blocked_flex_id in (
+        "BG-FLEX-RECT-DOUBLY-001",
+        "BG-FLEX-TBEAM-CAP-001",
+        "BG-FLEX-LBEAM-CAP-001",
         "BG-MABHAS9-FLEX-CAP-BLOCKED",
-        active_jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
-    )
-    assert not dec_flex_cap.allowed
-    assert dec_flex_cap.blocked_outcome == EvaluationOutcome.UNVERIFIED_RULE_BLOCKED
+    ):
+        dec_flex_cap = evaluate_rule_gate(
+            blocked_flex_id,
+            active_jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+        )
+        assert not dec_flex_cap.allowed
+        assert dec_flex_cap.blocked_outcome == EvaluationOutcome.UNVERIFIED_RULE_BLOCKED
+
+    # Example 5: Verified Phase 2B Mabhas 9 flexural rules are allowed in MABHAS_9_COMPLIANCE
+    # and JURISDICTION_BLOCKED in MOSTOFINEJAD_METHODOLOGY_ONLY
+    for verified_flex_id in (
+        "BG-FLEX-STRESS-BLOCK",
+        "BG-FLEX-STRAIN-LIMIT",
+        "BG-FLEX-PHI-FACTOR",
+        "BG-FLEX-RECT-SINGLY-001",
+        "BG-FLEX-TBEAM-B-EFF-001",
+    ):
+        dec_ok = evaluate_rule_gate(
+            verified_flex_id,
+            active_jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+        )
+        assert dec_ok.allowed
+        assert dec_ok.blocked_outcome is None
+
+        dec_jur = evaluate_rule_gate(
+            verified_flex_id,
+            active_jurisdiction=JurisdictionMode.MOSTOFINEJAD_METHODOLOGY_ONLY,
+        )
+        assert not dec_jur.allowed
+        assert dec_jur.blocked_outcome == EvaluationOutcome.JURISDICTION_BLOCKED
 
 
 @pytest.mark.parametrize(

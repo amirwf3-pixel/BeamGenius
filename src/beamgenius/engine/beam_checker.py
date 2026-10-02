@@ -24,7 +24,9 @@ from beamgenius.domain.trace import (
     select_dominant_outcome,
 )
 from beamgenius.engine.flexure_mabhas9 import (
+    evaluate_mabhas9_effective_flange_width,
     evaluate_mabhas9_flexural_capacity,
+    evaluate_mabhas9_stress_block_parameters,
     evaluate_minimum_flexural_reinforcement,
 )
 from beamgenius.engine.shear_mabhas9 import (
@@ -46,6 +48,9 @@ from beamgenius.registry.catalog import (
     RULE_BG_DEV_LENGTH_PENDING,
     RULE_BG_FLEX_EXT_PENDING,
     RULE_BG_FLEX_MIN_001,
+    RULE_BG_FLEX_RECT_SINGLY_001,
+    RULE_BG_FLEX_STRESS_BLOCK,
+    RULE_BG_FLEX_TBEAM_B_EFF_001,
     RULE_BG_INTEG_ANCHOR_PENDING,
     RULE_BG_INTEG_COL_PENDING,
     RULE_BG_INTEG_REINF_PENDING,
@@ -487,14 +492,39 @@ def run_mabhas9_beam_check(
                     jurisdiction_mode=jurisdiction_mode,
                 )
             )
-        elif rule_id == RULE_BG_MABHAS9_FLEX_CAP_BLOCKED.rule_id:
+        elif rule_id == RULE_BG_FLEX_RECT_SINGLY_001.rule_id:
             steps.append(
                 evaluate_mabhas9_flexural_capacity(
                     geometry,
                     concrete,
                     rebar,
+                    as_provided_mm2=as_provided_mm2,
                     mu_nmm=mu_nmm,
+                    require_design_inputs=True,
                     jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_FLEX_STRESS_BLOCK.rule_id:
+            steps.append(
+                evaluate_mabhas9_stress_block_parameters(
+                    concrete,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_FLEX_TBEAM_B_EFF_001.rule_id:
+            steps.append(
+                evaluate_mabhas9_effective_flange_width(
+                    geometry,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_MABHAS9_FLEX_CAP_BLOCKED.rule_id:
+            steps.append(
+                build_blocked_workflow_trace(
+                    rule_id,
+                    active_jurisdiction=jurisdiction_mode,
+                    normalized_inputs=common_inputs,
+                    unit="N*mm",
                 )
             )
         elif rule_id == RULE_BG_SHEAR_CAP_BLOCKED.rule_id:
