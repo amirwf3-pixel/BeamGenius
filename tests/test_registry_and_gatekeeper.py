@@ -35,6 +35,10 @@ def test_mabhas9_executable_rules_exact_set() -> None:
         "BG-FLEX-PHI-FACTOR",
         "BG-FLEX-RECT-SINGLY-001",
         "BG-FLEX-TBEAM-B-EFF-001",
+        "BG-SHEAR-PHI-001",
+        "BG-SHEAR-VC-001",
+        "BG-SHEAR-VS-001",
+        "BG-SHEAR-VS-MAX-001",
         "BG-SHEAR-MIN-001",
         "BG-SHEAR-SPACING-001",
     )
@@ -118,14 +122,18 @@ def test_gatekeeper_mandatory_examples_from_spec() -> None:
         assert not dec_flex_cap.allowed
         assert dec_flex_cap.blocked_outcome == EvaluationOutcome.UNVERIFIED_RULE_BLOCKED
 
-    # Example 5: Verified Phase 2B Mabhas 9 flexural rules are allowed in MABHAS_9_COMPLIANCE
-    # and JURISDICTION_BLOCKED in MOSTOFINEJAD_METHODOLOGY_ONLY
+    # Example 5: Verified Phase 2B/2C Mabhas 9 flexural & shear rules are allowed
+    # in MABHAS_9_COMPLIANCE and JURISDICTION_BLOCKED in MOSTOFINEJAD_METHODOLOGY_ONLY
     for verified_flex_id in (
         "BG-FLEX-STRESS-BLOCK",
         "BG-FLEX-STRAIN-LIMIT",
         "BG-FLEX-PHI-FACTOR",
         "BG-FLEX-RECT-SINGLY-001",
         "BG-FLEX-TBEAM-B-EFF-001",
+        "BG-SHEAR-PHI-001",
+        "BG-SHEAR-VC-001",
+        "BG-SHEAR-VS-001",
+        "BG-SHEAR-VS-MAX-001",
     ):
         dec_ok = evaluate_rule_gate(
             verified_flex_id,

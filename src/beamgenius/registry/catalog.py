@@ -176,6 +176,110 @@ RULE_BG_FLEX_TBEAM_B_EFF_001 = RuleReference(
     dependencies=(),
 )
 
+RULE_BG_SHEAR_PHI_001 = RuleReference(
+    rule_id="BG-SHEAR-PHI-001",
+    title="Mabhas 9 Shear Strength Reduction Factor phi and Factored One-Way Shear Check",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=128,
+    printed_page=107,
+    clause_or_equation=(
+        "Clauses 9-7-4-1, Table 9-7-2 (Row 2), 9-7-4-5, 9-8-1-4 Eq. (9-8-1-ب), "
+        "9-8-4-1-1, 9-8-4-1-2 Eq. (9-8-8), 9-11-3-3, 9-11-4-3"
+    ),
+    symbolic_formula="phi = 0.75; Vn = Vc + Vs; phi * Vn = phi * (Vc + Vs) >= Vu",
+    description=(
+        "Strength reduction factor phi = 0.75 for standard one-way shear and "
+        "factored shear adequacy check phi*Vn = phi*(Vc + Vs) >= Vu."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_SHEAR_VC_001 = RuleReference(
+    rule_id="BG-SHEAR-VC-001",
+    title="Mabhas 9 Concrete One-Way Shear Resistance Vc",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=141,
+    printed_page=120,
+    clause_or_equation=(
+        "Clauses 9-8-4-4-1 through 9-8-4-4-5, Eq. (9-8-12-الف), Eq. (9-8-12-ب), "
+        "Eq. (9-8-13), Eq. (9-8-14), 9-8-4-2-2, 9-3-2-2, Tables 9-3-1 & 9-3-2"
+    ),
+    symbolic_formula=(
+        "Av >= Av,min: Vc = (0.17*lambda*sqrt(f'c) + Nu/(6*Ag))*bw*d or "
+        "(0.66*lambda*(rho_w)^(1/3)*sqrt(f'c) + Nu/(6*Ag))*bw*d; "
+        "Av < Av,min: Vc = (0.66*lambda_s*lambda*(rho_w)^(1/3)*sqrt(f'c) + Nu/(6*Ag))*bw*d; "
+        "lambda_s = min(sqrt(2/(1 + d/250)), 1.0); Nu/(6*Ag) <= 0.05*f'c; "
+        "0 <= Vc <= 0.42*lambda*sqrt(f'c)*bw*d"
+    ),
+    description=(
+        "Nominal one-way shear resistance Vc provided by concrete under Mabhas 9 (1399) "
+        "Section 9-8-4-4 with lightweight factor lambda, size-effect factor lambda_s, "
+        "axial load modifier Nu/(6*Ag), and upper/lower bounds."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_SHEAR_VS_001 = RuleReference(
+    rule_id="BG-SHEAR-VS-001",
+    title="Mabhas 9 Transverse Reinforcement One-Way Shear Resistance Vs and Demand",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=142,
+    printed_page=121,
+    clause_or_equation=(
+        "Clauses 9-8-4-2-3, 9-4-8-5, Table 9-4-4, 9-8-4-5-1 Eq. (9-8-15), "
+        "9-8-4-5-3 Eq. (9-8-16), 9-8-4-5-4 Eq. (9-8-17)"
+    ),
+    symbolic_formula=(
+        "Vs,req = max(Vu / phi - Vc, 0); "
+        "Vertical (alpha = 90 deg): Vs = Av * fyt * d / s; "
+        "Inclined (45 deg <= alpha <= 90 deg): Vs = Av * fyt * (sin(alpha) + cos(alpha)) * d / s "
+        "(with fyt <= 420 MPa per Table 9-4-4)"
+    ),
+    description=(
+        "Transverse shear reinforcement resistance Vs for vertical (Eq. 9-8-16) and "
+        "inclined (Eq. 9-8-17) stirrups and required Vs,req = max(Vu/phi - Vc, 0) (Eq. 9-8-15)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=("BG-SHEAR-PHI-001",),
+)
+
+RULE_BG_SHEAR_VS_MAX_001 = RuleReference(
+    rule_id="BG-SHEAR-VS-MAX-001",
+    title="Mabhas 9 Maximum One-Way Shear / Web-Crushing Limit (Vs,max and Vu,max)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=140,
+    printed_page=119,
+    clause_or_equation="Clause 9-8-4-1-3, Eq. (9-8-9) (with Eq. (9-8-1-ب) & Eq. (9-8-8))",
+    symbolic_formula=(
+        "Vu <= phi * (Vc + 0.66 * sqrt(f'c) * bw * d); "
+        "Vs <= Vs,max = 0.66 * sqrt(f'c) * bw * d"
+    ),
+    description=(
+        "Cross-sectional dimension adequacy / web-crushing limit on Vu and Vs "
+        "under Mabhas 9 Clause 9-8-4-1-3 Eq. (9-8-9)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=("BG-SHEAR-PHI-001",),
+)
+
 RULE_BG_SHEAR_MIN_001 = RuleReference(
     rule_id="BG-SHEAR-MIN-001",
     title="Minimum Shear Reinforcement",
@@ -184,7 +288,7 @@ RULE_BG_SHEAR_MIN_001 = RuleReference(
     jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
     source_document=SOURCE_MABHAS_9,
     pdf_page=221,
-    printed_page=None,
+    printed_page=200,
     clause_or_equation="Clause 9-11-5-2 & Table 9-11-2",
     symbolic_formula="(Av/s)min = max(0.062 * sqrt(f'c) * bw / fyt, 0.35 * bw / fyt)",
     description=(
@@ -204,7 +308,7 @@ RULE_BG_SHEAR_SPACING_001 = RuleReference(
     jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
     source_document=SOURCE_MABHAS_9,
     pdf_page=227,
-    printed_page=None,
+    printed_page=206,
     clause_or_equation="Clause 9-11-6-5-3",
     symbolic_formula=(
         "If Vs <= 0.33*sqrt(f'c)*bw*d: s <= min(d/2, 600), st <= min(d, 600); "
@@ -1323,6 +1427,10 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_FLEX_PHI_FACTOR,
     RULE_BG_FLEX_RECT_SINGLY_001,
     RULE_BG_FLEX_TBEAM_B_EFF_001,
+    RULE_BG_SHEAR_PHI_001,
+    RULE_BG_SHEAR_VC_001,
+    RULE_BG_SHEAR_VS_001,
+    RULE_BG_SHEAR_VS_MAX_001,
     RULE_BG_SHEAR_MIN_001,
     RULE_BG_SHEAR_SPACING_001,
     # Isolated Mostofinejad reference rules

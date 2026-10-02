@@ -174,6 +174,84 @@ Source: Mabhas 9 (1399), PDF pages 12–13, 41, printed pages 103–104, 132, Cl
 
 
 
+### Shear Strength Reduction Factor φ and Factored One-Way Shear Check (BG-SHEAR-PHI-001)
+
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-SHEAR-PHI-001`)
+
+Source: Mabhas 9 (1399), PDF pages 128, 130–131, 133, 140 (design excerpt pp. 16, 18–19, 21, 28), printed pages 107, 109–110, 112, 119, Clauses 9-7-4-1, Table 9-7-2 (Row 2), 9-7-4-5, 9-8-1-4 Eq. (9-8-1-ب), 9-8-4-1-1, 9-8-4-1-2 Eq. (9-8-8)
+
+
+
+- φ = 0.75 for standard one-way shear (Table 9-7-2, Row 2)
+
+- Vn = Vc + Vs [Eq. (9-8-8)]
+
+- φ × Vn = φ × (Vc + Vs) ≥ Vu [Eq. (9-8-1-ب)]
+
+- Seismic capacity-design shear factor exceptions in Clause 9-7-4-5 (φ = 0.60 / φ = 0.85) remain blocked (`UNVERIFIED_RULE_BLOCKED`) when seismic capacity-design shear governs.
+
+
+
+### Concrete One-Way Shear Resistance Vc (BG-SHEAR-VC-001)
+
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-SHEAR-VC-001`)
+
+Source: Mabhas 9 (1399), PDF pages 76–77, 140–142 (design excerpt pp. 28–30), printed pages 55–56, 119–121, Clauses 9-8-4-4-1 through 9-8-4-4-5, Eqs. (9-8-12-الف), (9-8-12-ب), (9-8-13), (9-8-14), 9-8-4-2-2, 9-3-2-2, Tables 9-3-1 & 9-3-2
+
+
+
+- For Av ≥ Av,min (Clause 9-8-4-4-1):
+
+  - Simplified [Eq. (9-8-12-الف)]: Vc = (0.17 × λ × √f'c + Nu / (6 × Ag)) × bw × d
+
+  - Detailed [Eq. (9-8-12-ب)]: Vc = (0.66 × λ × (ρw)^(1/3) × √f'c + Nu / (6 × Ag)) × bw × d
+
+- For Av < Av,min (Clause 9-8-4-4-2):
+
+  - Size-effect [Eq. (9-8-13)]: Vc = (0.66 × λs × λ × (ρw)^(1/3) × √f'c + Nu / (6 × Ag)) × bw × d
+
+- Size-effect factor [Eq. (9-8-14), Clause 9-8-4-4-5]: λs = min(√(2 / (1 + d / 250)), 1.0) = min(√(2 / (1 + 0.004 × d)), 1.0)
+
+- Axial force modifier limit (Clause 9-8-4-4-3): Nu / (6 × Ag) ≤ 0.05 × f'c (Nu positive in compression, negative in tension)
+
+- Bounds on Vc (Clause 9-8-4-4-4): 0 ≤ Vc ≤ 0.42 × λ × √f'c × bw × d
+
+- √f'c ≤ 8.3 MPa in Vc unless beam/joist has at least minimum web shear reinforcement per Clause 9-11-5-2 (Clause 9-8-4-2-2).
+
+
+
+### Transverse Reinforcement One-Way Shear Resistance Vs and Demand (BG-SHEAR-VS-001)
+
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-SHEAR-VS-001`)
+
+Source: Mabhas 9 (1399), PDF pages 89–90, 140, 142–144 (design excerpt pp. 28, 30–32), printed pages 68–69, 119, 121–123, Clauses 9-8-4-2-3, 9-4-8-5, Table 9-4-4, 9-8-4-5-1 Eq. (9-8-15), 9-8-4-5-3 Eq. (9-8-16), 9-8-4-5-4 Eq. (9-8-17)
+
+
+
+- Required shear steel resistance [Eq. (9-8-15)]: Vs,req = max(Vu / φ - Vc, 0)
+
+- Vertical stirrups (α = 90°) [Eq. (9-8-16)]: Vs = Av × fyt × d / s
+
+- Inclined stirrups (45° ≤ α ≤ 90°) [Eq. (9-8-17)]: Vs = Av × fyt × (sin α + cos α) × d / s
+
+- Constraint (Table 9-4-4): fyt ≤ 420 MPa for standard non-seismic shear stirrups/ties.
+
+
+
+### Maximum One-Way Shear / Web-Crushing Limit (BG-SHEAR-VS-MAX-001)
+
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-SHEAR-VS-MAX-001`)
+
+Source: Mabhas 9 (1399), PDF page 140 (design excerpt p. 28), printed page 119, Clause 9-8-4-1-3, Eq. (9-8-9)
+
+
+
+- Cross-section adequacy limit [Eq. (9-8-9)]: Vu ≤ φ × (Vc + 0.66 × √f'c × bw × d)
+
+- Resulting upper bound on transverse reinforcement shear resistance: Vs,max = 0.66 × √f'c × bw × d
+
+
+
 ### Minimum Shear Reinforcement
 
 Status: CODE\_RULE
@@ -356,7 +434,7 @@ The following shall NOT be implemented as executable engineering rules until sou
 
 - Mabhas 9 effective-width provision for T/L sections with flange in tension
 
-- Mabhas 9 concrete shear resistance Vc, shear reinforcement demand Vs, and maximum shear resistance Vs,max
+- Mabhas 9 bent-up longitudinal bar shear resistance (`Eq. 9-8-18`), beams with web openings (`Clause 9-8-4-1-4`), variable-depth haunches (`Clause 9-8-4-1-6`), and seismic capacity-design shear provisions (`Clause 9-7-4-5` / `Chapter 9-20`)
 
 - Mabhas 9 minimum concrete cover and longitudinal/layer bar clear spacing rules
 

@@ -142,10 +142,15 @@ class ConcreteMaterial:
         fc_prime_mpa: Specified cylinder compressive strength f'c in MPa.
         is_steel_fiber_normal_rc: True for steel-fiber normal-weight reinforced
             concrete (used in Table 9-11-2 Exception 3 evaluation).
+        lambda_factor: Lightweight concrete modification factor lambda per
+            Mabhas 9 Clauses 9-3-2-2 & 9-3-2-3 and Tables 9-3-1 & 9-3-2
+            (1.0 for normal-weight concrete; 0.75 <= lambda <= 1.0 for
+            lightweight concrete).
     """
 
     fc_prime_mpa: float
     is_steel_fiber_normal_rc: bool = False
+    lambda_factor: float = 1.0
 
 
 @dataclass(frozen=True)

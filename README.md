@@ -33,6 +33,10 @@ Only rules with `Status = VERIFIED` and `Type = CODE_RULE` in `docs/VERIFIED_RUL
 | `BG-FLEX-PHI-FACTOR` | Flexural Strength Reduction Factor $\phi$ | Clause 9-7-4-2..9-7-4-4 & Table 9-7-2, PDF pp. 16–18, Printed pp. 107–109 |
 | `BG-FLEX-RECT-SINGLY-001` | Rectangular Singly-Reinforced Beam Flexural Resistance ($\phi M_n \ge M_u$) | Clauses 9-8-1-4, 9-8-2-2, 9-7-4, 9-11-2-3, PDF pp. 16–23, 209 |
 | `BG-FLEX-TBEAM-B-EFF-001` | Non-Prestressed T-Beam and L-Beam Effective Compression Flange Width ($b_f$) | Clauses 9-6-3-3-1, 9-6-3-3-2, 9-11-2-5 & Table 9-6-1, Printed p. 91 |
+| `BG-SHEAR-PHI-001` | Shear Strength Reduction Factor $\phi = 0.75$ and $\phi V_n \ge V_u$ | Clause 9-7-4-1, Table 9-7-2 (Row 2), Eq. (9-8-1-ب), Eq. (9-8-8), PDF pp. 128–131, 140, Printed pp. 107–112, 119 |
+| `BG-SHEAR-VC-001` | Concrete One-Way Shear Resistance $V_c$ | Clauses 9-8-4-4-1..9-8-4-4-5, Eqs. (9-8-12-الف/ب), (9-8-13), (9-8-14), 9-8-4-2-2, Tables 9-3-1 & 9-3-2, PDF pp. 76–77, 140–142, Printed pp. 55–56, 119–121 |
+| `BG-SHEAR-VS-001` | Transverse Reinforcement Shear Resistance $V_s$ (Vertical & Inclined Stirrups) | Clauses 9-8-4-2-3, 9-4-8-5, 9-8-4-5-1/3/4, Eqs. (9-8-15), (9-8-16), (9-8-17), PDF pp. 89–90, 140–144, Printed pp. 68–69, 119, 121–123 |
+| `BG-SHEAR-VS-MAX-001` | Maximum Shear / Web-Crushing Limit ($V_{s,\max}$, $V_{u,\max}$) | Clause 9-8-4-1-3, Eq. (9-8-9), PDF p. 140, Printed p. 119 |
 | `BG-SHEAR-MIN-001` | Minimum Shear Reinforcement & Table 9-11-2 Exceptions | Clause 9-11-5-2 & Table 9-11-2, PDF p. 221 |
 | `BG-SHEAR-SPACING-001` | Maximum Stirrup Spacing ($s$ and $s_t$) | Clause 9-11-6-5-3, PDF p. 227 |
 
@@ -44,7 +48,7 @@ Permitted verified equations from `docs/MOSTOFINEJAD_FORMULA_REGISTRY.md` (`BG-M
 
 ## Jurisdiction Modes
 
-- `JurisdictionMode.MABHAS_9_COMPLIANCE`: Production Iranian code compliance mode. Executes only verified `CODE_RULE`s (`BG-FLEX-MIN-001`, `BG-FLEX-STRESS-BLOCK`, `BG-FLEX-STRAIN-LIMIT`, `BG-FLEX-PHI-FACTOR`, `BG-FLEX-RECT-SINGLY-001`, `BG-FLEX-TBEAM-B-EFF-001`, `BG-SHEAR-MIN-001`, and `BG-SHEAR-SPACING-001`).
+- `JurisdictionMode.MABHAS_9_COMPLIANCE`: Production Iranian code compliance mode. Executes only verified `CODE_RULE`s (`BG-FLEX-MIN-001`, `BG-FLEX-STRESS-BLOCK`, `BG-FLEX-STRAIN-LIMIT`, `BG-FLEX-PHI-FACTOR`, `BG-FLEX-RECT-SINGLY-001`, `BG-FLEX-TBEAM-B-EFF-001`, `BG-SHEAR-PHI-001`, `BG-SHEAR-VC-001`, `BG-SHEAR-VS-001`, `BG-SHEAR-VS-MAX-001`, `BG-SHEAR-MIN-001`, and `BG-SHEAR-SPACING-001`).
 - `JurisdictionMode.MOSTOFINEJAD_METHODOLOGY_ONLY`: Isolated reference methodology mode for textbook verification. Never implies Iranian Mabhas 9 code compliance.
 
 ---
@@ -54,7 +58,8 @@ Permitted verified equations from `docs/MOSTOFINEJAD_FORMULA_REGISTRY.md` (`BG-M
 Until primary source pages are visually verified and promoted to `docs/VERIFIED_RULES.md`, the following workflows deterministically return `EvaluationOutcome.UNVERIFIED_RULE_BLOCKED` with full diagnostic trace steps:
 
 - **Doubly-Reinforced & Flanged (T/L) Flexural Resistance** (`BG-FLEX-RECT-DOUBLY-001`, `BG-FLEX-TBEAM-CAP-001`, `BG-FLEX-LBEAM-CAP-001`, `BG-MABHAS9-FLEX-CAP-BLOCKED`)
-- **Full Shear Capacity Design & Check** (`BG-SHEAR-CAP-BLOCKED`, `BG-SHEAR-VC-BLOCKED`, `BG-SHEAR-VS-DEMAND-BLOCKED`, `BG-SHEAR-VS-MAX-BLOCKED`)
+- **Unverified Special Shear Branches**: bent-up longitudinal bars (Eqs. 9-8-18), circular hoops/spirals, web openings, variable-depth haunches, one-way joists (Table 9-11-2 Ex. 4), seismic capacity-design shear (φ = 0.60 / 0.85, Chapter 9-20), shear-torsion interaction, and torsion
+- **Legacy Full Shear Capacity Sentinels** (`BG-SHEAR-CAP-BLOCKED`, `BG-SHEAR-VC-BLOCKED`, `BG-SHEAR-VS-DEMAND-BLOCKED`, `BG-SHEAR-VS-MAX-BLOCKED`) — retained as explicit blocked sentinels; Phase 2C production one-way shear capacity runs through the verified rules `BG-SHEAR-PHI-001`, `BG-SHEAR-VC-001`, `BG-SHEAR-VS-001`, and `BG-SHEAR-VS-MAX-001`
 - **T/L Section Flange-in-Tension Effective Width** (under `BG-FLEX-MIN-001`)
 - **Table 9-11-2 Steel-Fiber RC Exception without Explicit $\phi$** and **One-Way Joist Exception** (under `BG-SHEAR-MIN-001`)
 - **Longitudinal Bar Clear Spacing, Layer Spacing, Concrete Cover, Development Length ($L_d$), Bar Cutoff, Integrity Reinforcement, Column Continuity, Anchorage, Skin Reinforcement, and Torsion**

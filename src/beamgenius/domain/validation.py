@@ -691,6 +691,23 @@ def validate_concrete_material(
                 field_name="fc_prime_mpa",
             )
         )
+    if (
+        not math.isfinite(concrete.lambda_factor)
+        or concrete.lambda_factor < 0.75
+        or concrete.lambda_factor > 1.0
+    ):
+        diagnostics.append(
+            EngineeringDiagnostic(
+                code="INVALID_CONCRETE_LAMBDA_FACTOR",
+                severity=DiagnosticSeverity.ERROR,
+                message=(
+                    "Concrete modification factor lambda_factor must be finite and in "
+                    f"[0.75, 1.0] per Mabhas 9 Clauses 9-3-2-2 & 9-3-2-3, got {concrete.lambda_factor}."
+                ),
+                rule_id=rule_id,
+                field_name="lambda_factor",
+            )
+        )
     return tuple(diagnostics)
 
 

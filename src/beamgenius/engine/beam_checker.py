@@ -32,6 +32,10 @@ from beamgenius.engine.flexure_mabhas9 import (
 from beamgenius.engine.shear_mabhas9 import (
     evaluate_concrete_shear_capacity_vc,
     evaluate_full_shear_capacity,
+    evaluate_mabhas9_concrete_shear_resistance_vc,
+    evaluate_mabhas9_shear_phi_factor,
+    evaluate_mabhas9_shear_web_crushing_limit,
+    evaluate_mabhas9_transverse_shear_resistance_vs,
     evaluate_maximum_shear_steel_vs_max,
     evaluate_maximum_stirrup_spacing,
     evaluate_minimum_shear_reinforcement,
@@ -59,9 +63,13 @@ from beamgenius.registry.catalog import (
     RULE_BG_POS_SIMPLE_PENDING,
     RULE_BG_SHEAR_CAP_BLOCKED,
     RULE_BG_SHEAR_MIN_001,
+    RULE_BG_SHEAR_PHI_001,
     RULE_BG_SHEAR_SPACING_001,
+    RULE_BG_SHEAR_VC_001,
     RULE_BG_SHEAR_VC_BLOCKED,
+    RULE_BG_SHEAR_VS_001,
     RULE_BG_SHEAR_VS_DEMAND_BLOCKED,
+    RULE_BG_SHEAR_VS_MAX_001,
     RULE_BG_SHEAR_VS_MAX_BLOCKED,
     RULE_BG_SKIN_REINF_PENDING,
     RULE_BG_TABLE_2_11_99_PENDING,
@@ -420,11 +428,18 @@ def run_mabhas9_beam_check(
     av_over_s_provided_mm2_per_mm: Optional[float] = None,
     vs_n: Optional[float] = None,
     vu_n: Optional[float] = None,
+    vc_n: Optional[float] = None,
+    nu_n: float = 0.0,
     mu_nmm: Optional[float] = None,
     tu_nmm: Optional[float] = None,
     phi_shear_explicit: Optional[float] = None,
     s_provided_mm: Optional[float] = None,
     st_provided_mm: Optional[float] = None,
+    stirrup_angle_deg: float = 90.0,
+    has_minimum_shear_reinforcement: bool = True,
+    use_detailed_rho_w_equation: bool = False,
+    rho_w: Optional[float] = None,
+    ag_mm2: Optional[float] = None,
     requested_rule_ids: Sequence[str] = DEFAULT_MABHAS9_CHECK_RULES,
     jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
 ) -> BeamComplianceReport:
@@ -433,6 +448,10 @@ def run_mabhas9_beam_check(
     Preserves every individual outcome and trace step in order and guarantees
     that the overall report status is never PASS if any requested check fails,
     has invalid input, or is blocked.
+
+    Note: ``BG-SHEAR-VS-001`` evaluates the Eq. (9-8-15) demand only when both
+    ``vu_n`` and ``vc_n`` are supplied, and ``BG-SHEAR-VS-MAX-001`` /
+    ``BG-SHEAR-PHI-001`` full limit checks likewise require ``vc_n``.
     """
     if not requested_rule_ids:
         return aggregate_compliance_report((), jurisdiction_mode=jurisdiction_mode)
@@ -525,6 +544,55 @@ def run_mabhas9_beam_check(
                     active_jurisdiction=jurisdiction_mode,
                     normalized_inputs=common_inputs,
                     unit="N*mm",
+                )
+            )
+        elif rule_id == RULE_BG_SHEAR_PHI_001.rule_id:
+            steps.append(
+                evaluate_mabhas9_shear_phi_factor(
+                    vu_n=vu_n,
+                    vc_n=vc_n,
+                    vs_n=vs_n,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_SHEAR_VC_001.rule_id:
+            steps.append(
+                evaluate_mabhas9_concrete_shear_resistance_vc(
+                    geometry,
+                    concrete,
+                    has_minimum_shear_reinforcement=has_minimum_shear_reinforcement,
+                    use_detailed_rho_w_equation=use_detailed_rho_w_equation,
+                    rho_w=rho_w,
+                    nu_n=nu_n,
+                    ag_mm2=ag_mm2,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_SHEAR_VS_001.rule_id:
+            steps.append(
+                evaluate_mabhas9_transverse_shear_resistance_vs(
+                    geometry,
+                    concrete,
+                    rebar,
+                    stirrups=stirrups,
+                    av_over_s_provided_mm2_per_mm=av_over_s_provided_mm2_per_mm,
+                    stirrup_angle_deg=stirrup_angle_deg,
+                    vu_n=vu_n,
+                    vc_n=vc_n,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_SHEAR_VS_MAX_001.rule_id:
+            steps.append(
+                evaluate_mabhas9_shear_web_crushing_limit(
+                    geometry,
+                    concrete,
+                    vs_n=vs_n,
+                    vu_n=vu_n,
+                    vc_n=vc_n,
+                    has_minimum_shear_reinforcement=has_minimum_shear_reinforcement,
+                    tu_nmm=tu_nmm,
+                    jurisdiction_mode=jurisdiction_mode,
                 )
             )
         elif rule_id == RULE_BG_SHEAR_CAP_BLOCKED.rule_id:

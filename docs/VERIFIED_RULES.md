@@ -339,12 +339,260 @@ Actual source page review (Mabhas 9, 1399 Edition, Chapters 9-6 and 9-11, PDF Pa
 
 # Shear
 
+## BG-SHEAR-PHI-001 — Shear Strength Reduction Factor φ and Factored One-Way Shear Check
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th Edition)
+PDF Page: 128, 130–131, 133, 140 (Design Excerpt PDF Pages: 16, 18–19, 21, 28)
+Printed Page: 107, 109–110, 112, 119
+Clause: 9-7-4-1, Table 9-7-2 (Row 2), 9-7-4-5, 9-8-1-4 Eq. (9-8-1-ب), 9-8-4-1-1, 9-8-4-1-2 Eq. (9-8-8), 9-11-3-3, 9-11-4-3
+
+Formula / Requirement:
+
+1. Strength reduction factor for one-way shear (Clause 9-7-4-1 and Table 9-7-2, Row 2):
+   φ = 0.75
+
+2. Nominal and factored one-way shear resistance check (Clauses 9-8-1-4, 9-8-4-1-1, 9-8-4-1-2, 9-11-4-3):
+   Vn = Vc + Vs   [Eq. (9-8-8)]
+   φ × Vn = φ × (Vc + Vs) ≥ Vu   [Eq. (9-8-1-ب)]
+
+3. Minimum shear reinforcement trigger threshold in beams (Clause 9-11-5-2-1):
+   - Standard beams not satisfying Table 9-11-2: minimum shear reinforcement Av,min is required where
+     Vu > 0.08 × φ × λ × sqrt(f'c) × bw × d
+   - Beams satisfying a Table 9-11-2 condition: minimum shear reinforcement Av,min is not required where
+     Vu ≤ φ × Vc
+
+Applicability:
+
+Non-prestressed reinforced concrete beams under standard one-way shear design governed by Mabhas 9 Chapters 9-7, 9-8, and 9-11.
+
+Inputs:
+
+- vu_n: optional factored shear force demand Vu (N)
+- vc_n: optional nominal concrete shear resistance Vc (N)
+- vs_n: optional nominal transverse reinforcement shear resistance Vs (N)
+- is_seismic_capacity_governed: boolean indicating whether Clause 9-7-4-5 seismic shear capacity design governs (default False)
+- is_beam_column_joint_or_diagonal_coupling_beam: boolean indicating beam-column joint or diagonally reinforced coupling beam under Clause 9-7-4-5 (default False)
+
+Units:
+
+- φ: dimensionless
+- vu_n, vc_n, vs_n, vn_n, phi_vn_n: N
+
+Exceptions / Blocked Conditions:
+
+- Seismic capacity-design shear provisions under Clause 9-7-4-5 (φ = 0.60 when nominal shear strength is less than the shear corresponding to development of nominal flexural strength in special seismic systems in high/very-high seismic zones, and φ = 0.85 for beam-column joints and diagonally reinforced coupling beams) depend on Chapter 9-20 seismic capacity-design shear demands (`Ve`) and return `UNVERIFIED_RULE_BLOCKED` when requested (`is_seismic_capacity_governed == True` or `is_beam_column_joint_or_diagonal_coupling_beam == True`).
+
+Verification Method:
+
+Actual source page review (Mabhas 9, 1399 Edition, Chapters 9-7, 9-8, and 9-11, Complete PDF Pages 128, 130–131, 133, 140, Printed Pages 107, 109–110, 112, 119, Table 9-7-2 and Clauses 9-7-4-1, 9-7-4-5, 9-8-1-4, and 9-8-4-1).
+
+---
+
+## BG-SHEAR-VC-001 — Concrete One-Way Shear Resistance Vc
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th Edition)
+PDF Page: 76–77, 140–142, 218–221 (Design Excerpt PDF Pages: 28–30)
+Printed Page: 55–56, 119–121, 197–200
+Clause: 9-8-4-4-1 through 9-8-4-4-5, Eq. (9-8-12-الف), Eq. (9-8-12-ب), Eq. (9-8-13), Eq. (9-8-14), 9-8-4-2-2, 9-3-2-2, Tables 9-3-1 & 9-3-2, 9-3-2-3, 9-3-3-3, 9-11-4-3
+
+Formula / Requirement:
+
+1. Concrete compressive strength square-root limit in one-way shear (Clause 9-8-4-2-2):
+   - In general one-way shear: sqrt(f'c)_eff = min(sqrt(f'c), 8.3 MPa)
+   - Exception (Clause 9-8-4-2-2): In concrete beams and joists reinforced with at least minimum web shear reinforcement per Clause 9-11-5-2 (Av ≥ Av,min), the 8.3 MPa limit is waived (sqrt(f'c)_eff = sqrt(f'c) for 20 MPa ≤ f'c ≤ 70 MPa).
+
+2. Lightweight concrete modification factor λ (Clauses 9-3-2-2 & 9-3-2-3, Tables 9-3-1 & 9-3-2):
+   - Normal-weight concrete (Clause 9-3-2-3): λ = 1.0
+   - Lightweight concrete (Clause 9-3-2-2, Table 9-3-2): 0.75 ≤ λ ≤ 1.0 (0.75 for all-lightweight, 0.85 for sand-lightweight, or per Table 9-3-1 equilibrium density wc).
+
+3. Size-effect modification factor λs (Clause 9-8-4-4-5, Eq. (9-8-14)):
+   λs = min(sqrt(2 / (1 + d / 250)), 1.0) = min(sqrt(2 / (1 + 0.004 × d)), 1.0)   [Eq. (9-8-14)]
+   where d is in mm.
+
+4. Axial force stress modifier (Clauses 9-8-4-4-1 & 9-8-4-4-3):
+   - Nu is positive for axial compression (Nu > 0) and negative for axial tension (Nu < 0).
+   - For axial compression (Clause 9-8-4-4-3):
+     Nu / (6 × Ag) ≤ 0.05 × f'c
+   - Effective axial stress term:
+     σN,eff = min(Nu / (6 × Ag), 0.05 × f'c)
+
+5. Concrete shear resistance Vc for sections with at least minimum transverse reinforcement Av ≥ Av,min (Clause 9-8-4-4-1):
+   - Simplified equation [Eq. (9-8-12-الف)]:
+     Vc,raw = (0.17 × λ × sqrt(f'c)_eff + σN,eff) × bw × d
+   - Detailed longitudinal reinforcement ratio equation [Eq. (9-8-12-ب)]:
+     Vc,raw = (0.66 × λ × (ρw)^(1/3) × sqrt(f'c)_eff + σN,eff) × bw × d
+     where ρw = As / (bw × d).
+
+6. Concrete shear resistance Vc for sections with less than minimum transverse reinforcement Av < Av,min (Clause 9-8-4-4-2):
+   - Size-effect equation [Eq. (9-8-13)]:
+     Vc,raw = (0.66 × λs × λ × (ρw)^(1/3) × sqrt(f'c)_eff + σN,eff) × bw × d
+
+7. Lower and upper bounds on Vc (Clauses 9-8-4-4-1 & 9-8-4-4-4):
+   0 ≤ Vc ≤ 0.42 × λ × sqrt(f'c)_eff × bw × d
+   Therefore:
+   Vc = min(max(Vc,raw, 0.0), 0.42 × λ × sqrt(f'c)_eff × bw × d)
+
+Applicability:
+
+Non-prestressed reinforced concrete beam sections with 20 MPa ≤ f'c ≤ 70 MPa (Clause 9-3-3-3).
+
+Inputs:
+
+- bw_mm: web width bw (mm)
+- h_mm: total section depth h (mm)
+- d_effective_mm: effective depth d (mm), resolved via Phase 1 effective-depth precedence
+- fc_prime_mpa: specified concrete compressive strength f'c (MPa)
+- lambda_factor: concrete modification factor λ (dimensionless, default 1.0 for normal-weight concrete)
+- has_minimum_shear_reinforcement: boolean indicating whether Av ≥ Av,min is provided (default True)
+- use_detailed_rho_w_equation: boolean selecting Eq. (9-8-12-ب) when Av ≥ Av,min (default False, which selects Eq. (9-8-12-الف); when Av < Av,min, Eq. (9-8-13) is always used)
+- rho_w: optional longitudinal tension reinforcement ratio As / (bw × d) (dimensionless; can also be derived from as_longitudinal_tension_mm2 or geometry.tension_rebar_groups)
+- nu_n: optional factored axial force Nu (N, positive in compression, negative in tension, default 0.0 N)
+- ag_mm2: optional gross cross-sectional area Ag (mm², defaults to bw × h for rectangular sections)
+
+Units:
+
+- bw_mm, h_mm, d_effective_mm: mm
+- ag_mm2, as_longitudinal_tension_mm2: mm²
+- fc_prime_mpa: MPa
+- lambda_factor, λs, ρw: dimensionless
+- nu_n, vc_n: N
+
+Exceptions / Blocked Conditions:
+
+- Members with web openings (Clause 9-8-4-1-4), unquantified restraint creep/shrinkage tension (Clause 9-8-4-1-5), variable-depth haunches with inclined flexural compression (Clause 9-8-4-1-6), circular sections (Clause 9-8-4-2-1), one-way joists (Clause 9-11-4-3-2 / Clause 9-11-7), and seismic special moment frame hinges where Vc = 0 (Clause 9-20-5-2-4-2) return `UNVERIFIED_RULE_BLOCKED` when flagged.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, 1399 Edition, Chapters 9-3, 9-8, and 9-11, Complete PDF Pages 76–77, 140–142, 218–221, Printed Pages 55–56, 119–121, 197–200, Clauses 9-3-2-2, 9-8-4-2-2, and 9-8-4-4-1 through 9-8-4-4-5).
+
+---
+
+## BG-SHEAR-VS-001 — Transverse Reinforcement One-Way Shear Resistance Vs and Demand
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th Edition)
+PDF Page: 89–90, 140, 142–144 (Design Excerpt PDF Pages: 28, 30–32)
+Printed Page: 68–69, 119, 121–123
+Clause: 9-8-4-1-2 Eq. (9-8-8), 9-8-4-2-3, 9-4-8-5, Table 9-4-4, 9-8-4-5-1 Eq. (9-8-15), 9-8-4-5-3 Eq. (9-8-16), 9-8-4-5-4 Eq. (9-8-17)
+
+Formula / Requirement:
+
+1. Transverse shear reinforcement design yield strength limit (Clauses 9-8-4-2-3 & 9-4-8-5, Table 9-4-4):
+   For non-seismic deformed stirrups, ties, and hoops in shear:
+   fyt ≤ 420 MPa
+
+2. Provided shear resistance of vertical transverse reinforcement perpendicular to member axis (Clause 9-8-4-5-3, Eq. (9-8-16), α = 90°):
+   Vs = Av × fyt × d / s   [Eq. (9-8-16)]
+   where Av = n_legs × (π × dbt² / 4) is the total cross-sectional area of all stirrup legs within spacing s.
+
+3. Provided shear resistance of inclined stirrups at angle 45° ≤ α ≤ 90° to longitudinal tension reinforcement (Clause 9-8-4-5-4 الف, Eq. (9-8-17)):
+   Vs = Av × fyt × (sin α + cos α) × d / s   [Eq. (9-8-17)]
+
+4. Required transverse reinforcement shear resistance and area ratio (Clause 9-8-4-5-1, Eq. (9-8-15)):
+   Vs,req = max(Vu / φ - Vc, 0.0)   [Eq. (9-8-15)]
+   - Vertical stirrups (α = 90°):
+     (Av / s)_req = Vs,req / (fyt × d)
+   - Inclined stirrups (45° ≤ α ≤ 90°):
+     (Av / s)_req = Vs,req / (fyt × (sin α + cos α) × d)
+
+Applicability:
+
+Non-prestressed reinforced concrete beams with vertical stirrups (α = 90°) or inclined stirrups (45° ≤ α ≤ 90°) and transverse reinforcement yield strength fyt ≤ 420 MPa (Table 9-4-4).
+
+Inputs:
+
+- d_effective_mm: effective depth d (mm), resolved via Phase 1 effective-depth precedence
+- fyt_mpa: transverse reinforcement yield strength fyt (MPa, ≤ 420 MPa)
+- stirrups: optional `StirrupLayout` (providing dbt, num_legs, s, Av, and Av/s)
+- av_over_s_provided_mm2_per_mm: optional explicit provided Av/s (mm²/mm)
+- stirrup_angle_deg: angle α of stirrups with longitudinal tension reinforcement (degrees, default 90.0°, valid range 45.0° ≤ α ≤ 90.0°)
+- vu_n: optional factored shear force demand Vu (N)
+- vc_n: optional concrete shear resistance Vc (N)
+- phi_shear: shear strength reduction factor φ from `BG-SHEAR-PHI-001` (default 0.75)
+
+Units:
+
+- d_effective_mm, s: mm
+- Av: mm²
+- Av/s, (Av/s)_req: mm²/mm
+- fyt_mpa: MPa
+- stirrup_angle_deg: degrees
+- Vs, Vs,req, Vu, Vc: N
+
+Exceptions / Blocked Conditions:
+
+- Transverse reinforcement yield strength fyt > 420 MPa is rejected as `INVALID_INPUT` for standard non-seismic beam stirrups per Table 9-4-4.
+- Stirrup angles α < 45° or α > 90° violate Clause 9-8-4-5-4 and return `INVALID_INPUT`.
+- Bent-up longitudinal bars (Clause 9-8-4-5-4 ب/پ, Eqs. (9-8-18-الف) and (9-8-18-ب)) and circular-section hoops/spirals (Clause 9-8-4-5-6) return `UNVERIFIED_RULE_BLOCKED` when requested.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, 1399 Edition, Chapters 9-4 and 9-8, Complete PDF Pages 89–90, 140, 142–144, Printed Pages 68–69, 119, 121–123, Table 9-4-4 and Clauses 9-4-8-5, 9-8-4-2-3, and 9-8-4-5-1 through 9-8-4-5-4).
+
+---
+
+## BG-SHEAR-VS-MAX-001 — Maximum One-Way Shear / Web-Crushing Limit (Vs,max and Vu,max)
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th Edition)
+PDF Page: 140 (Design Excerpt PDF Page: 28)
+Printed Page: 119
+Clause: 9-8-4-1-3, Eq. (9-8-9) (with Eq. (9-8-1-ب), Eq. (9-8-8), and Clause 9-8-4-2-2)
+
+Formula / Requirement:
+
+1. Cross-sectional dimension adequacy limit on factored one-way shear Vu (Clause 9-8-4-1-3, Eq. (9-8-9)):
+   Vu ≤ φ × (Vc + 0.66 × sqrt(f'c)_eff × bw × d)   [Eq. (9-8-9)]
+
+2. Resulting maximum nominal shear resistance of transverse reinforcement Vs,max (combining Eq. (9-8-9) with φVn = φ(Vc + Vs) ≥ Vu from Eqs. (9-8-1-ب) and (9-8-8)):
+   Vs ≤ Vs,max = 0.66 × sqrt(f'c)_eff × bw × d
+   Vu,max = φ × (Vc + Vs,max) = φ × (Vc + 0.66 × sqrt(f'c)_eff × bw × d)
+
+Applicability:
+
+Non-prestressed reinforced concrete beam sections checked for one-way shear under Mabhas 9 Clause 9-8-4-1-3.
+
+Inputs:
+
+- bw_mm: web width bw (mm)
+- h_mm: total section depth h (mm)
+- d_effective_mm: effective depth d (mm), resolved via Phase 1 effective-depth precedence
+- fc_prime_mpa: specified concrete compressive strength f'c (MPa)
+- vs_n: optional nominal shear force carried by transverse reinforcement Vs (N)
+- vu_n: optional factored shear demand Vu (N)
+- vc_n: optional nominal concrete shear resistance Vc (N)
+- phi_shear: shear strength reduction factor φ from `BG-SHEAR-PHI-001` (default 0.75)
+
+Units:
+
+- bw_mm, h_mm, d_effective_mm: mm
+- fc_prime_mpa: MPa
+- vs_n, vs_max_n, vu_n, vc_n, vu_max_n: N
+
+Exceptions / Blocked Conditions:
+
+- Sections exceeding `Vs,max = 0.66 × sqrt(f'c)_eff × bw × d` or `Vu,max = φ × (Vc + 0.66 × sqrt(f'c)_eff × bw × d)` fail cross-sectional adequacy (`FAIL`).
+- Combined shear and torsion web-crushing interaction (Clause 9-8-6-3-1, Eq. (9-8-26)) is out of scope and returns `UNVERIFIED_RULE_BLOCKED` (`BG-TORSION-PENDING`) if torsion `tu_nmm > 0` is present.
+
+Verification Method:
+
+Actual source page review (Mabhas 9, 1399 Edition, Chapter 9-8, Complete PDF Page 140, Printed Page 119, Clause 9-8-4-1-3, Eq. (9-8-9)).
+
+---
+
 ## BG-SHEAR-MIN-001 — Minimum Shear Reinforcement
 
 Status: VERIFIED
 Type: CODE_RULE
 Source: Iranian National Building Regulations — Mabhas 9
 PDF Page: 221
+Printed Page: 200
 Clause: 9-11-5-2
 
 Requirement:
@@ -398,6 +646,7 @@ Status: VERIFIED
 Type: CODE_RULE
 Source: Iranian National Building Regulations — Mabhas 9
 PDF Page: 227
+Printed Page: 206
 Clause: 9-11-6-5-3
 
 Condition 1:
