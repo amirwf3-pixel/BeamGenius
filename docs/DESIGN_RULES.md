@@ -278,8 +278,3 @@ The following shall NOT be implemented as executable engineering rules until sou
 
 No unverified OCR value shall be used as an engineering calculation rule.
 
-'@ | Set-Content "D:\\BeamGenius\\project\\docs\\DESIGN\_RULES.md" -Encoding UTF8
-
-
-
-
