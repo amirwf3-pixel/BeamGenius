@@ -35,6 +35,8 @@ def test_mabhas9_executable_rules_exact_set() -> None:
         "BG-FLEX-PHI-FACTOR",
         "BG-FLEX-RECT-SINGLY-001",
         "BG-FLEX-TBEAM-B-EFF-001",
+        "BG-DETAIL-TRANS-DIA-001",
+        "BG-DETAIL-COMP-LAT-001",
         "BG-SHEAR-PHI-001",
         "BG-SHEAR-VC-001",
         "BG-SHEAR-VS-001",
@@ -122,7 +124,8 @@ def test_gatekeeper_mandatory_examples_from_spec() -> None:
         assert not dec_flex_cap.allowed
         assert dec_flex_cap.blocked_outcome == EvaluationOutcome.UNVERIFIED_RULE_BLOCKED
 
-    # Example 5: Verified Phase 2B/2C Mabhas 9 flexural & shear rules are allowed
+    # Example 5: Verified Phase 2B/2C/2D Mabhas 9 flexural, detailing & shear
+    # rules are allowed
     # in MABHAS_9_COMPLIANCE and JURISDICTION_BLOCKED in MOSTOFINEJAD_METHODOLOGY_ONLY
     for verified_flex_id in (
         "BG-FLEX-STRESS-BLOCK",
@@ -130,6 +133,8 @@ def test_gatekeeper_mandatory_examples_from_spec() -> None:
         "BG-FLEX-PHI-FACTOR",
         "BG-FLEX-RECT-SINGLY-001",
         "BG-FLEX-TBEAM-B-EFF-001",
+        "BG-DETAIL-TRANS-DIA-001",
+        "BG-DETAIL-COMP-LAT-001",
         "BG-SHEAR-PHI-001",
         "BG-SHEAR-VC-001",
         "BG-SHEAR-VS-001",

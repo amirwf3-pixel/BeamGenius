@@ -29,6 +29,10 @@ from beamgenius.engine.flexure_mabhas9 import (
     evaluate_mabhas9_stress_block_parameters,
     evaluate_minimum_flexural_reinforcement,
 )
+from beamgenius.engine.detailing_mabhas9 import (
+    evaluate_compression_reinforcement_lateral_support_spacing,
+    evaluate_minimum_transverse_bar_diameter as _verified_min_transverse_dia,
+)
 from beamgenius.engine.shear_mabhas9 import (
     evaluate_concrete_shear_capacity_vc,
     evaluate_full_shear_capacity,
@@ -44,10 +48,12 @@ from beamgenius.engine.shear_mabhas9 import (
 from beamgenius.registry.catalog import (
     RULE_BG_BENT_ANCHOR_PENDING,
     RULE_BG_CUTOFF_COND_PENDING,
+    RULE_BG_DETAIL_COMP_LAT_001,
     RULE_BG_DETAIL_COMP_LAT_PENDING,
     RULE_BG_DETAIL_COVER_BLOCKED,
     RULE_BG_DETAIL_LAYER_SPACING_BLOCKED,
     RULE_BG_DETAIL_SPACING_BLOCKED,
+    RULE_BG_DETAIL_TRANS_DIA_001,
     RULE_BG_DETAIL_TRANS_DIA_PENDING,
     RULE_BG_DEV_LENGTH_PENDING,
     RULE_BG_FLEX_EXT_PENDING,
@@ -440,6 +446,12 @@ def run_mabhas9_beam_check(
     use_detailed_rho_w_equation: bool = False,
     rho_w: Optional[float] = None,
     ag_mm2: Optional[float] = None,
+    max_longitudinal_bar_diameter_mm: Optional[float] = None,
+    is_bundled: bool = False,
+    has_compression_reinforcement: bool = False,
+    min_compression_bar_diameter_mm: Optional[float] = None,
+    compression_lateral_support_spacing_mm: Optional[float] = None,
+    transverse_bar_diameter_mm: Optional[float] = None,
     requested_rule_ids: Sequence[str] = DEFAULT_MABHAS9_CHECK_RULES,
     jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
 ) -> BeamComplianceReport:
@@ -592,6 +604,33 @@ def run_mabhas9_beam_check(
                     vc_n=vc_n,
                     has_minimum_shear_reinforcement=has_minimum_shear_reinforcement,
                     tu_nmm=tu_nmm,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_TRANS_DIA_001.rule_id:
+            steps.append(
+                _verified_min_transverse_dia(
+                    geometry,
+                    max_longitudinal_bar_diameter_mm=(
+                        max_longitudinal_bar_diameter_mm
+                    ),
+                    is_bundled=is_bundled,
+                    transverse_bar_diameter_mm=transverse_bar_diameter_mm,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_COMP_LAT_001.rule_id:
+            steps.append(
+                evaluate_compression_reinforcement_lateral_support_spacing(
+                    geometry,
+                    has_compression_reinforcement=has_compression_reinforcement,
+                    min_compression_bar_diameter_mm=(
+                        min_compression_bar_diameter_mm
+                    ),
+                    transverse_bar_diameter_mm=transverse_bar_diameter_mm,
+                    compression_lateral_support_spacing_mm=(
+                        compression_lateral_support_spacing_mm
+                    ),
                     jurisdiction_mode=jurisdiction_mode,
                 )
             )

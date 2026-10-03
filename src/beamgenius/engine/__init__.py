@@ -22,6 +22,16 @@ from beamgenius.engine.beam_checker import (
     evaluate_torsion,
     run_mabhas9_beam_check,
 )
+from beamgenius.engine.detailing_mabhas9 import (
+    BG_DETAIL_COMP_LAT_001_DB_MULTIPLIER,
+    BG_DETAIL_COMP_LAT_001_DBT_MULTIPLIER,
+    BG_DETAIL_TRANS_DIA_001_DB_MAX_FOR_10MM,
+    BG_DETAIL_TRANS_DIA_001_DB_MIN_FOR_12MM,
+    BG_DETAIL_TRANS_DIA_001_DBT_FOR_LARGE_OR_BUNDLED_DB,
+    BG_DETAIL_TRANS_DIA_001_DBT_FOR_SMALL_DB,
+    evaluate_compression_reinforcement_lateral_support_spacing,
+    run_mabhas9_beam_detailing_workflow,
+)
 from beamgenius.engine.flexure_mabhas9 import (
     BG_FLEX_ALPHA0_DEFAULT,
     BG_FLEX_ALPHA0_MIN,
@@ -160,6 +170,12 @@ __all__ = [
     "BG_SHEAR_VS_001_MAX_INCLINED_ANGLE_DEG",
     "BG_SHEAR_VS_001_MIN_INCLINED_ANGLE_DEG",
     "BG_SHEAR_VS_MAX_001_COEFF",
+    "BG_DETAIL_COMP_LAT_001_DB_MULTIPLIER",
+    "BG_DETAIL_COMP_LAT_001_DBT_MULTIPLIER",
+    "BG_DETAIL_TRANS_DIA_001_DB_MAX_FOR_10MM",
+    "BG_DETAIL_TRANS_DIA_001_DB_MIN_FOR_12MM",
+    "BG_DETAIL_TRANS_DIA_001_DBT_FOR_LARGE_OR_BUNDLED_DB",
+    "BG_DETAIL_TRANS_DIA_001_DBT_FOR_SMALL_DB",
     "DEFAULT_MABHAS9_CHECK_RULES",
     "MABHAS9_FC_PRIME_MAX_MPA",
     "MABHAS9_FC_PRIME_MIN_MPA",
@@ -167,6 +183,7 @@ __all__ = [
     "evaluate_bar_cutoff",
     "evaluate_bent_bar_anchorage",
     "evaluate_compression_rebar_lateral_support",
+    "evaluate_compression_reinforcement_lateral_support_spacing",
     "evaluate_concrete_cover",
     "evaluate_concrete_shear_capacity_vc",
     "evaluate_continuity_through_column",
@@ -198,6 +215,7 @@ __all__ = [
     "evaluate_table_9_11_2_remaining_exceptions",
     "evaluate_torsion",
     "run_mabhas9_beam_check",
+    "run_mabhas9_beam_detailing_workflow",
     "run_mabhas9_flexural_workflow",
     "run_mabhas9_shear_workflow",
 ]

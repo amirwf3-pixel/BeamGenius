@@ -728,6 +728,13 @@ Verification Method:
 
 Actual source page review (Mabhas 9, PDF Page 228, Clause 9-11-6-5-11).
 
+Production Implementation (Phase 2D):
+
+Executable in `beamgenius.engine.detailing_mabhas9.evaluate_minimum_transverse_bar_diameter`
+(registry `execution_allowed=True`; dispatched by `run_mabhas9_beam_check`). The
+non-bundled interval 32 mm < db < 36 mm deterministically returns
+`UNVERIFIED_RULE_BLOCKED` (UNSUPPORTED_CONFIGURATION) — no interpolation invented.
+
 ---
 
 ## BG-DETAIL-COMP-LAT-001 — Compression Reinforcement Lateral Support Spacing
@@ -771,6 +778,14 @@ Exceptions / Blocked Conditions:
 Verification Method:
 
 Actual source page review (Mabhas 9, PDF Page 229, Clause 9-11-6-5-12).
+
+Production Implementation (Phase 2D):
+
+Executable in `beamgenius.engine.detailing_mabhas9.evaluate_compression_reinforcement_lateral_support_spacing`
+(registry `execution_allowed=True`; dispatched by `run_mabhas9_beam_check`). Requires
+`has_compression_reinforcement=True` plus positive finite db/dbt/sc inputs; b_min is
+auto-resolved as min(bw, h). Compression bar buckling behavior beyond this spacing rule
+is intentionally NOT implemented.
 
 ---
 

@@ -332,6 +332,10 @@ The 32–36 mm interval is not inferred.
 
 
 
+Implemented in Phase 2D: `beamgenius.engine.detailing_mabhas9.evaluate_minimum_transverse_bar_diameter` (registry `execution_allowed=True`); the non-bundled 32–36 mm interval returns `UNVERIFIED_RULE_BLOCKED` (`UNSUPPORTED_CONFIGURATION`).
+
+
+
 ### Compression Reinforcement Lateral Support
 
 Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-DETAIL-COMP-LAT-001`)
@@ -349,6 +353,10 @@ sc ≤ min(
 &#x20;   bmin
 
 )
+
+
+
+Implemented in Phase 2D: `beamgenius.engine.detailing_mabhas9.evaluate_compression_reinforcement_lateral_support_spacing` (registry `execution_allowed=True`); requires compression reinforcement and positive finite db/dbt/sc inputs, b_min = min(bw, h). No compression bar buckling behavior is modeled beyond this rule.
 
 
 

@@ -176,6 +176,48 @@ RULE_BG_FLEX_TBEAM_B_EFF_001 = RuleReference(
     dependencies=(),
 )
 
+RULE_BG_DETAIL_TRANS_DIA_001 = RuleReference(
+    rule_id="BG-DETAIL-TRANS-DIA-001",
+    title="Mabhas 9 Minimum Transverse Reinforcement Diameter",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=228,
+    printed_page=None,
+    clause_or_equation="Clause 9-11-6-5-11",
+    symbolic_formula="db <= 32 mm -> dbt >= 10 mm; db >= 36 mm -> dbt >= 12 mm; bundled -> dbt >= 12 mm",
+    description=(
+        "Minimum transverse reinforcement diameter enclosing longitudinal bars in "
+        "beams. The 32 < db < 36 mm interval for non-bundled bars has no verified "
+        "interpolation and deterministically returns UNVERIFIED_RULE_BLOCKED."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_DETAIL_COMP_LAT_001 = RuleReference(
+    rule_id="BG-DETAIL-COMP-LAT-001",
+    title="Mabhas 9 Compression Reinforcement Lateral Support Spacing",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=229,
+    printed_page=None,
+    clause_or_equation="Clause 9-11-6-5-12",
+    symbolic_formula="sc <= min(16 * db, 48 * dbt, b_min)",
+    description=(
+        "Longitudinal spacing of transverse reinforcement enclosing compression bars: "
+        "db is the smallest diameter of longitudinal compression bars, dbt the "
+        "transverse bar diameter, and b_min the least section dimension."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
 RULE_BG_SHEAR_PHI_001 = RuleReference(
     rule_id="BG-SHEAR-PHI-001",
     title="Mabhas 9 Shear Strength Reduction Factor phi and Factored One-Way Shear Check",
@@ -1427,6 +1469,8 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_FLEX_PHI_FACTOR,
     RULE_BG_FLEX_RECT_SINGLY_001,
     RULE_BG_FLEX_TBEAM_B_EFF_001,
+    RULE_BG_DETAIL_TRANS_DIA_001,
+    RULE_BG_DETAIL_COMP_LAT_001,
     RULE_BG_SHEAR_PHI_001,
     RULE_BG_SHEAR_VC_001,
     RULE_BG_SHEAR_VS_001,

@@ -36,6 +36,7 @@ from beamgenius.engine import (
     evaluate_minimum_flexural_reinforcement,
     evaluate_minimum_shear_reinforcement,
     run_mabhas9_beam_check,
+    run_mabhas9_beam_detailing_workflow,
     run_mabhas9_flexural_workflow,
     run_mabhas9_shear_workflow,
 )
@@ -95,6 +96,7 @@ __all__ = [
     "list_reference_executable_rules",
     "require_rule",
     "run_mabhas9_beam_check",
+    "run_mabhas9_beam_detailing_workflow",
     "run_mabhas9_flexural_workflow",
     "run_mabhas9_shear_workflow",
 ]
