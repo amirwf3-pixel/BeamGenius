@@ -362,7 +362,7 @@ Implemented in Phase 2D: `beamgenius.engine.detailing_mabhas9.evaluate_compressi
 
 ### Longitudinal Bar Minimum Clear Spacing in a Horizontal Layer
 
-Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-DETAIL-SPACING-001`)
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-DETAIL-LONG-SPACING-001`)
 
 Source: Mabhas 9 (1399, 5th ed.), PDF page 441, printed page 420, Clause 9-21-2-1-1 (source-page capture visually verified 2026-10-03)
 
@@ -384,7 +384,7 @@ for parallel bars in one horizontal layer (clause items الف/ب/پ; the Persia
 
 
 
-Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_mabhas9.evaluate_longitudinal_bar_clear_spacing` (registry `execution_allowed=True`); db,max and d_agg are REQUIRED inputs — missing aggregate input returns `INVALID_INPUT` (`MISSING_AGGREGATE_SIZE`), never a default.
+Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_spacing_mabhas9.evaluate_longitudinal_bar_clear_spacing` (registry `execution_allowed=True`); db,max and d_agg are REQUIRED inputs — missing inputs return `BLOCKED` (`MISSING_AGGREGATE_SIZE` / `MISSING_GOVERNING_BAR_DIAMETER`), malformed values `INVALID_INPUT`; bundled bars `BLOCKED` (`UNVERIFIED_BUNDLE_RULE`).
 
 
 
@@ -400,7 +400,7 @@ For parallel bars in several horizontal layers: (i) upper-layer bars shall be pl
 
 
 
-Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_mabhas9.evaluate_layer_clear_spacing` (registry `execution_allowed=True`); layer count and the typed vertical-alignment confirmation are REQUIRED inputs — they are never silently assumed; single layer → NOT_APPLICABLE; bundled bars → UNVERIFIED_RULE_BLOCKED (9-21-5-6 pending).
+Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_spacing_mabhas9.evaluate_longitudinal_layer_spacing` (registry `execution_allowed=True`); layer count and the typed vertical-alignment confirmation are REQUIRED inputs — missing layer geometry returns `BLOCKED` (`MISSING_LAYER_COUNT` / `MISSING_LAYER_ALIGNMENT`), never silently assumed; single layer → NOT_APPLICABLE; bundled bars → `UNVERIFIED_BUNDLE_RULE` (9-21-5-6 pending).
 
 
 
@@ -412,7 +412,7 @@ Source: Mabhas 9 (1399, 5th ed.), PDF pages 92–93, printed pages 71–72, Clau
 
 
 
-- No air/earth contact — beams (columns, pedestals, tension members): 40 mm over all longitudinal and transverse bars.
+- No air/earth contact — beams (columns, pedestals, tension members): 40 mm over all longitudinal and transverse bars; slabs, joists, walls: db > 36 mm → 40 mm; db ≤ 34 mm → 20 mm.
 
 - Air/weather or non-permanent earth contact (all members): db ≤ 16 mm → 40 mm; db 18–58 mm → 50 mm.
 
@@ -422,7 +422,7 @@ Source: Mabhas 9 (1399, 5th ed.), PDF pages 92–93, printed pages 71–72, Clau
 
 
 
-Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_mabhas9.evaluate_minimum_concrete_cover` (registry `execution_allowed=True`); the exposure condition is a REQUIRED typed input, never assumed; corrosive/unusual environments are routed to Appendix 9-پ1 (Clause 9-4-9-6) and deterministically return `UNVERIFIED_RULE_BLOCKED`; the bundled-group rule (Clause 9-4-9-5-2, min(d_eq, 75|50 mm)) stays blocked pending visual verification of Clause 9-21-5-6; diameter classes outside db ≤ 16 mm and 18–58 mm are blocked, never interpolated.
+Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_spacing_mabhas9.evaluate_beam_cover` (registry `execution_allowed=True`); exposure condition, member type (BEAM/COLUMN/PEDESTAL/TENSION_MEMBER/SLAB/JOIST/WALL), and reinforcement type (LONGITUDINAL / TRANSVERSE) are REQUIRED typed inputs — missing inputs return `BLOCKED`, an unknown member type returns `INVALID_INPUT`; corrosive/unusual environments are routed to Appendix 9-پ1 (Clauses 9-4-9-6/9-4-9-7) and deterministically return `BLOCKED` (Appendix 9-پ1 values are never computed); the bundled-group rule (Clause 9-4-9-5-2, min(d_eq, 75|50 mm)) stays `BLOCKED` (`UNVERIFIED_BUNDLE_RULE`) pending visual verification of Clause 9-21-5-6; uncovered diameter classes ((16, 18) mm, db > 58 mm, unexposed-slab (34, 36] mm) are blocked, never interpolated.
 
 
 

@@ -37,7 +37,7 @@ def test_mabhas9_executable_rules_exact_set() -> None:
         "BG-FLEX-TBEAM-B-EFF-001",
         "BG-DETAIL-TRANS-DIA-001",
         "BG-DETAIL-COMP-LAT-001",
-        "BG-DETAIL-SPACING-001",
+        "BG-DETAIL-LONG-SPACING-001",
         "BG-DETAIL-LAYER-SPACING-001",
         "BG-DETAIL-COVER-001",
         "BG-SHEAR-PHI-001",

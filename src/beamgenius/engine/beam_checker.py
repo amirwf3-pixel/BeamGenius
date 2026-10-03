@@ -6,6 +6,8 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 from beamgenius.domain.enums import (
     ConcreteCoverExposureClass,
+    ConcreteCoverMemberClass,
+    CoverReinforcementType,
     DiagnosticSeverity,
     EvaluationOutcome,
     JurisdictionMode,
@@ -32,10 +34,12 @@ from beamgenius.engine.flexure_mabhas9 import (
 )
 from beamgenius.engine.detailing_mabhas9 import (
     evaluate_compression_reinforcement_lateral_support_spacing,
-    evaluate_layer_clear_spacing as _verified_layer_clear_spacing,
-    evaluate_longitudinal_bar_clear_spacing as _verified_bar_clear_spacing,
-    evaluate_minimum_concrete_cover as _verified_min_concrete_cover,
     evaluate_minimum_transverse_bar_diameter as _verified_min_transverse_dia,
+)
+from beamgenius.engine.detailing_spacing_mabhas9 import (
+    evaluate_beam_cover as _verified_beam_cover,
+    evaluate_longitudinal_bar_clear_spacing as _verified_bar_clear_spacing,
+    evaluate_longitudinal_layer_spacing as _verified_layer_clear_spacing,
 )
 from beamgenius.engine.shear_mabhas9 import (
     evaluate_concrete_shear_capacity_vc,
@@ -58,7 +62,7 @@ from beamgenius.registry.catalog import (
     RULE_BG_DETAIL_COVER_BLOCKED,
     RULE_BG_DETAIL_LAYER_SPACING_001,
     RULE_BG_DETAIL_LAYER_SPACING_BLOCKED,
-    RULE_BG_DETAIL_SPACING_001,
+    RULE_BG_DETAIL_LONG_SPACING_001,
     RULE_BG_DETAIL_SPACING_BLOCKED,
     RULE_BG_DETAIL_TRANS_DIA_001,
     RULE_BG_DETAIL_TRANS_DIA_PENDING,
@@ -465,6 +469,8 @@ def run_mabhas9_beam_check(
     rebar_layer_count: Optional[int] = None,
     layers_directly_aligned: Optional[bool] = None,
     cover_exposure: Optional[ConcreteCoverExposureClass] = None,
+    cover_member_class: Optional[ConcreteCoverMemberClass] = None,
+    cover_reinforcement_type: Optional[CoverReinforcementType] = None,
     cover_bar_diameter_mm: Optional[float] = None,
     provided_cover_mm: Optional[float] = None,
     has_headed_shear_reinforcement: bool = False,
@@ -650,7 +656,7 @@ def run_mabhas9_beam_check(
                     jurisdiction_mode=jurisdiction_mode,
                 )
             )
-        elif rule_id == RULE_BG_DETAIL_SPACING_001.rule_id:
+        elif rule_id == RULE_BG_DETAIL_LONG_SPACING_001.rule_id:
             steps.append(
                 _verified_bar_clear_spacing(
                     geometry,
@@ -674,9 +680,11 @@ def run_mabhas9_beam_check(
             )
         elif rule_id == RULE_BG_DETAIL_COVER_001.rule_id:
             steps.append(
-                _verified_min_concrete_cover(
+                _verified_beam_cover(
                     geometry,
                     exposure=cover_exposure,
+                    member_class=cover_member_class,
+                    reinforcement_type=cover_reinforcement_type,
                     cover_bar_diameter_mm=cover_bar_diameter_mm,
                     provided_cover_mm=provided_cover_mm,
                     is_bundled=is_bundled,

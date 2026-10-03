@@ -25,21 +25,29 @@ from beamgenius.engine.beam_checker import (
 from beamgenius.engine.detailing_mabhas9 import (
     BG_DETAIL_COMP_LAT_001_DB_MULTIPLIER,
     BG_DETAIL_COMP_LAT_001_DBT_MULTIPLIER,
-    BG_DETAIL_COVER_001_BEAM_NOT_EXPOSED_MM,
-    BG_DETAIL_COVER_001_PERMANENT_EARTH_MM,
-    BG_DETAIL_COVER_001_WEATHER_DB_18_TO_58_MM,
-    BG_DETAIL_COVER_001_WEATHER_DB_LE_16_MM,
-    BG_DETAIL_LAYER_SPACING_001_MIN_CLEAR_MM,
-    BG_DETAIL_SPACING_001_AGGREGATE_FACTOR,
-    BG_DETAIL_SPACING_001_MIN_CLEAR_MM,
     BG_DETAIL_TRANS_DIA_001_DB_MAX_FOR_10MM,
     BG_DETAIL_TRANS_DIA_001_DB_MIN_FOR_12MM,
     BG_DETAIL_TRANS_DIA_001_DBT_FOR_LARGE_OR_BUNDLED_DB,
     BG_DETAIL_TRANS_DIA_001_DBT_FOR_SMALL_DB,
     evaluate_compression_reinforcement_lateral_support_spacing,
-    evaluate_layer_clear_spacing,
-    evaluate_minimum_concrete_cover,
     run_mabhas9_beam_detailing_workflow,
+)
+# NOTE: evaluate_longitudinal_bar_clear_spacing (verified) is intentionally
+# NOT re-exported at package level: the name collides with the legacy
+# blocked stub exported by beam_checker; import it from
+# beamgenius.engine.detailing_spacing_mabhas9.
+from beamgenius.engine.detailing_spacing_mabhas9 import (
+    BG_DETAIL_COVER_001_BEAM_NOT_EXPOSED_MM,
+    BG_DETAIL_COVER_001_PERMANENT_EARTH_MM,
+    BG_DETAIL_COVER_001_SLAB_NOT_EXPOSED_LARGE_DB_MM,
+    BG_DETAIL_COVER_001_SLAB_NOT_EXPOSED_SMALL_DB_MM,
+    BG_DETAIL_COVER_001_WEATHER_DB_18_TO_58_MM,
+    BG_DETAIL_COVER_001_WEATHER_DB_LE_16_MM,
+    BG_DETAIL_LAYER_SPACING_001_MIN_CLEAR_MM,
+    BG_DETAIL_LONG_SPACING_001_AGGREGATE_FACTOR,
+    BG_DETAIL_LONG_SPACING_001_MIN_CLEAR_MM,
+    evaluate_beam_cover,
+    evaluate_longitudinal_layer_spacing,
 )
 from beamgenius.engine.flexure_mabhas9 import (
     BG_FLEX_ALPHA0_DEFAULT,
@@ -183,11 +191,13 @@ __all__ = [
     "BG_DETAIL_COMP_LAT_001_DBT_MULTIPLIER",
     "BG_DETAIL_COVER_001_BEAM_NOT_EXPOSED_MM",
     "BG_DETAIL_COVER_001_PERMANENT_EARTH_MM",
+    "BG_DETAIL_COVER_001_SLAB_NOT_EXPOSED_LARGE_DB_MM",
+    "BG_DETAIL_COVER_001_SLAB_NOT_EXPOSED_SMALL_DB_MM",
     "BG_DETAIL_COVER_001_WEATHER_DB_18_TO_58_MM",
     "BG_DETAIL_COVER_001_WEATHER_DB_LE_16_MM",
     "BG_DETAIL_LAYER_SPACING_001_MIN_CLEAR_MM",
-    "BG_DETAIL_SPACING_001_AGGREGATE_FACTOR",
-    "BG_DETAIL_SPACING_001_MIN_CLEAR_MM",
+    "BG_DETAIL_LONG_SPACING_001_AGGREGATE_FACTOR",
+    "BG_DETAIL_LONG_SPACING_001_MIN_CLEAR_MM",
     "BG_DETAIL_TRANS_DIA_001_DB_MAX_FOR_10MM",
     "BG_DETAIL_TRANS_DIA_001_DB_MIN_FOR_12MM",
     "BG_DETAIL_TRANS_DIA_001_DBT_FOR_LARGE_OR_BUNDLED_DB",
@@ -232,8 +242,8 @@ __all__ = [
     "evaluate_torsion",
     "run_mabhas9_beam_check",
     "run_mabhas9_beam_detailing_workflow",
-    "evaluate_layer_clear_spacing",
-    "evaluate_minimum_concrete_cover",
+    "evaluate_longitudinal_layer_spacing",
+    "evaluate_beam_cover",
     "run_mabhas9_flexural_workflow",
     "run_mabhas9_shear_workflow",
 ]

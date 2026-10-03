@@ -789,7 +789,7 @@ is intentionally NOT implemented.
 
 ---
 
-## BG-DETAIL-SPACING-001 — Longitudinal Bar Minimum Clear Spacing in a Horizontal Layer
+## BG-DETAIL-LONG-SPACING-001 — Longitudinal Bar Minimum Clear Spacing in a Horizontal Layer
 
 Status: VERIFIED
 Type: CODE_RULE
@@ -797,6 +797,8 @@ Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
 PDF Page: 441
 Printed Page: 420
 Clause: 9-21-2-1-1 (same page: scope exceptions Clauses 9-21-2-1-3 and 9-21-2-1-4)
+
+### SOURCE VERIFIED (visually verified 2026-10-03; ATNasr Mabhas 9 1399 PDF capture, page footer ۴۲۰)
 
 Formula / Requirement:
 
@@ -814,28 +816,28 @@ Applicability:
 
 Parallel longitudinal bars in one horizontal layer of (non-shotcrete) members, e.g. beam tension/compression layers.
 
-Inputs:
-
-- db,max: largest bar diameter in the layer (mm) — REQUIRED, never defaulted
-- d_agg: nominal maximum aggregate size (mm) — REQUIRED, never defaulted (clause item پ is never dropped)
-- provided clear spacing between bars in the layer (mm) — optional; when omitted the required minimum is computed (COMPUTED)
-
-Units: mm.
-
-Exceptions / Blocked Conditions:
+Limitations / Exceptions / Blocked Conditions:
 
 - Clause 9-21-2-1-3 (columns, pedestal columns, ties, wall boundary elements: ≥ max(40 mm, 1.5 × db,max, (4/3) × d_agg)) is NOT a beam rule and is never substituted for beams.
 - Clause 9-21-2-1-4: the spacing values do not apply to shotcrete — shotcrete input returns NOT_APPLICABLE.
-- Bundled bars: the equivalent bar diameter (Clause 9-21-5-6) is text-located but NOT visually verified — bundled input returns UNVERIFIED_RULE_BLOCKED (UNSUPPORTED_CONFIGURATION); no equivalent diameter is invented.
-- Missing db,max or d_agg returns INVALID_INPUT (MISSING_GOVERNING_BAR_DIAMETER / MISSING_AGGREGATE_SIZE).
+- Bundled bars: Clause 9-21-5-6 (equivalent diameter) is text-located but NOT visually verified — bundled input returns BLOCKED (`UNVERIFIED_RULE_BLOCKED` / `UNVERIFIED_BUNDLE_RULE`); no equivalent diameter is invented. Bundled cases never PASS.
+- Missing db,max or d_agg returns BLOCKED (`UNVERIFIED_RULE_BLOCKED` / `MISSING_GOVERNING_BAR_DIAMETER` or `MISSING_AGGREGATE_SIZE`) — clause items are never dropped; malformed (non-finite / non-positive) values return INVALID_INPUT.
+
+Required Inputs:
+
+- db,max: largest bar diameter in the layer (mm) — REQUIRED, never defaulted
+- d_agg: nominal maximum aggregate size (mm) — REQUIRED, never defaulted
+- provided clear spacing between bars in the layer (mm) — optional; when omitted the required minimum is computed (COMPUTED)
+
+Units: mm.
 
 Verification Method:
 
 Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF Page 441, Printed Page 420, Clause 9-21-2-1-1 in full; visually verified 2026-10-03).
 
-Production Implementation (Phase 2E Stage B):
+### EXECUTABLE IMPLEMENTATION (Phase 2E Stage B)
 
-Executable in `beamgenius.engine.detailing_mabhas9.evaluate_longitudinal_bar_clear_spacing`
+Executable as `beamgenius.engine.detailing_spacing_mabhas9.evaluate_longitudinal_bar_clear_spacing`
 (registry `execution_allowed=True`; dispatched by `run_mabhas9_beam_check` and
 `run_mabhas9_beam_detailing_workflow` when the mandatory aggregate input is supplied).
 The legacy `BG-DETAIL-SPACING-BLOCKED` sentinel and blocked stub remain untouched.
@@ -851,6 +853,8 @@ PDF Page: 441
 Printed Page: 420
 Clause: 9-21-2-1-2
 
+### SOURCE VERIFIED (visually verified 2026-10-03; ATNasr Mabhas 9 1399 PDF capture, page footer ۴۲۰)
+
 Formula / Requirement:
 
 For parallel longitudinal bars placed in SEVERAL horizontal layers:
@@ -862,7 +866,13 @@ Applicability:
 
 Multiple horizontal reinforcement layers of non-shotcrete members (e.g. beam layers).
 
-Inputs:
+Limitations / Exceptions / Blocked Conditions:
+
+- Single layer (layer_count = 1): NOT_APPLICABLE (no inter-layer requirement).
+- Bundled bars: Clause 9-21-5-6 is not visually verified — bundled input returns BLOCKED (`UNVERIFIED_BUNDLE_RULE`).
+- Missing layer geometry (layer count or alignment) returns BLOCKED (`MISSING_LAYER_COUNT` / `MISSING_LAYER_ALIGNMENT`) — never silently assumed; malformed values return INVALID_INPUT; misaligned layers FAIL (`LAYERS_NOT_DIRECTLY_ALIGNED`).
+
+Required Inputs:
 
 - layer_count: number of reinforcement layers (integer ≥ 1; may be derived from rebar-group layer indices) — REQUIRED, never assumed
 - layers_directly_aligned: typed vertical-alignment confirmation for multi-layer arrangements — REQUIRED when layer_count ≥ 2, never silently assumed
@@ -870,26 +880,20 @@ Inputs:
 
 Units: mm.
 
-Exceptions / Blocked Conditions:
-
-- Single layer (layer_count = 1): NOT_APPLICABLE (no inter-layer requirement).
-- Bundled bars: Clause 9-21-5-6 equivalent diameter is not visually verified — bundled input returns UNVERIFIED_RULE_BLOCKED.
-- Missing layer count or missing alignment confirmation returns INVALID_INPUT (MISSING_LAYER_COUNT / MISSING_LAYER_ALIGNMENT); misaligned layers FAIL (LAYERS_NOT_DIRECTLY_ALIGNED).
-
 Verification Method:
 
 Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF Page 441, Printed Page 420, Clause 9-21-2-1-2 in full; visually verified 2026-10-03).
 
-Production Implementation (Phase 2E Stage B):
+### EXECUTABLE IMPLEMENTATION (Phase 2E Stage B)
 
-Executable in `beamgenius.engine.detailing_mabhas9.evaluate_layer_clear_spacing`
+Executable as `beamgenius.engine.detailing_spacing_mabhas9.evaluate_longitudinal_layer_spacing`
 (registry `execution_allowed=True`; dispatched by `run_mabhas9_beam_check` and
 `run_mabhas9_beam_detailing_workflow` when the layer count is supplied). The legacy
 `BG-DETAIL-LAYER-SPACING-BLOCKED` sentinel and blocked stub remain untouched.
 
 ---
 
-## BG-DETAIL-COVER-001 — Minimum Concrete Cover over Beam Reinforcement (Normal Environment)
+## BG-DETAIL-COVER-001 — Minimum Concrete Cover over Reinforcement (Normal Environment)
 
 Status: VERIFIED
 Type: CODE_RULE
@@ -897,6 +901,8 @@ Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
 PDF Page: 92–93
 Printed Page: 71–72
 Clause: 9-4-9-4, 9-4-9-5, 9-4-9-5-1, 9-4-9-5-2, 9-4-9-5-3 + Table 9-4-6 (corrosive routing: Clause 9-4-9-6; coatings: Clause 9-4-9-7)
+
+### SOURCE VERIFIED (visually verified 2026-10-03; ATNasr Mabhas 9 1399 PDF captures, page footers ۷۱ and ۷۲)
 
 Formula / Requirement:
 
@@ -908,38 +914,40 @@ The concrete cover over ALL longitudinal and transverse reinforcement shall not 
    - bars db 18–58 mm: 50 mm
 3. Concrete NOT in contact with air or earth:
    - slabs, joists, walls: db > 36 mm → 40 mm; db ≤ 34 mm → 20 mm
-   - **beams, columns, pedestals, tension members: 40 mm** (longitudinal bars, stirrups, ties, spirals, hoops)
+   - beams, columns, pedestals, tension members: 40 mm (longitudinal bars, stirrups, ties, spirals, hoops)
 4. Bundled bar groups (Clause 9-4-9-5-2): cover ≥ min(equivalent group diameter, 75 mm permanent-earth / 50 mm otherwise) — blocked, see below
 5. Headed shear reinforcement (Clause 9-4-9-5-3): cover over head/plate ≥ member cover (same minimum as computed)
 
 Applicability:
 
-Normal environment (non-corrosive) beam cover checks; the exposure condition is a REQUIRED typed input (ConcreteCoverExposureClass) and is never assumed.
+Normal environment (non-corrosive) cover checks by typed member class; the exposure condition, member type, and reinforcement type are REQUIRED typed inputs and are never assumed.
 
-Inputs:
+Limitations / Exceptions / Blocked Conditions:
+
+- Corrosive or unusual environments (Clauses 9-4-9-6/9-4-9-7): governed by Appendix 9-پ1 durability requirements, NOT visually verified — returns BLOCKED (`CORROSIVE_EXPOSURE_BLOCKED_APPENDIX_9P1`); Appendix 9-پ1 values are never computed here.
+- Bundled groups (Clause 9-4-9-5-2 → equivalent diameter Clause 9-21-5-6): NOT visually verified — returns BLOCKED (`UNVERIFIED_BUNDLE_RULE`).
+- Diameter classes: only db ≤ 16 mm and db 18–58 mm (weather, all members) and db ≤ 34 mm / db > 36 mm (unexposed slabs-joints-walls) are verified; the uncovered intervals (16, 18) mm, db > 58 mm, and (34, 36] mm return BLOCKED (`UNVERIFIED_COVER_DIAMETER_CLASS`) — never interpolated.
+- Missing exposure/member/reinforcement type (or missing governing diameter for the diameter-classed rows) returns BLOCKED (`MISSING_COVER_EXPOSURE_CLASS` / `MISSING_COVER_MEMBER_CLASS` / `MISSING_COVER_REINFORCEMENT_TYPE` / `MISSING_COVER_BAR_DIAMETER`) — never silently assumed; an unknown member type returns INVALID_INPUT (`UNKNOWN_COVER_MEMBER_CLASS`); malformed numeric values return INVALID_INPUT.
+
+Required Inputs:
 
 - exposure: ConcreteCoverExposureClass (NOT_EXPOSED / WEATHER_OR_EARTH_CONTACT / PERMANENT_EARTH_CONTACT / CORROSIVE_ENVIRONMENT) — REQUIRED
-- cover_bar_diameter_mm: governing bar diameter for the exposure being checked (mm) — REQUIRED for weather/earth exposure (Table diameter classes); may fall back to tension-group diameters
+- member_class: ConcreteCoverMemberClass (BEAM / COLUMN / PEDESTAL / TENSION_MEMBER / SLAB / JOIST / WALL) — REQUIRED
+- reinforcement_type: CoverReinforcementType (LONGITUDINAL / TRANSVERSE i.e. stirrups-ties-spirals-hoops) — REQUIRED
+- cover_bar_diameter_mm: governing bar diameter (mm) — REQUIRED for the diameter-classed rows (weather exposure; unexposed slabs/joists/walls); may fall back to tension-group diameters
 - provided cover (mm) — optional (falls back to geometry.clear_cover_mm); when omitted the required minimum is computed (COMPUTED)
 
 Units: mm.
-
-Exceptions / Blocked Conditions:
-
-- Corrosive or unusual environments (Clauses 9-4-9-6/9-4-9-7): governed by Appendix 9-پ1 durability requirements, NOT visually verified — returns UNVERIFIED_RULE_BLOCKED (CORROSIVE_EXPOSURE_BLOCKED_APPENDIX_9P1); no value is substituted.
-- Bundled groups (Clause 9-4-9-5-2 → equivalent diameter Clause 9-21-5-6): NOT visually verified — returns UNVERIFIED_RULE_BLOCKED (UNVERIFIED_BUNDLED_BAR_COVER).
-- Weather-exposure diameter classes: db ≤ 16 mm and db 18–58 mm only; db in (16, 18) mm or db > 58 mm returns UNVERIFIED_RULE_BLOCKED (UNVERIFIED_COVER_DIAMETER_CLASS) — never interpolated.
-- Missing exposure returns INVALID_INPUT (MISSING_COVER_EXPOSURE_CLASS); missing governing diameter under weather exposure returns INVALID_INPUT (MISSING_COVER_BAR_DIAMETER).
 
 Verification Method:
 
 Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF Pages 92–93, Printed Pages 71–72: Clauses 9-4-9-3..9-4-9-7 and the complete Table 9-4-6; visually verified 2026-10-03).
 
-Production Implementation (Phase 2E Stage B):
+### EXECUTABLE IMPLEMENTATION (Phase 2E Stage B)
 
-Executable in `beamgenius.engine.detailing_mabhas9.evaluate_minimum_concrete_cover`
+Executable as `beamgenius.engine.detailing_spacing_mabhas9.evaluate_beam_cover`
 (registry `execution_allowed=True`; dispatched by `run_mabhas9_beam_check` and
-`run_mabhas9_beam_detailing_workflow` when the typed exposure input is supplied). The
+`run_mabhas9_beam_detailing_workflow` when a typed cover input is supplied). The
 legacy `BG-DETAIL-COVER-BLOCKED` sentinel and blocked stub remain untouched.
 
 ---

@@ -218,8 +218,8 @@ RULE_BG_DETAIL_COMP_LAT_001 = RuleReference(
     dependencies=(),
 )
 
-RULE_BG_DETAIL_SPACING_001 = RuleReference(
-    rule_id="BG-DETAIL-SPACING-001",
+RULE_BG_DETAIL_LONG_SPACING_001 = RuleReference(
+    rule_id="BG-DETAIL-LONG-SPACING-001",
     title="Mabhas 9 Longitudinal Bar Minimum Clear Spacing in a Horizontal Layer",
     category=RuleCategory.CODE_RULE,
     status=VerificationStatus.VERIFIED,
@@ -1565,7 +1565,7 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_FLEX_TBEAM_B_EFF_001,
     RULE_BG_DETAIL_TRANS_DIA_001,
     RULE_BG_DETAIL_COMP_LAT_001,
-    RULE_BG_DETAIL_SPACING_001,
+    RULE_BG_DETAIL_LONG_SPACING_001,
     RULE_BG_DETAIL_LAYER_SPACING_001,
     RULE_BG_DETAIL_COVER_001,
     RULE_BG_SHEAR_PHI_001,

@@ -2,6 +2,8 @@
 
 from beamgenius.domain.enums import (
     ConcreteCoverExposureClass,
+    ConcreteCoverMemberClass,
+    CoverReinforcementType,
     DiagnosticSeverity,
     EvaluationOutcome,
     FlangeCondition,
@@ -43,7 +45,9 @@ __all__ = [
     "BeamGeometry",
     "CalculationTraceStep",
     "ConcreteCoverExposureClass",
+    "ConcreteCoverMemberClass",
     "ConcreteMaterial",
+    "CoverReinforcementType",
     "DiagnosticSeverity",
     "EffectiveDepthResolution",
     "EngineeringDiagnostic",

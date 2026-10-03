@@ -45,6 +45,43 @@ class ConcreteCoverExposureClass(str, Enum):
     CORROSIVE_ENVIRONMENT = "CORROSIVE_ENVIRONMENT"
 
 
+class ConcreteCoverMemberClass(str, Enum):
+    """Member classification for Mabhas 9 Table 9-4-6 minimum cover rows.
+
+    The member type is a REQUIRED typed input of ``BG-DETAIL-COVER-001``;
+    an unknown member type deterministically returns ``INVALID_INPUT``.
+
+    BEAM / COLUMN / PEDESTAL / TENSION_MEMBER:
+        Table 9-4-6 row (iv): 40 mm (not exposed to air/earth) over
+        longitudinal bars, stirrups, ties, spirals, and hoops.
+    SLAB / JOIST / WALL:
+        Table 9-4-6 row (iii): db > 36 mm -> 40 mm; db <= 34 mm -> 20 mm
+        (not exposed to air/earth). The (34, 36] mm interval is not covered
+        by the table and is never interpolated.
+    """
+
+    BEAM = "BEAM"
+    COLUMN = "COLUMN"
+    PEDESTAL = "PEDESTAL"
+    TENSION_MEMBER = "TENSION_MEMBER"
+    SLAB = "SLAB"
+    JOIST = "JOIST"
+    WALL = "WALL"
+
+
+class CoverReinforcementType(str, Enum):
+    """Reinforcement class whose concrete cover is being checked.
+
+    Table 9-4-6 row (iv) covers longitudinal bars, stirrups, ties, spirals,
+    and hoops at 40 mm for beams/columns/pedestals/tension members; the type
+    is a REQUIRED typed input identifying which reinforcement class the
+    cover value applies to.
+    """
+
+    LONGITUDINAL = "LONGITUDINAL"
+    TRANSVERSE = "TRANSVERSE"
+
+
 class JurisdictionMode(str, Enum):
     """Active engineering jurisdiction / execution mode.
 

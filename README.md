@@ -35,6 +35,9 @@ Only rules with `Status = VERIFIED` and `Type = CODE_RULE` in `docs/VERIFIED_RUL
 | `BG-FLEX-TBEAM-B-EFF-001` | Non-Prestressed T-Beam and L-Beam Effective Compression Flange Width ($b_f$) | Clauses 9-6-3-3-1, 9-6-3-3-2, 9-11-2-5 & Table 9-6-1, Printed p. 91 |
 | `BG-DETAIL-TRANS-DIA-001` | Minimum Transverse Reinforcement Diameter ($d_b \le 32 \Rightarrow 10$ mm; $d_b \ge 36$ or bundled $\Rightarrow 12$ mm; $32 < d_b < 36$ blocked) | Clause 9-11-6-5-11, PDF p. 228 |
 | `BG-DETAIL-COMP-LAT-001` | Compression Reinforcement Lateral Support Spacing ($s_c \le \min(16 d_b, 48 d_{bt}, b_{\min})$) | Clause 9-11-6-5-12, PDF p. 229 |
+| `BG-DETAIL-LONG-SPACING-001` | Longitudinal Bar Minimum Clear Spacing in a Horizontal Layer ($s_{clear} \ge \max(25\text{ mm}, d_{b,\max}, \tfrac{4}{3} d_{\text{agg}})$; bundled bars blocked) | Clause 9-21-2-1-1, Printed p. 420, PDF p. 441 |
+| `BG-DETAIL-LAYER-SPACING-001` | Multi-Layer Vertical Clear Spacing & Alignment (clear $\ge 25$ mm; stacked alignment; bundled bars blocked) | Clause 9-21-2-1-2, Printed p. 420, PDF p. 441 |
+| `BG-DETAIL-COVER-001` | Minimum Concrete Cover (Normal Environment) — Table 9-4-6 by exposure, member type (beam/column/pedestal/tension member/slab/joist/wall), reinforcement type; corrosive Appendix 9-پ1 blocked | Clauses 9-4-9-4, 9-4-9-5-1..3 + Table 9-4-6, Printed pp. 71–72, PDF pp. 92–93 |
 | `BG-SHEAR-PHI-001` | Shear Strength Reduction Factor $\phi = 0.75$ and $\phi V_n \ge V_u$ | Clause 9-7-4-1, Table 9-7-2 (Row 2), Eq. (9-8-1-ب), Eq. (9-8-8), PDF pp. 128–131, 140, Printed pp. 107–112, 119 |
 | `BG-SHEAR-VC-001` | Concrete One-Way Shear Resistance $V_c$ | Clauses 9-8-4-4-1..9-8-4-4-5, Eqs. (9-8-12-الف/ب), (9-8-13), (9-8-14), 9-8-4-2-2, Tables 9-3-1 & 9-3-2, PDF pp. 76–77, 140–142, Printed pp. 55–56, 119–121 |
 | `BG-SHEAR-VS-001` | Transverse Reinforcement Shear Resistance $V_s$ (Vertical & Inclined Stirrups) | Clauses 9-8-4-2-3, 9-4-8-5, 9-8-4-5-1/3/4, Eqs. (9-8-15), (9-8-16), (9-8-17), PDF pp. 89–90, 140–144, Printed pp. 68–69, 119, 121–123 |
@@ -50,7 +53,7 @@ Permitted verified equations from `docs/MOSTOFINEJAD_FORMULA_REGISTRY.md` (`BG-M
 
 ## Jurisdiction Modes
 
-- `JurisdictionMode.MABHAS_9_COMPLIANCE`: Production Iranian code compliance mode. Executes only verified `CODE_RULE`s (`BG-FLEX-MIN-001`, `BG-FLEX-STRESS-BLOCK`, `BG-FLEX-STRAIN-LIMIT`, `BG-FLEX-PHI-FACTOR`, `BG-FLEX-RECT-SINGLY-001`, `BG-FLEX-TBEAM-B-EFF-001`, `BG-DETAIL-TRANS-DIA-001`, `BG-DETAIL-COMP-LAT-001`, `BG-SHEAR-PHI-001`, `BG-SHEAR-VC-001`, `BG-SHEAR-VS-001`, `BG-SHEAR-VS-MAX-001`, `BG-SHEAR-MIN-001`, and `BG-SHEAR-SPACING-001`).
+- `JurisdictionMode.MABHAS_9_COMPLIANCE`: Production Iranian code compliance mode. Executes only verified `CODE_RULE`s (`BG-FLEX-MIN-001`, `BG-FLEX-STRESS-BLOCK`, `BG-FLEX-STRAIN-LIMIT`, `BG-FLEX-PHI-FACTOR`, `BG-FLEX-RECT-SINGLY-001`, `BG-FLEX-TBEAM-B-EFF-001`, `BG-DETAIL-TRANS-DIA-001`, `BG-DETAIL-COMP-LAT-001`, `BG-DETAIL-LONG-SPACING-001`, `BG-DETAIL-LAYER-SPACING-001`, `BG-DETAIL-COVER-001`, `BG-SHEAR-PHI-001`, `BG-SHEAR-VC-001`, `BG-SHEAR-VS-001`, `BG-SHEAR-VS-MAX-001`, `BG-SHEAR-MIN-001`, and `BG-SHEAR-SPACING-001`).
 - `JurisdictionMode.MOSTOFINEJAD_METHODOLOGY_ONLY`: Isolated reference methodology mode for textbook verification. Never implies Iranian Mabhas 9 code compliance.
 
 ---
@@ -65,7 +68,8 @@ Until primary source pages are visually verified and promoted to `docs/VERIFIED_
 - **T/L Section Flange-in-Tension Effective Width** (under `BG-FLEX-MIN-001`)
 - **Table 9-11-2 Steel-Fiber RC Exception without Explicit $\phi$** and **One-Way Joist Exception** (under `BG-SHEAR-MIN-001`)
 - **Non-Bundled Transverse Diameter Interval $32 < d_b < 36$ mm** (under `BG-DETAIL-TRANS-DIA-001`) — no source-verified interpolation; returns `UNVERIFIED_RULE_BLOCKED` (`UNSUPPORTED_CONFIGURATION`)
-- **Longitudinal Bar Clear Spacing, Layer Spacing, Concrete Cover, Development Length ($L_d$), Bar Cutoff, Integrity Reinforcement, Column Continuity, Anchorage, Skin Reinforcement, and Torsion**
+- **Development Length ($L_d$), Bar Cutoff, Integrity Reinforcement, Column Continuity, Anchorage, Skin Reinforcement, and Torsion**
+- **Bundled-Bar Equivalent Diameter (Clause 9-21-5-6) and Corrosive/Unusual-Environment Cover (Appendix 9-پ1)** (under `BG-DETAIL-LONG-SPACING-001` / `BG-DETAIL-LAYER-SPACING-001` / `BG-DETAIL-COVER-001`) — text-located but not visually verified; bundled bars, corrosive exposure, and uncovered diameter classes deterministically return `UNVERIFIED_RULE_BLOCKED` (`UNVERIFIED_BUNDLE_RULE` / `CORROSIVE_EXPOSURE_BLOCKED_APPENDIX_9P1` / `UNVERIFIED_COVER_DIAMETER_CLASS`)
 - **Mostofinejad Blocked Equations**: `BG-MOST-5-44`, `BG-MOST-5-45`, `BG-MOST-5-51` (`700`-vs-`600` review flag), `BG-MOST-5-52`, `BG-MOST-5-53`, `BG-MOST-5-57`, `BG-MOST-5-58`, `BG-MOST-5-59`, `BG-MOST-5-60`, and `BG-MOST-5-62`
 - **Rebar Catalog Utility (`beamgenius.rebar`)**: Computes mathematical bar areas ($A_b = \pi d_b^2 / 4$) and enumerates area-matching combinations only; every candidate exposes `constructability_verified = False`.
 
