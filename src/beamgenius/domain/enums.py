@@ -21,6 +21,30 @@ class FlangeCondition(str, Enum):
     FLANGE_IN_TENSION = "FLANGE_IN_TENSION"
 
 
+class ConcreteCoverExposureClass(str, Enum):
+    """Concrete surface exposure condition for minimum cover (Mabhas 9 Table 9-4-6).
+
+    The exposure condition is a REQUIRED typed input of `BG-DETAIL-COVER-001`
+    and must never be silently assumed.
+
+    NOT_EXPOSED:
+        Concrete not exposed to air/weather and not in contact with earth.
+    WEATHER_OR_EARTH_CONTACT:
+        Concrete exposed to air/weather or in non-permanent contact with earth.
+    PERMANENT_EARTH_CONTACT:
+        Concrete cast against and remaining in permanent contact with earth.
+    CORROSIVE_ENVIRONMENT:
+        Corrosive or otherwise unusual environment: governed by Mabhas 9
+        Appendix 9-پ1 (durability) per Clauses 9-4-9-6/9-4-9-7 — NOT verified
+        for execution; deterministically blocked.
+    """
+
+    NOT_EXPOSED = "NOT_EXPOSED"
+    WEATHER_OR_EARTH_CONTACT = "WEATHER_OR_EARTH_CONTACT"
+    PERMANENT_EARTH_CONTACT = "PERMANENT_EARTH_CONTACT"
+    CORROSIVE_ENVIRONMENT = "CORROSIVE_ENVIRONMENT"
+
+
 class JurisdictionMode(str, Enum):
     """Active engineering jurisdiction / execution mode.
 

@@ -1,6 +1,7 @@
 """Domain package for BeamGenius Phase 1 engineering core."""
 
 from beamgenius.domain.enums import (
+    ConcreteCoverExposureClass,
     DiagnosticSeverity,
     EvaluationOutcome,
     FlangeCondition,
@@ -41,6 +42,7 @@ __all__ = [
     "BeamComplianceReport",
     "BeamGeometry",
     "CalculationTraceStep",
+    "ConcreteCoverExposureClass",
     "ConcreteMaterial",
     "DiagnosticSeverity",
     "EffectiveDepthResolution",

@@ -218,6 +218,100 @@ RULE_BG_DETAIL_COMP_LAT_001 = RuleReference(
     dependencies=(),
 )
 
+RULE_BG_DETAIL_SPACING_001 = RuleReference(
+    rule_id="BG-DETAIL-SPACING-001",
+    title="Mabhas 9 Longitudinal Bar Minimum Clear Spacing in a Horizontal Layer",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=441,
+    printed_page=420,
+    clause_or_equation=(
+        "Clause 9-21-2-1-1 (with scope exceptions 9-21-2-1-3 columns/pedestals/"
+        "ties/wall boundary elements & 9-21-2-1-4 shotcrete)"
+    ),
+    symbolic_formula=(
+        "s_clear >= max(25 mm, db_max, (4/3) * d_agg); bundled bars blocked "
+        "(equivalent diameter 9-21-5-6 VERIFIED_SOURCE_ONLY pending)"
+    ),
+    description=(
+        "Minimum clear distance between parallel longitudinal bars placed in one "
+        "horizontal layer: not less than each of 25 mm, the largest bar diameter "
+        "db_max, and 4/3 times the nominal maximum aggregate size d_agg. The column "
+        "rule (Clause 9-21-2-1-3: 40 mm / 1.5*db_max) is never substituted; "
+        "shotcrete is excluded per Clause 9-21-2-1-4 (NOT_APPLICABLE); bundled "
+        "bars deterministically return UNVERIFIED_RULE_BLOCKED until Clause "
+        "9-21-5-6 is visually verified."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_DETAIL_LAYER_SPACING_001 = RuleReference(
+    rule_id="BG-DETAIL-LAYER-SPACING-001",
+    title="Mabhas 9 Multi-Layer Longitudinal Bar Vertical Clear Spacing and Alignment",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=441,
+    printed_page=420,
+    clause_or_equation="Clause 9-21-2-1-2",
+    symbolic_formula=(
+        "multiple horizontal layers: upper bars directly above lower bars "
+        "(alignment) AND clear inter-layer distance >= 25 mm"
+    ),
+    description=(
+        "For parallel longitudinal bars placed in several horizontal layers, "
+        "the bars of each upper layer must be placed directly above the bars of "
+        "the layer below, and the clear distance between two successive layers "
+        "must be at least 25 mm (independent of bar diameter and aggregate "
+        "size). Vertical alignment is a required typed input and is never "
+        "silently assumed; bundled bars deterministically return "
+        "UNVERIFIED_RULE_BLOCKED until Clause 9-21-5-6 is visually verified."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_DETAIL_COVER_001 = RuleReference(
+    rule_id="BG-DETAIL-COVER-001",
+    title="Mabhas 9 Minimum Concrete Cover over Beam Reinforcement (Normal Environment)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=92,
+    printed_page=71,
+    clause_or_equation=(
+        "Clauses 9-4-9-4, 9-4-9-5, 9-4-9-5-1..3 + Table 9-4-6 "
+        "(PDF pp. 92-93, Printed pp. 71-72; corrosive routing 9-4-9-6)"
+    ),
+    symbolic_formula=(
+        "cover >= Table 9-4-6 (beams): no air/earth contact -> 40 mm; air/weather "
+        "or non-permanent earth contact -> 50 mm (db 18-58) / 40 mm (db <= 16); "
+        "permanent earth contact -> 75 mm"
+    ),
+    description=(
+        "Minimum concrete cover over all longitudinal and transverse beam "
+        "reinforcement (longitudinal bars, stirrups, ties, spirals, hoops; also "
+        "headed shear reinforcement heads/plates per Clause 9-4-9-5-3) under "
+        "normal (non-corrosive) conditions per Clauses 9-4-9-4/9-4-9-5-1 and "
+        "Table 9-4-6. The exposure condition is a required typed input; "
+        "corrosive/unusual environments are routed to Appendix 9-پ1 per Clause "
+        "9-4-9-6 and deterministically blocked; the bundled-group rule (Clause "
+        "9-4-9-5-2, min(d_eq, 75|50 mm)) is blocked pending visual verification "
+        "of Clause 9-21-5-6; diameter classes outside db <= 16 mm and 18-58 mm "
+        "are never interpolated."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
 RULE_BG_SHEAR_PHI_001 = RuleReference(
     rule_id="BG-SHEAR-PHI-001",
     title="Mabhas 9 Shear Strength Reduction Factor phi and Factored One-Way Shear Check",
@@ -1471,6 +1565,9 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_FLEX_TBEAM_B_EFF_001,
     RULE_BG_DETAIL_TRANS_DIA_001,
     RULE_BG_DETAIL_COMP_LAT_001,
+    RULE_BG_DETAIL_SPACING_001,
+    RULE_BG_DETAIL_LAYER_SPACING_001,
+    RULE_BG_DETAIL_COVER_001,
     RULE_BG_SHEAR_PHI_001,
     RULE_BG_SHEAR_VC_001,
     RULE_BG_SHEAR_VS_001,

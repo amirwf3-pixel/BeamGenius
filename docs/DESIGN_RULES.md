@@ -360,6 +360,72 @@ Implemented in Phase 2D: `beamgenius.engine.detailing_mabhas9.evaluate_compressi
 
 
 
+### Longitudinal Bar Minimum Clear Spacing in a Horizontal Layer
+
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-DETAIL-SPACING-001`)
+
+Source: Mabhas 9 (1399, 5th ed.), PDF page 441, printed page 420, Clause 9-21-2-1-1 (source-page capture visually verified 2026-10-03)
+
+
+
+s_clear ≥ max(
+
+    25 mm,
+
+    db,max,
+
+    (4/3) × d_agg
+
+)
+
+
+
+for parallel bars in one horizontal layer (clause items الف/ب/پ; the Persian `1/33` is decimal notation for 1.33). The column rule Clause 9-21-2-1-3 (40 mm / 1.5 × db,max) is never substituted; shotcrete is excluded (Clause 9-21-2-1-4 → NOT_APPLICABLE); bundled bars are blocked until Clause 9-21-5-6 (bundle equivalent diameter) is visually verified.
+
+
+
+Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_mabhas9.evaluate_longitudinal_bar_clear_spacing` (registry `execution_allowed=True`); db,max and d_agg are REQUIRED inputs — missing aggregate input returns `INVALID_INPUT` (`MISSING_AGGREGATE_SIZE`), never a default.
+
+
+
+### Multi-Layer Vertical Clear Spacing and Alignment
+
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-DETAIL-LAYER-SPACING-001`)
+
+Source: Mabhas 9 (1399, 5th ed.), PDF page 441, printed page 420, Clause 9-21-2-1-2 (source-page capture visually verified 2026-10-03)
+
+
+
+For parallel bars in several horizontal layers: (i) upper-layer bars shall be placed directly above lower-layer bars, and (ii) clear distance between two successive layers ≥ 25 mm (independent of db and aggregate size).
+
+
+
+Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_mabhas9.evaluate_layer_clear_spacing` (registry `execution_allowed=True`); layer count and the typed vertical-alignment confirmation are REQUIRED inputs — they are never silently assumed; single layer → NOT_APPLICABLE; bundled bars → UNVERIFIED_RULE_BLOCKED (9-21-5-6 pending).
+
+
+
+### Minimum Concrete Cover (Normal Environment)
+
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-DETAIL-COVER-001`)
+
+Source: Mabhas 9 (1399, 5th ed.), PDF pages 92–93, printed pages 71–72, Clauses 9-4-9-4, 9-4-9-5-1..3 + Table 9-4-6 (source-page captures visually verified 2026-10-03)
+
+
+
+- No air/earth contact — beams (columns, pedestals, tension members): 40 mm over all longitudinal and transverse bars.
+
+- Air/weather or non-permanent earth contact (all members): db ≤ 16 mm → 40 mm; db 18–58 mm → 50 mm.
+
+- Permanent earth contact (all members, all bars): 75 mm.
+
+- Headed shear reinforcement (Clause 9-4-9-5-3): cover over head/plate ≥ member cover (same minimum).
+
+
+
+Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_mabhas9.evaluate_minimum_concrete_cover` (registry `execution_allowed=True`); the exposure condition is a REQUIRED typed input, never assumed; corrosive/unusual environments are routed to Appendix 9-پ1 (Clause 9-4-9-6) and deterministically return `UNVERIFIED_RULE_BLOCKED`; the bundled-group rule (Clause 9-4-9-5-2, min(d_eq, 75|50 mm)) stays blocked pending visual verification of Clause 9-21-5-6; diameter classes outside db ≤ 16 mm and 18–58 mm are blocked, never interpolated.
+
+
+
 ### Structural Integrity Reinforcement (Perimeter Beams)
 
 Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-INTEG-PERIMETER-001`)
@@ -444,7 +510,7 @@ The following shall NOT be implemented as executable engineering rules until sou
 
 - Mabhas 9 bent-up longitudinal bar shear resistance (`Eq. 9-8-18`), beams with web openings (`Clause 9-8-4-1-4`), variable-depth haunches (`Clause 9-8-4-1-6`), and seismic capacity-design shear provisions (`Clause 9-7-4-5` / `Chapter 9-20`)
 
-- Mabhas 9 minimum concrete cover and longitudinal/layer bar clear spacing rules
+- Bundled-bar equivalent diameter (Clause 9-21-5-6) and its dependent bundled branches of the clear-spacing (`BG-DETAIL-SPACING-001`), layer-spacing (`BG-DETAIL-LAYER-SPACING-001`) and cover (Clause 9-4-9-5-2, `BG-DETAIL-COVER-001`) rules; corrosive/unusual-environment cover per Appendix 9-پ1 (Clauses 9-4-9-6/9-4-9-7); cover diameter classes outside db ≤ 16 mm and db 18–58 mm (Table 9-4-6)
 
 - Clause 9-11-6-6-2 non-perimeter beam structural integrity reinforcement
 

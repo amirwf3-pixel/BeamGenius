@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 from beamgenius.domain.enums import (
+    ConcreteCoverExposureClass,
     DiagnosticSeverity,
     EvaluationOutcome,
     JurisdictionMode,
@@ -31,6 +32,9 @@ from beamgenius.engine.flexure_mabhas9 import (
 )
 from beamgenius.engine.detailing_mabhas9 import (
     evaluate_compression_reinforcement_lateral_support_spacing,
+    evaluate_layer_clear_spacing as _verified_layer_clear_spacing,
+    evaluate_longitudinal_bar_clear_spacing as _verified_bar_clear_spacing,
+    evaluate_minimum_concrete_cover as _verified_min_concrete_cover,
     evaluate_minimum_transverse_bar_diameter as _verified_min_transverse_dia,
 )
 from beamgenius.engine.shear_mabhas9 import (
@@ -50,8 +54,11 @@ from beamgenius.registry.catalog import (
     RULE_BG_CUTOFF_COND_PENDING,
     RULE_BG_DETAIL_COMP_LAT_001,
     RULE_BG_DETAIL_COMP_LAT_PENDING,
+    RULE_BG_DETAIL_COVER_001,
     RULE_BG_DETAIL_COVER_BLOCKED,
+    RULE_BG_DETAIL_LAYER_SPACING_001,
     RULE_BG_DETAIL_LAYER_SPACING_BLOCKED,
+    RULE_BG_DETAIL_SPACING_001,
     RULE_BG_DETAIL_SPACING_BLOCKED,
     RULE_BG_DETAIL_TRANS_DIA_001,
     RULE_BG_DETAIL_TRANS_DIA_PENDING,
@@ -452,6 +459,15 @@ def run_mabhas9_beam_check(
     min_compression_bar_diameter_mm: Optional[float] = None,
     compression_lateral_support_spacing_mm: Optional[float] = None,
     transverse_bar_diameter_mm: Optional[float] = None,
+    aggregate_size_mm: Optional[float] = None,
+    horizontal_clear_spacing_mm: Optional[float] = None,
+    is_shotcrete: bool = False,
+    rebar_layer_count: Optional[int] = None,
+    layers_directly_aligned: Optional[bool] = None,
+    cover_exposure: Optional[ConcreteCoverExposureClass] = None,
+    cover_bar_diameter_mm: Optional[float] = None,
+    provided_cover_mm: Optional[float] = None,
+    has_headed_shear_reinforcement: bool = False,
     requested_rule_ids: Sequence[str] = DEFAULT_MABHAS9_CHECK_RULES,
     jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
 ) -> BeamComplianceReport:
@@ -630,6 +646,42 @@ def run_mabhas9_beam_check(
                     transverse_bar_diameter_mm=transverse_bar_diameter_mm,
                     compression_lateral_support_spacing_mm=(
                         compression_lateral_support_spacing_mm
+                    ),
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_SPACING_001.rule_id:
+            steps.append(
+                _verified_bar_clear_spacing(
+                    geometry,
+                    max_bar_diameter_mm=max_longitudinal_bar_diameter_mm,
+                    aggregate_size_mm=aggregate_size_mm,
+                    provided_clear_spacing_mm=horizontal_clear_spacing_mm,
+                    is_bundled=is_bundled,
+                    is_shotcrete=is_shotcrete,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_LAYER_SPACING_001.rule_id:
+            steps.append(
+                _verified_layer_clear_spacing(
+                    geometry,
+                    layer_count=rebar_layer_count,
+                    layers_directly_aligned=layers_directly_aligned,
+                    is_bundled=is_bundled,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_COVER_001.rule_id:
+            steps.append(
+                _verified_min_concrete_cover(
+                    geometry,
+                    exposure=cover_exposure,
+                    cover_bar_diameter_mm=cover_bar_diameter_mm,
+                    provided_cover_mm=provided_cover_mm,
+                    is_bundled=is_bundled,
+                    has_headed_shear_reinforcement=(
+                        has_headed_shear_reinforcement
                     ),
                     jurisdiction_mode=jurisdiction_mode,
                 )
