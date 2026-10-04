@@ -21,9 +21,13 @@ Deterministic contract of every evaluator (in order):
 3. Missing required engineering inputs return ``UNVERIFIED_RULE_BLOCKED``
    (BLOCKED) with ``MISSING_*`` diagnostics — missing values are never
    assumed or defaulted.
-4. SOURCE-verified gaps (bundled-bar equivalent diameter Clause 9-21-5-6,
-   corrosive-environment Appendix 9-پ1, uncovered diameter classes) return
-   ``UNVERIFIED_RULE_BLOCKED`` — BLOCKED is never converted to PASS.
+4. SOURCE-verified gaps (corrosive-environment Appendix 9-پ1, uncovered
+   diameter classes) return ``UNVERIFIED_RULE_BLOCKED`` — BLOCKED is never
+   converted to PASS. Bundled bars also stay BLOCKED here: the Clause
+   9-21-5-6 equivalent diameter is VERIFIED and implemented as
+   ``BG-DETAIL-BUNDLE-006`` (module ``detailing_bundle_mabhas9``), but
+   integrating it into these spacing/cover checks is a separate, not yet
+   implemented integration stage.
 5. Every step attaches the registry ``RuleReference``, a
    ``CalculationTraceStep``, and explicit diagnostic codes.
 
@@ -208,9 +212,11 @@ def evaluate_longitudinal_bar_clear_spacing(
     - Clause 9-21-2-1-4: not applicable to shotcrete -> ``is_shotcrete=True``
       deterministically returns ``NOT_APPLICABLE``.
     - Bundled bars: the equivalent-diameter treatment (Clause 9-21-5-6) is
-      text-located but not visually verified -> ``is_bundled=True``
-      deterministically returns ``UNVERIFIED_RULE_BLOCKED``
-      (``UNVERIFIED_BUNDLE_RULE``); no equivalent diameter is invented.
+      VERIFIED and implemented as ``BG-DETAIL-BUNDLE-006``
+      (``detailing_bundle_mabhas9``), but integrating it into this spacing
+      check is a separate, not yet implemented integration stage ->
+      ``is_bundled=True`` deterministically returns ``UNVERIFIED_RULE_BLOCKED``
+      (``UNVERIFIED_BUNDLE_RULE``); no equivalent diameter is invented here.
 
     Required inputs (never defaulted; missing -> BLOCKED): largest bar
     diameter ``db_max`` (explicit kwarg or resolved from
@@ -261,23 +267,29 @@ def evaluate_longitudinal_bar_clear_spacing(
             ),
         )
 
-    # 3. Bundled bars blocked (Clause 9-21-5-6 pending visual verification)
+    # 3. Bundled bars blocked (equivalent diameter VERIFIED as
+    #    BG-DETAIL-BUNDLE-006; spacing integration stage not yet implemented)
     if is_bundled:
         bundled_diag = EngineeringDiagnostic(
             code="UNVERIFIED_BUNDLE_RULE",
             severity=DiagnosticSeverity.BLOCK,
             message=(
-                f"Rule '{rule_id}' is blocked: bundled bars require the "
-                "equivalent bar diameter of Clause 9-21-5-6, which is "
-                "text-located but not visually verified (VERIFY_PENDING). "
-                "UNVERIFIED_RULE_BLOCKED (UNSUPPORTED_CONFIGURATION)."
+                f"Rule '{rule_id}' is blocked for bundled bars: the "
+                "equivalent bar diameter of Clause 9-21-5-6 is VERIFIED and "
+                "implemented as BG-DETAIL-BUNDLE-006 (module "
+                "detailing_bundle_mabhas9), but integrating it into this "
+                "spacing check is a separate, not yet implemented "
+                "integration stage. UNVERIFIED_RULE_BLOCKED "
+                "(UNSUPPORTED_CONFIGURATION)."
             ),
             rule_id=rule_id,
             field_name="is_bundled",
             required_verification=(
-                "Visually verify Mabhas 9 Clause 9-21-5-6 (bundle equivalent "
-                "diameter) against the source PDF before unblocking bundled "
-                "bar spacing."
+                "Obtain the Clause 9-21-5-6 equivalent bar diameter via "
+                "BG-DETAIL-BUNDLE-006 and assess spacing with d_eq once "
+                "the bundle-integration "
+                "stage of this rule is implemented; the bundled branch "
+                "stays blocked until then."
             ),
         )
         return _blocked_step(
@@ -465,7 +477,9 @@ def evaluate_longitudinal_layer_spacing(
     ``UNVERIFIED_RULE_BLOCKED`` (``MISSING_LAYER_COUNT`` /
     ``MISSING_LAYER_ALIGNMENT``); malformed values return ``INVALID_INPUT``.
     ``layer_count == 1`` returns ``NOT_APPLICABLE``; bundled bars return
-    ``UNVERIFIED_RULE_BLOCKED`` (``UNVERIFIED_BUNDLE_RULE``, Clause 9-21-5-6
+    ``UNVERIFIED_RULE_BLOCKED`` (``UNVERIFIED_BUNDLE_RULE``; Clause 9-21-5-6
+    is VERIFIED as ``BG-DETAIL-BUNDLE-006`` but its integration here is a
+    separate, not yet implemented stage
     pending visual verification).
     """
     rule_id = RULE_BG_DETAIL_LAYER_SPACING_001.rule_id
@@ -497,23 +511,28 @@ def evaluate_longitudinal_layer_spacing(
         )
     rule = gate.rule
 
-    # 2. Bundled bars blocked (Clause 9-21-5-6 pending visual verification)
+    # 2. Bundled bars blocked (equivalent diameter VERIFIED as
+    #    BG-DETAIL-BUNDLE-006; spacing integration stage not yet implemented)
     if is_bundled:
         bundled_diag = EngineeringDiagnostic(
             code="UNVERIFIED_BUNDLE_RULE",
             severity=DiagnosticSeverity.BLOCK,
             message=(
-                f"Rule '{rule_id}' is blocked: bundled bars require the "
-                "equivalent bar diameter of Clause 9-21-5-6, which is "
-                "text-located but not visually verified (VERIFY_PENDING). "
-                "UNVERIFIED_RULE_BLOCKED (UNSUPPORTED_CONFIGURATION)."
+                f"Rule '{rule_id}' is blocked for bundled bars: the "
+                "equivalent bar diameter of Clause 9-21-5-6 is VERIFIED and "
+                "implemented as BG-DETAIL-BUNDLE-006 (module "
+                "detailing_bundle_mabhas9), but integrating it into this "
+                "layer-spacing check is a separate, not yet implemented "
+                "integration stage. UNVERIFIED_RULE_BLOCKED "
+                "(UNSUPPORTED_CONFIGURATION)."
             ),
             rule_id=rule_id,
             field_name="is_bundled",
             required_verification=(
-                "Visually verify Mabhas 9 Clause 9-21-5-6 (bundle equivalent "
-                "diameter) against the source PDF before unblocking bundled "
-                "bar layer spacing."
+                "Obtain the Clause 9-21-5-6 equivalent bar diameter via "
+                "BG-DETAIL-BUNDLE-006 and assess layer spacing with d_eq once "
+                "bundle-integration stage of this rule is implemented; the "
+                "bundled branch stays blocked until then."
             ),
         )
         return _blocked_step(
@@ -738,7 +757,8 @@ def evaluate_beam_cover(
     environments are routed to Appendix 9-پ1 per Clauses 9-4-9-6/9-4-9-7 —
     deterministically ``UNVERIFIED_RULE_BLOCKED``; Appendix 9-پ1 values are
     never computed here. The bundled-group rule (Clause 9-4-9-5-2 via
-    9-21-5-6) is blocked as ``UNVERIFIED_BUNDLE_RULE``. Diameter classes
+    9-21-5-6, VERIFIED as ``BG-DETAIL-BUNDLE-006`` but not yet integrated
+    here) is blocked as ``UNVERIFIED_BUNDLE_RULE``. Diameter classes
     outside the visible table classes (weather: (16, 18) mm or > 58 mm;
     unexposed slab/joist/wall: (34, 36] mm) are never interpolated ->
     ``UNVERIFIED_RULE_BLOCKED``.
@@ -892,25 +912,29 @@ def evaluate_beam_cover(
         )
     reinforcement_type_typed: CoverReinforcementType = reinforcement_type_raw
 
-    # 6. Bundled bars blocked (Clause 9-4-9-5-2 -> equivalent diameter 9-21-5-6)
+    # 6. Bundled bars blocked (Clause 9-4-9-5-2 -> equivalent diameter 9-21-5-6,
+    #    VERIFIED as BG-DETAIL-BUNDLE-006; cover integration pending)
     if is_bundled:
         bundled_diag = EngineeringDiagnostic(
             code="UNVERIFIED_BUNDLE_RULE",
             severity=DiagnosticSeverity.BLOCK,
             message=(
-                f"Rule '{rule_id}' is blocked: the bundled-group cover rule "
-                "(Clause 9-4-9-5-2: min(equivalent group diameter, 75 mm "
-                "permanent-earth / 50 mm otherwise)) requires the Clause "
-                "9-21-5-6 equivalent diameter, which is text-located "
-                "(VERIFY_PENDING) and never invented. "
-                "UNVERIFIED_RULE_BLOCKED."
+                f"Rule '{rule_id}' is blocked for bundled bars: the "
+                "bundled-group cover rule (Clause 9-4-9-5-2: min(equivalent "
+                "group diameter, 75 mm permanent-earth / 50 mm otherwise)) "
+                "uses the Clause 9-21-5-6 equivalent diameter, which is "
+                "VERIFIED and implemented as BG-DETAIL-BUNDLE-006 (module "
+                "detailing_bundle_mabhas9); integrating it into this cover "
+                "check is a separate, not yet implemented stage and is never "
+                "invented. UNVERIFIED_RULE_BLOCKED."
             ),
             rule_id=rule_id,
             field_name="is_bundled",
             required_verification=(
-                "Visually verify Mabhas 9 Clause 9-21-5-6 (bundle equivalent "
-                "diameter) against the source PDF before unblocking bundled "
-                "bar cover."
+                "Obtain the Clause 9-21-5-6 equivalent group diameter via "
+                "BG-DETAIL-BUNDLE-006 and assess cover once the "
+                "bundle-integration stage of this rule is implemented; the "
+                "bundled branch stays blocked until then."
             ),
         )
         return _blocked_step(

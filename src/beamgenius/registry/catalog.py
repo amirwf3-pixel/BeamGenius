@@ -233,7 +233,7 @@ RULE_BG_DETAIL_LONG_SPACING_001 = RuleReference(
     ),
     symbolic_formula=(
         "s_clear >= max(25 mm, db_max, (4/3) * d_agg); bundled bars blocked "
-        "(equivalent diameter 9-21-5-6 VERIFIED_SOURCE_ONLY pending)"
+        "(equivalent diameter 9-21-5-6 VERIFIED as BG-DETAIL-BUNDLE-006; integration pending)"
     ),
     description=(
         "Minimum clear distance between parallel longitudinal bars placed in one "
@@ -242,7 +242,7 @@ RULE_BG_DETAIL_LONG_SPACING_001 = RuleReference(
         "rule (Clause 9-21-2-1-3: 40 mm / 1.5*db_max) is never substituted; "
         "shotcrete is excluded per Clause 9-21-2-1-4 (NOT_APPLICABLE); bundled "
         "bars deterministically return UNVERIFIED_RULE_BLOCKED until Clause "
-        "9-21-5-6 is visually verified."
+        "the Clause 9-21-5-6 equivalent diameter is integrated here (VERIFIED as BG-DETAIL-BUNDLE-006 in a separate stage)."
     ),
     execution_allowed=True,
     blocked_reason=None,
@@ -270,7 +270,7 @@ RULE_BG_DETAIL_LAYER_SPACING_001 = RuleReference(
         "must be at least 25 mm (independent of bar diameter and aggregate "
         "size). Vertical alignment is a required typed input and is never "
         "silently assumed; bundled bars deterministically return "
-        "UNVERIFIED_RULE_BLOCKED until Clause 9-21-5-6 is visually verified."
+        "UNVERIFIED_RULE_BLOCKED until the Clause 9-21-5-6 equivalent diameter (VERIFIED as BG-DETAIL-BUNDLE-006) is integrated here in a separate stage."
     ),
     execution_allowed=True,
     blocked_reason=None,
@@ -303,8 +303,9 @@ RULE_BG_DETAIL_COVER_001 = RuleReference(
         "Table 9-4-6. The exposure condition is a required typed input; "
         "corrosive/unusual environments are routed to Appendix 9-پ1 per Clause "
         "9-4-9-6 and deterministically blocked; the bundled-group rule (Clause "
-        "9-4-9-5-2, min(d_eq, 75|50 mm)) is blocked pending visual verification "
-        "of Clause 9-21-5-6; diameter classes outside db <= 16 mm and 18-58 mm "
+        "9-4-9-5-2, min(d_eq, 75|50 mm)) is blocked pending integration of the "
+        "Clause 9-21-5-6 equivalent diameter, VERIFIED as BG-DETAIL-BUNDLE-006 "
+        "and implemented in a separate stage; diameter classes outside db <= 16 mm and 18-58 mm "
         "are never interpolated."
     ),
     execution_allowed=True,
@@ -1555,6 +1556,234 @@ RULE_BG_TABLE_2_11_99_PENDING = RuleReference(
     dependencies=(),
 )
 
+
+RULE_BG_DETAIL_BUNDLE_001 = RuleReference(
+    rule_id="BG-DETAIL-BUNDLE-001",
+    title="Mabhas 9 Bundled Bars — Maximum Number of Bars per Bundle",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=462,
+    printed_page=441,
+    clause_or_equation="Clause 9-21-5-1 (Printed p. 441 / PDF p. 462)",
+    symbolic_formula="n_bundle <= 4",
+    description=(
+        "The number of bars in a bar bundle (group of bars acting as one unit) "
+        "is limited to four (Clause 9-21-5-1). Visually verified from the "
+        "Mabhas 9 (1399, 5th ed.) source-page capture with visible footer "
+        "‘۴۴۱’ (Printed p. 441; PDF p. 462; verification confirmed 2026-10-03 "
+        "and re-confirmed 2026-10-05). Applicability: bar bundles acting as "
+        "one unit in structural members (longitudinal bars). A single bar is "
+        "not a bundle (NOT_APPLICABLE); more than four bars is a verifiable "
+        "code violation (FAIL). Required typed input (never assumed): "
+        "bundle_n_bars (integer >= 1)."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DETAIL_BUNDLE_002 = RuleReference(
+    rule_id="BG-DETAIL-BUNDLE-002",
+    title="Mabhas 9 Bundled Bars — Transverse Enclosure & Compressed-Bundle Tie Diameter",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=463,
+    printed_page=442,
+    clause_or_equation="Clause 9-21-5-2 (Printed p. 442 / PDF p. 463)",
+    symbolic_formula="transverse enclosure required; compressed bundle -> dbt >= 12 mm",
+    description=(
+        "A bar bundle must be enclosed by transverse reinforcement; the "
+        "transverse bars of bundles under compression must be at least 12 mm "
+        "in diameter (Clause 9-21-5-2). Visually verified from the Mabhas 9 "
+        "(1399, 5th ed.) source-page capture (Printed p. 442 / PDF p. 463; "
+        "verification confirmed 2026-10-03 and re-confirmed 2026-10-05). "
+        "Applicability: bar bundles including compressed bundles (e.g. "
+        "columns, compressed beam bars). Unresolved transverse-spacing "
+        "details of Clause 9-21-6 remain outside this rule (no dependency "
+        "invented). Required typed inputs (never assumed): bundle_n_bars, "
+        "bundle_has_transverse_enclosure, bundle_is_compressed; "
+        "transverse_bar_diameter_mm required when bundle_is_compressed."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DETAIL_BUNDLE_003 = RuleReference(
+    rule_id="BG-DETAIL-BUNDLE-003",
+    title="Mabhas 9 Bundled Bars — Beam Bundle Bar Diameter Prohibition",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=463,
+    printed_page=442,
+    clause_or_equation="Clause 9-21-5-3 (Printed p. 442 / PDF p. 463)",
+    symbolic_formula="beam: bundled db > 34 mm prohibited",
+    description=(
+        "In beams, bars with diameter larger than 34 mm are not permitted in "
+        "bundles (Clause 9-21-5-3 — beam-specific). Visually verified from "
+        "the Mabhas 9 (1399, 5th ed.) source-page capture (Printed p. 442 / "
+        "PDF p. 463). Applicability: beams only; non-beam member classes "
+        "return NOT_APPLICABLE; unknown member classes return INVALID_INPUT; "
+        "a bundled beam bar above 34 mm is a verifiable violation (FAIL). "
+        "Required typed inputs (never assumed): bundle_n_bars, member_class "
+        "(ConcreteCoverMemberClass), bundle_bar_diameter_mm."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DETAIL_BUNDLE_004 = RuleReference(
+    rule_id="BG-DETAIL-BUNDLE-004",
+    title="Mabhas 9 Bundled Bars — Cutoff Point Staggering in Flexural Members",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=463,
+    printed_page=442,
+    clause_or_equation="Clause 9-21-5-4 (Printed p. 442 / PDF p. 463)",
+    symbolic_formula="min |xi - xj| >= 40 * db between bundle bar cutoff points",
+    description=(
+        "Along the span of flexural members, the cutoff point of each bar of "
+        "a bundle must be at least 40 bar diameters from the cutoff points "
+        "of the other bars of the bundle (Clause 9-21-5-4). Visually "
+        "verified from the Mabhas 9 (1399, 5th ed.) source-page capture "
+        "(Printed p. 442 / PDF p. 463). Applicability: flexural members with "
+        "bundled bars being curtailed along the span; when no bundle bar is "
+        "cut the rule is NOT_APPLICABLE; insufficient stagger is a verifiable "
+        "violation (FAIL). Required typed inputs (never assumed): "
+        "bundle_n_bars, bundle_has_cutoffs; bundle_bar_diameter_mm and "
+        "bundle_cutoff_positions_mm required when bundle_has_cutoffs."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DETAIL_BUNDLE_005 = RuleReference(
+    rule_id="BG-DETAIL-BUNDLE-005",
+    title="Mabhas 9 Bundled Bars — Bar Plane Arrangement Limit",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=463,
+    printed_page=442,
+    clause_or_equation="Clause 9-21-5-5 (Printed p. 442 / PDF p. 463)",
+    symbolic_formula="n > 2: bars per plane <= 2, except at splice locations",
+    description=(
+        "In bundles with more than two bars, not all bar axes may lie in one "
+        "plane, and at most two bars may lie in one plane, except at splice "
+        "locations (Clause 9-21-5-5). Visually verified from the Mabhas 9 "
+        "(1399, 5th ed.) source-page capture (Printed p. 442 / PDF p. 463). "
+        "Applicability: bundles with more than two bars (n <= 2 is "
+        "NOT_APPLICABLE); an oversized plane arrangement at a non-splice "
+        "location is a verifiable violation (FAIL). Required typed inputs "
+        "(never assumed): bundle_n_bars, bundle_max_bars_in_single_plane, "
+        "bundle_is_splice_location."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DETAIL_BUNDLE_006 = RuleReference(
+    rule_id="BG-DETAIL-BUNDLE-006",
+    title="Mabhas 9 Bundled Bars — Equivalent Bar Diameter",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=463,
+    printed_page=442,
+    clause_or_equation="Clause 9-21-5-6 (Printed p. 442 / PDF p. 463)",
+    symbolic_formula="d_eq = db * sqrt(n) for n identical bars (equal total area, coincident centroid)",
+    description=(
+        "For checks whose calculation is based on bar diameter — spacing "
+        "limits, minimum cover, confinement coefficient of Clause 9-21-3-2-1 "
+        "and coating factor of Clause 9-21-3-2-2 — a bundle is treated as "
+        "one equivalent bar of equal total area whose centroid coincides "
+        "with the bundle centroid (Clause 9-21-5-6); for n identical bars "
+        "the equivalent diameter is db*sqrt(n). Visually verified from the "
+        "Mabhas 9 (1399, 5th ed.) source-page capture (Printed p. 442 / PDF "
+        "p. 463). Applicability: identical-bar bundles for spacing-limit, "
+        "minimum-cover, confinement-coefficient and coating-factor "
+        "calculations. Only the identical-bar form is implemented; "
+        "mixed-diameter bundles remain BLOCKED (UNSUPPORTED_CONFIGURATION); "
+        "development length is NOT computed via d_eq (Clause 9-21-5-7 "
+        "provides its own multipliers). Required typed inputs (never "
+        "assumed): bundle_n_bars, bundle_bar_diameter_mm, "
+        "bundle_bars_identical."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DETAIL_BUNDLE_007 = RuleReference(
+    rule_id="BG-DETAIL-BUNDLE-007",
+    title="Mabhas 9 Bundled Bars — Development Length Multiplier",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=463,
+    printed_page=442,
+    clause_or_equation="Clause 9-21-5-7 (Printed p. 442 / PDF p. 463)",
+    symbolic_formula="ld_bundle = factor * ld_single; factor: 2-bar 1.00, 3-bar 1.20, 4-bar 1.33",
+    description=(
+        "The development length of bars in a bundle, in tension or "
+        "compression, equals the single-bar development length for a 2-bar "
+        "bundle, and is 20% and 33% greater for 3-bar and 4-bar bundles "
+        "respectively (Clause 9-21-5-7). Visually verified from the Mabhas 9 "
+        "(1399, 5th ed.) source-page capture (Printed p. 442 / PDF p. 463). "
+        "Applicability: bar bundles in tension or compression "
+        "(development-length scaling only). The underlying development "
+        "length of Clause 9-21-3 is NOT computed here — a missing verified "
+        "single-bar development length deterministically yields BLOCKED "
+        "(MISSING_SINGLE_BAR_DEVELOPMENT_LENGTH), never an invented value. "
+        "Required typed inputs (never assumed): bundle_n_bars, "
+        "single_bar_development_length_mm."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DETAIL_BUNDLE_008 = RuleReference(
+    rule_id="BG-DETAIL-BUNDLE-008",
+    title="Mabhas 9 Bundled Bars — Lap Splice Constraints & Multiplier",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=463,
+    printed_page=442,
+    clause_or_equation="Clause 9-21-5-8 (Printed p. 442 / PDF p. 463)",
+    symbolic_formula=(
+        "lap = ld_single * factor(9-21-5-7); individual laps must not overlap; "
+        "bundle-to-bundle lap prohibited"
+    ),
+    description=(
+        "The lap splice length of each bar in a bundle is computed from the "
+        "single-bar development length including the Clause 9-21-5-7 bundle "
+        "increase; the laps of individual bars of a bundle must not overlap "
+        "along the bars; a lap splice of a whole bundle with another bundle "
+        "is prohibited (Clause 9-21-5-8). Visually verified from the Mabhas "
+        "9 (1399, 5th ed.) source-page capture (Printed p. 442 / PDF p. 463, "
+        "text continuing onto the following page). Applicability: "
+        "bar bundles being lap-spliced (bundle-specific splice constraints). "
+        "The underlying lap rules of Clause 9-21-4 are NOT computed here — "
+        "a missing verified single-bar development length is BLOCKED, never "
+        "invented. Required typed inputs (never assumed): bundle_n_bars, "
+        "single_bar_development_length_mm, bundle_is_bundle_to_bundle_lap, "
+        "bundle_laps_overlap."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+
 _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     # Verified Mabhas 9 rules
     RULE_BG_FLEX_MIN_001,
@@ -1568,6 +1797,14 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_DETAIL_LONG_SPACING_001,
     RULE_BG_DETAIL_LAYER_SPACING_001,
     RULE_BG_DETAIL_COVER_001,
+    RULE_BG_DETAIL_BUNDLE_001,
+    RULE_BG_DETAIL_BUNDLE_002,
+    RULE_BG_DETAIL_BUNDLE_003,
+    RULE_BG_DETAIL_BUNDLE_004,
+    RULE_BG_DETAIL_BUNDLE_005,
+    RULE_BG_DETAIL_BUNDLE_006,
+    RULE_BG_DETAIL_BUNDLE_007,
+    RULE_BG_DETAIL_BUNDLE_008,
     RULE_BG_SHEAR_PHI_001,
     RULE_BG_SHEAR_VC_001,
     RULE_BG_SHEAR_VS_001,

@@ -7,7 +7,8 @@ Phase 2E Stage B deterministic contract:
 - ``BG-DETAIL-LONG-SPACING-001`` (Clause 9-21-2-1-1, PDF p. 441 /
   Printed p. 420): s_clear >= max(25 mm, db_max, (4/3) * d_agg);
   shotcrete NOT_APPLICABLE (9-21-2-1-4); bundled BLOCKED
-  (``UNVERIFIED_BUNDLE_RULE``, 9-21-5-6 pending).
+  (``UNVERIFIED_BUNDLE_RULE``; Clause 9-21-5-6 is VERIFIED as
+  ``BG-DETAIL-BUNDLE-006`` — integration into these rules pending).
 - ``BG-DETAIL-LAYER-SPACING-001`` (Clause 9-21-2-1-2, same source page):
   upper-layer bars directly above lower-layer bars (required typed alignment
   input) and clear inter-layer spacing >= 25 mm.

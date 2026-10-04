@@ -29,7 +29,7 @@ the non-interpolated ``32 < db < 36 mm`` interval) and never invent values.
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence
 
 from beamgenius.domain.models import BeamGeometry
 from beamgenius.domain.enums import (
@@ -52,6 +52,16 @@ from beamgenius.engine.detailing_spacing_mabhas9 import (
     evaluate_beam_cover,
     evaluate_longitudinal_bar_clear_spacing,
     evaluate_longitudinal_layer_spacing,
+)
+from beamgenius.engine.detailing_bundle_mabhas9 import (
+    evaluate_bundle_bar_count,
+    evaluate_bundle_beam_bar_diameter,
+    evaluate_bundle_cutoff_stagger,
+    evaluate_bundle_development_length,
+    evaluate_bundle_equivalent_diameter,
+    evaluate_bundle_lap_splice,
+    evaluate_bundle_plane_arrangement,
+    evaluate_bundle_transverse_reinforcement,
 )
 from beamgenius.registry.catalog import (
     RULE_BG_DETAIL_COMP_LAT_001,
@@ -558,6 +568,19 @@ def run_mabhas9_beam_detailing_workflow(
     cover_bar_diameter_mm: Optional[float] = None,
     provided_cover_mm: Optional[float] = None,
     has_headed_shear_reinforcement: bool = False,
+    bundle_n_bars: Optional[int] = None,
+    bundle_bar_diameter_mm: Optional[float] = None,
+    bundle_member_class: Optional[ConcreteCoverMemberClass] = None,
+    bundle_has_transverse_enclosure: Optional[bool] = None,
+    bundle_is_compressed: Optional[bool] = None,
+    bundle_max_bars_in_single_plane: Optional[int] = None,
+    bundle_is_splice_location: Optional[bool] = None,
+    bundle_has_cutoffs: Optional[bool] = None,
+    bundle_cutoff_positions_mm: Optional[Sequence[float]] = None,
+    bundle_bars_identical: Optional[bool] = None,
+    single_bar_development_length_mm: Optional[float] = None,
+    bundle_is_bundle_to_bundle_lap: Optional[bool] = None,
+    bundle_laps_overlap: Optional[bool] = None,
     jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
 ) -> List[CalculationTraceStep]:
     """Run the verified Mabhas 9 beam detailing workflow (Phase 2D & 2E).
@@ -578,6 +601,14 @@ def run_mabhas9_beam_detailing_workflow(
        input ``cover_exposure`` or ``cover_member_class`` is supplied;
        Phase 2E Stage B; ``provided_cover_mm`` falls back to
        ``geometry.clear_cover_mm``).
+    6. ``BG-DETAIL-BUNDLE-001`` .. ``BG-DETAIL-BUNDLE-008`` — the verified
+       bundled-bar rules of Clauses 9-21-5-1..8 (only when
+       ``bundle_n_bars`` is supplied; Phase 2F Stage B:
+       ``beamgenius.engine.detailing_bundle_mabhas9``). Rule 003 receives
+       ``bundle_member_class`` (never assumed; the workflow does not
+       default it to BEAM); rules 007/008 apply only the verified bundle
+       multipliers to a caller-provided verified single-bar development
+       length and stay BLOCKED when it is missing.
 
     Returns the ordered trace steps; aggregate them with
     ``beamgenius.engine.beam_checker.aggregate_compliance_report``, which
@@ -643,5 +674,68 @@ def run_mabhas9_beam_detailing_workflow(
                 has_headed_shear_reinforcement=has_headed_shear_reinforcement,
                 jurisdiction_mode=jurisdiction_mode,
             )
+        )
+    if bundle_n_bars is not None:
+        steps.extend(
+            [
+                evaluate_bundle_bar_count(
+                    bundle_n_bars=bundle_n_bars,
+                    jurisdiction_mode=jurisdiction_mode,
+                ),
+                evaluate_bundle_transverse_reinforcement(
+                    bundle_n_bars=bundle_n_bars,
+                    bundle_has_transverse_enclosure=(
+                        bundle_has_transverse_enclosure
+                    ),
+                    bundle_is_compressed=bundle_is_compressed,
+                    transverse_bar_diameter_mm=transverse_bar_diameter_mm,
+                    jurisdiction_mode=jurisdiction_mode,
+                ),
+                evaluate_bundle_beam_bar_diameter(
+                    bundle_n_bars=bundle_n_bars,
+                    member_class=bundle_member_class,
+                    bundle_bar_diameter_mm=bundle_bar_diameter_mm,
+                    jurisdiction_mode=jurisdiction_mode,
+                ),
+                evaluate_bundle_cutoff_stagger(
+                    bundle_n_bars=bundle_n_bars,
+                    bundle_has_cutoffs=bundle_has_cutoffs,
+                    bundle_bar_diameter_mm=bundle_bar_diameter_mm,
+                    bundle_cutoff_positions_mm=bundle_cutoff_positions_mm,
+                    jurisdiction_mode=jurisdiction_mode,
+                ),
+                evaluate_bundle_plane_arrangement(
+                    bundle_n_bars=bundle_n_bars,
+                    bundle_max_bars_in_single_plane=(
+                        bundle_max_bars_in_single_plane
+                    ),
+                    bundle_is_splice_location=bundle_is_splice_location,
+                    jurisdiction_mode=jurisdiction_mode,
+                ),
+                evaluate_bundle_equivalent_diameter(
+                    bundle_n_bars=bundle_n_bars,
+                    bundle_bar_diameter_mm=bundle_bar_diameter_mm,
+                    bundle_bars_identical=bundle_bars_identical,
+                    jurisdiction_mode=jurisdiction_mode,
+                ),
+                evaluate_bundle_development_length(
+                    bundle_n_bars=bundle_n_bars,
+                    single_bar_development_length_mm=(
+                        single_bar_development_length_mm
+                    ),
+                    jurisdiction_mode=jurisdiction_mode,
+                ),
+                evaluate_bundle_lap_splice(
+                    bundle_n_bars=bundle_n_bars,
+                    single_bar_development_length_mm=(
+                        single_bar_development_length_mm
+                    ),
+                    bundle_is_bundle_to_bundle_lap=(
+                        bundle_is_bundle_to_bundle_lap
+                    ),
+                    bundle_laps_overlap=bundle_laps_overlap,
+                    jurisdiction_mode=jurisdiction_mode,
+                ),
+            ]
         )
     return steps

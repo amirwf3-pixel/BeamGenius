@@ -380,7 +380,7 @@ s_clear ≥ max(
 
 
 
-for parallel bars in one horizontal layer (clause items الف/ب/پ; the Persian `1/33` is decimal notation for 1.33). The column rule Clause 9-21-2-1-3 (40 mm / 1.5 × db,max) is never substituted; shotcrete is excluded (Clause 9-21-2-1-4 → NOT_APPLICABLE); bundled bars are blocked until Clause 9-21-5-6 (bundle equivalent diameter) is visually verified.
+for parallel bars in one horizontal layer (clause items الف/ب/پ; the Persian `1/33` is decimal notation for 1.33). The column rule Clause 9-21-2-1-3 (40 mm / 1.5 × db,max) is never substituted; shotcrete is excluded (Clause 9-21-2-1-4 → NOT_APPLICABLE); bundled bars stay blocked in that rule (`UNVERIFIED_BUNDLE_RULE`): the Clause 9-21-5-6 equivalent diameter is VERIFIED and implemented as `BG-DETAIL-BUNDLE-006` (Phase 2F Stage B), but integrating it into the spacing rule is a separate pending stage.
 
 
 
@@ -400,7 +400,7 @@ For parallel bars in several horizontal layers: (i) upper-layer bars shall be pl
 
 
 
-Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_spacing_mabhas9.evaluate_longitudinal_layer_spacing` (registry `execution_allowed=True`); layer count and the typed vertical-alignment confirmation are REQUIRED inputs — missing layer geometry returns `BLOCKED` (`MISSING_LAYER_COUNT` / `MISSING_LAYER_ALIGNMENT`), never silently assumed; single layer → NOT_APPLICABLE; bundled bars → `UNVERIFIED_BUNDLE_RULE` (9-21-5-6 pending).
+Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_spacing_mabhas9.evaluate_longitudinal_layer_spacing` (registry `execution_allowed=True`); layer count and the typed vertical-alignment confirmation are REQUIRED inputs — missing layer geometry returns `BLOCKED` (`MISSING_LAYER_COUNT` / `MISSING_LAYER_ALIGNMENT`), never silently assumed; single layer → NOT_APPLICABLE; bundled bars → `UNVERIFIED_BUNDLE_RULE` (Clause 9-21-5-6 equivalent diameter VERIFIED as `BG-DETAIL-BUNDLE-006`; integration into this rule pending).
 
 
 
@@ -422,7 +422,7 @@ Source: Mabhas 9 (1399, 5th ed.), PDF pages 92–93, printed pages 71–72, Clau
 
 
 
-Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_spacing_mabhas9.evaluate_beam_cover` (registry `execution_allowed=True`); exposure condition, member type (BEAM/COLUMN/PEDESTAL/TENSION_MEMBER/SLAB/JOIST/WALL), and reinforcement type (LONGITUDINAL / TRANSVERSE) are REQUIRED typed inputs — missing inputs return `BLOCKED`, an unknown member type returns `INVALID_INPUT`; corrosive/unusual environments are routed to Appendix 9-پ1 (Clauses 9-4-9-6/9-4-9-7) and deterministically return `BLOCKED` (Appendix 9-پ1 values are never computed); the bundled-group rule (Clause 9-4-9-5-2, min(d_eq, 75|50 mm)) stays `BLOCKED` (`UNVERIFIED_BUNDLE_RULE`) pending visual verification of Clause 9-21-5-6; uncovered diameter classes ((16, 18) mm, db > 58 mm, unexposed-slab (34, 36] mm) are blocked, never interpolated.
+Implemented in Phase 2E Stage B: `beamgenius.engine.detailing_spacing_mabhas9.evaluate_beam_cover` (registry `execution_allowed=True`); exposure condition, member type (BEAM/COLUMN/PEDESTAL/TENSION_MEMBER/SLAB/JOIST/WALL), and reinforcement type (LONGITUDINAL / TRANSVERSE) are REQUIRED typed inputs — missing inputs return `BLOCKED`, an unknown member type returns `INVALID_INPUT`; corrosive/unusual environments are routed to Appendix 9-پ1 (Clauses 9-4-9-6/9-4-9-7) and deterministically return `BLOCKED` (Appendix 9-پ1 values are never computed); the bundled-group rule (Clause 9-4-9-5-2, min(d_eq, 75|50 mm)) stays `BLOCKED` (`UNVERIFIED_BUNDLE_RULE`) pending integration of the Clause 9-21-5-6 equivalent diameter (VERIFIED as `BG-DETAIL-BUNDLE-006`) into this rule; uncovered diameter classes ((16, 18) mm, db > 58 mm, unexposed-slab (34, 36] mm) are blocked, never interpolated.
 
 
 
@@ -495,6 +495,28 @@ Source: Mabhas 9, file page 225, Clause 9-11-6-3-2 (OCR token: 2-3-6-11-9)
 - For beams forming part of the primary lateral-load-resisting system, the reinforcement shall be anchored to develop yield stress fy at the face of the support.
 
 
+### Bundled Bars (گروه میلگردها) — Clauses 9-21-5-1..8
+
+Status: CODE\_RULE (VERIFIED in `docs/VERIFIED_RULES.md` as `BG-DETAIL-BUNDLE-001` .. `BG-DETAIL-BUNDLE-008`)
+
+Source: Mabhas 9 (1399, 5th ed.), PDF pages 462–463, printed pages 441–442, Clauses 9-21-5-1..8 (source-page captures visually verified 2026-10-03, re-confirmed 2026-10-05; page footers ۴۴۱ and ۴۴۲)
+
+
+
+- `9-21-5-1` (`BG-DETAIL-BUNDLE-001`): at most 4 bars per bundle (n ≤ 4; n > 4 → FAIL).
+- `9-21-5-2` (`BG-DETAIL-BUNDLE-002`): bundle enclosed by transverse reinforcement; compressed bundles require transverse bars dbt ≥ 12 mm.
+- `9-21-5-3` (`BG-DETAIL-BUNDLE-003`): in beams, bundled bars with db > 34 mm prohibited (beam-specific clause; non-beam → NOT_APPLICABLE).
+- `9-21-5-4` (`BG-DETAIL-BUNDLE-004`): in flexural members, cutoff points of bundle bars staggered by ≥ 40·db.
+- `9-21-5-5` (`BG-DETAIL-BUNDLE-005`): bundles with > 2 bars — at most 2 bars in one plane (all-in-one-plane prohibited), except at splice locations.
+- `9-21-5-6` (`BG-DETAIL-BUNDLE-006`): bundle as one equivalent bar of equal area / coincident centroid for spacing, cover, confinement-coefficient (9-21-3-2-1) and coating-factor (9-21-3-2-2) calculations; d_eq = db·√n for n identical bars (never for development length).
+- `9-21-5-7` (`BG-DETAIL-BUNDLE-007`): bundle development length (tension or compression) = single-bar ld × {2-bar 1.00, 3-bar 1.20, 4-bar 1.33}.
+- `9-21-5-8` (`BG-DETAIL-BUNDLE-008`): per-bar lap = single-bar ld with the 9-21-5-7 multiplier; individual laps must not overlap; bundle-to-bundle lap prohibited.
+
+
+
+Implemented in Phase 2F Stage B: `beamgenius.engine.detailing_bundle_mabhas9` evaluators (registry `execution_allowed=True`; dispatched by `run_mabhas9_beam_check`; appended by `run_mabhas9_beam_detailing_workflow` when `bundle_n_bars` is supplied). Every physical fact is a REQUIRED typed input, never assumed (missing → `BLOCKED`; malformed → `INVALID_INPUT`); a single bar is `NOT_APPLICABLE`; n > 4 is owned by rule 001 (satellite rules defer → NOT_APPLICABLE). The single-bar development length of Clause 9-21-3 and the lap rules of Clause 9-21-4 are NOT computed (unverified dependencies): rules 007/008 apply only the verified bundle multipliers to a caller-provided verified ld and stay `BLOCKED` (`MISSING_SINGLE_BAR_DEVELOPMENT_LENGTH`) when it is missing. Mixed-diameter bundles stay `BLOCKED` (`UNSUPPORTED_CONFIGURATION`) under rule 006. Integrating the now-VERIFIED equivalent diameter into the bundled branches of the Phase 2E spacing/layer/cover rules is a separate pending stage (`UNVERIFIED_BUNDLE_RULE` unchanged there).
+
+
 
 ## Pending Verification
 
@@ -510,7 +532,7 @@ The following shall NOT be implemented as executable engineering rules until sou
 
 - Mabhas 9 bent-up longitudinal bar shear resistance (`Eq. 9-8-18`), beams with web openings (`Clause 9-8-4-1-4`), variable-depth haunches (`Clause 9-8-4-1-6`), and seismic capacity-design shear provisions (`Clause 9-7-4-5` / `Chapter 9-20`)
 
-- Bundled-bar equivalent diameter (Clause 9-21-5-6) and its dependent bundled branches of the clear-spacing (`BG-DETAIL-SPACING-001`), layer-spacing (`BG-DETAIL-LAYER-SPACING-001`) and cover (Clause 9-4-9-5-2, `BG-DETAIL-COVER-001`) rules; corrosive/unusual-environment cover per Appendix 9-پ1 (Clauses 9-4-9-6/9-4-9-7); cover diameter classes outside db ≤ 16 mm and db 18–58 mm (Table 9-4-6)
+- Integration of the VERIFIED bundled-bar equivalent diameter (Clause 9-21-5-6, implemented as `BG-DETAIL-BUNDLE-006` in Phase 2F Stage B) into the bundled branches of the clear-spacing (`BG-DETAIL-LONG-SPACING-001`), layer-spacing (`BG-DETAIL-LAYER-SPACING-001`) and cover (Clause 9-4-9-5-2, `BG-DETAIL-COVER-001`) rules (those branches keep returning `UNVERIFIED_BUNDLE_RULE` until this integration stage); corrosive/unusual-environment cover computations per Appendix 9-پ1 (Clauses 9-4-9-6/9-4-9-7; Tables 9-پ1-2..4 and 9-پ1-6 remain VERIFY_PENDING); cover diameter classes outside db ≤ 16 mm and db 18–58 mm (Table 9-4-6); the underlying single-bar development length (Clause 9-21-3, `BG-DEV-LENGTH-PENDING`) and lap rules (Clause 9-21-4) consumed as typed inputs by `BG-DETAIL-BUNDLE-007/008`
 
 - Clause 9-11-6-6-2 non-perimeter beam structural integrity reinforcement
 

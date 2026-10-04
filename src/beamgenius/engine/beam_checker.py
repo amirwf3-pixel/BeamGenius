@@ -41,6 +41,16 @@ from beamgenius.engine.detailing_spacing_mabhas9 import (
     evaluate_longitudinal_bar_clear_spacing as _verified_bar_clear_spacing,
     evaluate_longitudinal_layer_spacing as _verified_layer_clear_spacing,
 )
+from beamgenius.engine.detailing_bundle_mabhas9 import (
+    evaluate_bundle_bar_count,
+    evaluate_bundle_beam_bar_diameter,
+    evaluate_bundle_cutoff_stagger,
+    evaluate_bundle_development_length,
+    evaluate_bundle_equivalent_diameter,
+    evaluate_bundle_lap_splice,
+    evaluate_bundle_plane_arrangement,
+    evaluate_bundle_transverse_reinforcement,
+)
 from beamgenius.engine.shear_mabhas9 import (
     evaluate_concrete_shear_capacity_vc,
     evaluate_full_shear_capacity,
@@ -57,6 +67,14 @@ from beamgenius.registry.catalog import (
     RULE_BG_BENT_ANCHOR_PENDING,
     RULE_BG_CUTOFF_COND_PENDING,
     RULE_BG_DETAIL_COMP_LAT_001,
+    RULE_BG_DETAIL_BUNDLE_001,
+    RULE_BG_DETAIL_BUNDLE_002,
+    RULE_BG_DETAIL_BUNDLE_003,
+    RULE_BG_DETAIL_BUNDLE_004,
+    RULE_BG_DETAIL_BUNDLE_005,
+    RULE_BG_DETAIL_BUNDLE_006,
+    RULE_BG_DETAIL_BUNDLE_007,
+    RULE_BG_DETAIL_BUNDLE_008,
     RULE_BG_DETAIL_COMP_LAT_PENDING,
     RULE_BG_DETAIL_COVER_001,
     RULE_BG_DETAIL_COVER_BLOCKED,
@@ -474,6 +492,19 @@ def run_mabhas9_beam_check(
     cover_bar_diameter_mm: Optional[float] = None,
     provided_cover_mm: Optional[float] = None,
     has_headed_shear_reinforcement: bool = False,
+    bundle_n_bars: Optional[int] = None,
+    bundle_bar_diameter_mm: Optional[float] = None,
+    bundle_member_class: Optional[ConcreteCoverMemberClass] = None,
+    bundle_has_transverse_enclosure: Optional[bool] = None,
+    bundle_is_compressed: Optional[bool] = None,
+    bundle_max_bars_in_single_plane: Optional[int] = None,
+    bundle_is_splice_location: Optional[bool] = None,
+    bundle_has_cutoffs: Optional[bool] = None,
+    bundle_cutoff_positions_mm: Optional[Sequence[float]] = None,
+    bundle_bars_identical: Optional[bool] = None,
+    single_bar_development_length_mm: Optional[float] = None,
+    bundle_is_bundle_to_bundle_lap: Optional[bool] = None,
+    bundle_laps_overlap: Optional[bool] = None,
     requested_rule_ids: Sequence[str] = DEFAULT_MABHAS9_CHECK_RULES,
     jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
 ) -> BeamComplianceReport:
@@ -691,6 +722,88 @@ def run_mabhas9_beam_check(
                     has_headed_shear_reinforcement=(
                         has_headed_shear_reinforcement
                     ),
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_BUNDLE_001.rule_id:
+            steps.append(
+                evaluate_bundle_bar_count(
+                    bundle_n_bars=bundle_n_bars,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_BUNDLE_002.rule_id:
+            steps.append(
+                evaluate_bundle_transverse_reinforcement(
+                    bundle_n_bars=bundle_n_bars,
+                    bundle_has_transverse_enclosure=(
+                        bundle_has_transverse_enclosure
+                    ),
+                    bundle_is_compressed=bundle_is_compressed,
+                    transverse_bar_diameter_mm=transverse_bar_diameter_mm,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_BUNDLE_003.rule_id:
+            steps.append(
+                evaluate_bundle_beam_bar_diameter(
+                    bundle_n_bars=bundle_n_bars,
+                    member_class=bundle_member_class,
+                    bundle_bar_diameter_mm=bundle_bar_diameter_mm,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_BUNDLE_004.rule_id:
+            steps.append(
+                evaluate_bundle_cutoff_stagger(
+                    bundle_n_bars=bundle_n_bars,
+                    bundle_has_cutoffs=bundle_has_cutoffs,
+                    bundle_bar_diameter_mm=bundle_bar_diameter_mm,
+                    bundle_cutoff_positions_mm=bundle_cutoff_positions_mm,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_BUNDLE_005.rule_id:
+            steps.append(
+                evaluate_bundle_plane_arrangement(
+                    bundle_n_bars=bundle_n_bars,
+                    bundle_max_bars_in_single_plane=(
+                        bundle_max_bars_in_single_plane
+                    ),
+                    bundle_is_splice_location=bundle_is_splice_location,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_BUNDLE_006.rule_id:
+            steps.append(
+                evaluate_bundle_equivalent_diameter(
+                    bundle_n_bars=bundle_n_bars,
+                    bundle_bar_diameter_mm=bundle_bar_diameter_mm,
+                    bundle_bars_identical=bundle_bars_identical,
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_BUNDLE_007.rule_id:
+            steps.append(
+                evaluate_bundle_development_length(
+                    bundle_n_bars=bundle_n_bars,
+                    single_bar_development_length_mm=(
+                        single_bar_development_length_mm
+                    ),
+                    jurisdiction_mode=jurisdiction_mode,
+                )
+            )
+        elif rule_id == RULE_BG_DETAIL_BUNDLE_008.rule_id:
+            steps.append(
+                evaluate_bundle_lap_splice(
+                    bundle_n_bars=bundle_n_bars,
+                    single_bar_development_length_mm=(
+                        single_bar_development_length_mm
+                    ),
+                    bundle_is_bundle_to_bundle_lap=(
+                        bundle_is_bundle_to_bundle_lap
+                    ),
+                    bundle_laps_overlap=bundle_laps_overlap,
                     jurisdiction_mode=jurisdiction_mode,
                 )
             )

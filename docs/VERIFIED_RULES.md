@@ -820,7 +820,7 @@ Limitations / Exceptions / Blocked Conditions:
 
 - Clause 9-21-2-1-3 (columns, pedestal columns, ties, wall boundary elements: ≥ max(40 mm, 1.5 × db,max, (4/3) × d_agg)) is NOT a beam rule and is never substituted for beams.
 - Clause 9-21-2-1-4: the spacing values do not apply to shotcrete — shotcrete input returns NOT_APPLICABLE.
-- Bundled bars: Clause 9-21-5-6 (equivalent diameter) is text-located but NOT visually verified — bundled input returns BLOCKED (`UNVERIFIED_RULE_BLOCKED` / `UNVERIFIED_BUNDLE_RULE`); no equivalent diameter is invented. Bundled cases never PASS.
+- Bundled bars: the Clause 9-21-5-6 equivalent diameter is VERIFIED and implemented as `BG-DETAIL-BUNDLE-006` (Phase 2F Stage B), but integrating it into this spacing rule is a separate pending stage — bundled input returns BLOCKED (`UNVERIFIED_RULE_BLOCKED` / `UNVERIFIED_BUNDLE_RULE`); no equivalent diameter is invented here. Bundled cases never PASS.
 - Missing db,max or d_agg returns BLOCKED (`UNVERIFIED_RULE_BLOCKED` / `MISSING_GOVERNING_BAR_DIAMETER` or `MISSING_AGGREGATE_SIZE`) — clause items are never dropped; malformed (non-finite / non-positive) values return INVALID_INPUT.
 
 Required Inputs:
@@ -869,7 +869,7 @@ Multiple horizontal reinforcement layers of non-shotcrete members (e.g. beam lay
 Limitations / Exceptions / Blocked Conditions:
 
 - Single layer (layer_count = 1): NOT_APPLICABLE (no inter-layer requirement).
-- Bundled bars: Clause 9-21-5-6 is not visually verified — bundled input returns BLOCKED (`UNVERIFIED_BUNDLE_RULE`).
+- Bundled bars: the Clause 9-21-5-6 equivalent diameter is VERIFIED and implemented as `BG-DETAIL-BUNDLE-006` (Phase 2F Stage B); integration into this layer-spacing rule is a separate pending stage — bundled input returns BLOCKED (`UNVERIFIED_BUNDLE_RULE`).
 - Missing layer geometry (layer count or alignment) returns BLOCKED (`MISSING_LAYER_COUNT` / `MISSING_LAYER_ALIGNMENT`) — never silently assumed; malformed values return INVALID_INPUT; misaligned layers FAIL (`LAYERS_NOT_DIRECTLY_ALIGNED`).
 
 Required Inputs:
@@ -925,7 +925,7 @@ Normal environment (non-corrosive) cover checks by typed member class; the expos
 Limitations / Exceptions / Blocked Conditions:
 
 - Corrosive or unusual environments (Clauses 9-4-9-6/9-4-9-7): governed by Appendix 9-پ1 durability requirements, NOT visually verified — returns BLOCKED (`CORROSIVE_EXPOSURE_BLOCKED_APPENDIX_9P1`); Appendix 9-پ1 values are never computed here.
-- Bundled groups (Clause 9-4-9-5-2 → equivalent diameter Clause 9-21-5-6): NOT visually verified — returns BLOCKED (`UNVERIFIED_BUNDLE_RULE`).
+- Bundled groups (Clause 9-4-9-5-2 → equivalent diameter Clause 9-21-5-6): the equivalent diameter is VERIFIED and implemented as `BG-DETAIL-BUNDLE-006` (Phase 2F Stage B); integration into this cover rule is a separate pending stage — returns BLOCKED (`UNVERIFIED_BUNDLE_RULE`).
 - Diameter classes: only db ≤ 16 mm and db 18–58 mm (weather, all members) and db ≤ 34 mm / db > 36 mm (unexposed slabs-joints-walls) are verified; the uncovered intervals (16, 18) mm, db > 58 mm, and (34, 36] mm return BLOCKED (`UNVERIFIED_COVER_DIAMETER_CLASS`) — never interpolated.
 - Missing exposure/member/reinforcement type (or missing governing diameter for the diameter-classed rows) returns BLOCKED (`MISSING_COVER_EXPOSURE_CLASS` / `MISSING_COVER_MEMBER_CLASS` / `MISSING_COVER_REINFORCEMENT_TYPE` / `MISSING_COVER_BAR_DIAMETER`) — never silently assumed; an unknown member type returns INVALID_INPUT (`UNKNOWN_COVER_MEMBER_CLASS`); malformed numeric values return INVALID_INPUT.
 
@@ -949,6 +949,357 @@ Executable as `beamgenius.engine.detailing_spacing_mabhas9.evaluate_beam_cover`
 (registry `execution_allowed=True`; dispatched by `run_mabhas9_beam_check` and
 `run_mabhas9_beam_detailing_workflow` when a typed cover input is supplied). The
 legacy `BG-DETAIL-COVER-BLOCKED` sentinel and blocked stub remain untouched.
+
+---
+
+## BG-DETAIL-BUNDLE-001 — Bundled Bars: Maximum Number of Bars per Bundle
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 462
+Printed Page: 441
+Clause: 9-21-5-1
+
+### SOURCE VERIFIED (visually verified 2026-10-03, re-confirmed 2026-10-05; ATNasr Mabhas 9 1399 PDF capture, page footer ۴۴۱)
+
+Formula / Requirement:
+
+«تعداد میلگردها در هر گروه میلگرد که به صورت یک واحد کار می‌کنند، به چهار محدود می‌شود.» — The number of bars in a bar bundle (group of bars acting as one unit) is limited to four: n_bundle ≤ 4.
+
+Applicability:
+
+Any bar bundle acting as one unit (longitudinal bars of structural members). A single bar is not a bundle (NOT_APPLICABLE in every bundle rule).
+
+Limitations / Exceptions / Blocked Conditions:
+
+- A bundle of more than four bars is a verifiable code violation → FAIL (`BUNDLE_BAR_COUNT_EXCEEDS_MAXIMUM`).
+- A missing bundle bar count is never assumed → BLOCKED (`MISSING_BUNDLE_BAR_COUNT`); malformed counts (bool / non-integer / < 1) → INVALID_INPUT (`INVALID_BUNDLE_BAR_COUNT`).
+- The satellite bundle rules 002..008 defer prohibited bundle sizes (n > 4) to this rule and return NOT_APPLICABLE for n > 4.
+
+Required Inputs:
+
+- bundle_n_bars: integer ≥ 1 — REQUIRED, never assumed
+
+Units: dimensionless (bar count).
+
+Verification Method:
+
+Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF p. 462 / Printed p. 441; section heading «9-21-5 گروه میلگردها» and clause «9-21-5-1» visible; visually verified 2026-10-03, re-confirmed 2026-10-05).
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage B)
+
+Executable as `beamgenius.engine.detailing_bundle_mabhas9.evaluate_bundle_bar_count` (registry `execution_allowed=True`; dispatched by `run_mabhas9_beam_check`; appended by `run_mabhas9_beam_detailing_workflow` when `bundle_n_bars` is supplied).
+
+---
+
+## BG-DETAIL-BUNDLE-002 — Bundled Bars: Transverse Enclosure & Compressed-Bundle Tie Diameter
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 463
+Printed Page: 442
+Clause: 9-21-5-2
+
+### SOURCE VERIFIED (visually verified 2026-10-03, re-confirmed 2026-10-05; ATNasr Mabhas 9 1399 PDF capture, page footer ۴۴۲)
+
+Formula / Requirement:
+
+«گروه میلگرد باید توسط آرماتور عرضی محاط شود. آرماتورهای عرضی گروه میلگردهای تحت فشار باید به قطر حداقل 12 میلی‌متر باشند.» — A bar bundle must be enclosed by transverse reinforcement; the transverse bars of bundles under compression must be at least 12 mm in diameter (dbt ≥ 12 mm).
+
+Applicability:
+
+Bar bundles, including compressed bundles (e.g., columns, compressed beam bars).
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Missing enclosure / compression state is never assumed → BLOCKED (`MISSING_TRANSVERSE_ENCLOSURE` / `MISSING_COMPRESSION_STATE`); malformed flags → INVALID_INPUT.
+- For compressed bundles the transverse bar diameter is REQUIRED — missing → BLOCKED (`MISSING_TRANSVERSE_BAR_DIAMETER`); malformed → INVALID_INPUT.
+- Unenclosed bundle → FAIL (`BUNDLE_TRANSVERSE_ENCLOSURE_MISSING`); compressed bundle with dbt < 12 mm → FAIL (`BUNDLE_COMPRESSED_TRANSVERSE_DIAMETER_BELOW_MINIMUM`); the 12 mm boundary is inclusive (dbt = 12 mm passes).
+- The unresolved transverse-spacing detailing clauses of 9-21-6 remain outside this rule (no dependency is invented).
+
+Required Inputs:
+
+- bundle_n_bars — REQUIRED
+- bundle_has_transverse_enclosure: bool — REQUIRED, never assumed
+- bundle_is_compressed: bool — REQUIRED, never assumed
+- transverse_bar_diameter_mm — REQUIRED when bundle_is_compressed; otherwise optional
+
+Units: mm (diameter check); dimensionless flags.
+
+Verification Method:
+
+Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF p. 463 / Printed p. 442; clause «9-21-5-2» visible; visually verified 2026-10-03, re-confirmed 2026-10-05).
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage B)
+
+Executable as `beamgenius.engine.detailing_bundle_mabhas9.evaluate_bundle_transverse_reinforcement` (registry `execution_allowed=True`; orchestrated with the bundle chain).
+
+---
+
+## BG-DETAIL-BUNDLE-003 — Bundled Bars: Beam Bundle Bar Diameter Prohibition
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 463
+Printed Page: 442
+Clause: 9-21-5-3
+
+### SOURCE VERIFIED (visually verified 2026-10-03, re-confirmed 2026-10-05; ATNasr Mabhas 9 1399 PDF capture, page footer ۴۴۲)
+
+Formula / Requirement:
+
+«در تیرها استفاده از میلگردهای با قطر بیش از 34 میلی‌متر به صورت گروه میلگرد مجاز نیست.» — In beams, bars with diameter larger than 34 mm are not permitted in bundles (beam-specific clause).
+
+Applicability:
+
+Beams only. Non-beam member classes → NOT_APPLICABLE.
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Missing member class or governing diameter is never assumed → BLOCKED (`MISSING_MEMBER_CLASS` / `MISSING_GOVERNING_BAR_DIAMETER`); an unknown member class → INVALID_INPUT (`UNKNOWN_MEMBER_CLASS`); malformed diameter → INVALID_INPUT.
+- A bundled beam bar with db > 34 mm → FAIL (`BUNDLE_BEAM_BAR_DIAMETER_EXCEEDS_MAXIMUM`); the 34 mm boundary is inclusive (db = 34 mm passes).
+
+Required Inputs:
+
+- bundle_n_bars — REQUIRED
+- member_class (ConcreteCoverMemberClass) — REQUIRED, never assumed
+- bundle_bar_diameter_mm — REQUIRED for beams, never assumed
+
+Units: mm.
+
+Verification Method:
+
+Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF p. 463 / Printed p. 442; clause «9-21-5-3» visible; visually verified 2026-10-03, re-confirmed 2026-10-05).
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage B)
+
+Executable as `beamgenius.engine.detailing_bundle_mabhas9.evaluate_bundle_beam_bar_diameter` (registry `execution_allowed=True`; orchestrated with the bundle chain).
+
+---
+
+## BG-DETAIL-BUNDLE-004 — Bundled Bars: Cutoff Point Staggering in Flexural Members
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 463
+Printed Page: 442
+Clause: 9-21-5-4
+
+### SOURCE VERIFIED (visually verified 2026-10-03, re-confirmed 2026-10-05; ATNasr Mabhas 9 1399 PDF capture, page footer ۴۴۲)
+
+Formula / Requirement:
+
+Along the span of flexural members, the cutoff point of each bar of a bundle must be at least 40 bar diameters from the cutoff points of the other bars of the bundle: min |xi − xj| ≥ 40·db (more than one bar of the bundle may not be cut at one point).
+
+Applicability:
+
+Flexural members with bundled bars being curtailed along the span.
+
+Limitations / Exceptions / Blocked Conditions:
+
+- The cutoff configuration is a REQUIRED typed input — missing → BLOCKED (`MISSING_CUTOFF_CONFIGURATION`); malformed → INVALID_INPUT. When no bundle bar is cut → NOT_APPLICABLE.
+- With cutoffs: missing diameter → BLOCKED (`MISSING_GOVERNING_BAR_DIAMETER`); missing cutoff positions → BLOCKED (`MISSING_BUNDLE_CUTOFF_POSITIONS`); malformed values (including non-finite positions) → INVALID_INPUT.
+- Fewer than two cut bars → NOT_APPLICABLE (no pair to stagger).
+- Any pair of cutoff points closer than 40·db → FAIL (`BUNDLE_CUTOFF_STAGGER_BELOW_MINIMUM`); exactly 40·db passes.
+
+Required Inputs:
+
+- bundle_n_bars — REQUIRED
+- bundle_has_cutoffs: bool — REQUIRED, never assumed
+- bundle_bar_diameter_mm — REQUIRED when cutoffs exist
+- bundle_cutoff_positions_mm: sequence of axial positions (mm) — REQUIRED when cutoffs exist
+
+Units: mm.
+
+Verification Method:
+
+Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF p. 463 / Printed p. 442; clause «9-21-5-4» visible; visually verified 2026-10-03, re-confirmed 2026-10-05).
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage B)
+
+Executable as `beamgenius.engine.detailing_bundle_mabhas9.evaluate_bundle_cutoff_stagger` (registry `execution_allowed=True`; orchestrated with the bundle chain).
+
+---
+
+## BG-DETAIL-BUNDLE-005 — Bundled Bars: Bar Plane Arrangement Limit
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 463
+Printed Page: 442
+Clause: 9-21-5-5
+
+### SOURCE VERIFIED (visually verified 2026-10-03, re-confirmed 2026-10-05; ATNasr Mabhas 9 1399 PDF capture, page footer ۴۴۲)
+
+Formula / Requirement:
+
+In bundles with more than two bars, not all bar axes may lie in one plane, and at most two bars may lie in one plane — except at splice locations.
+
+Applicability:
+
+Bar bundles with more than two bars (bundles of one or two bars → NOT_APPLICABLE); splice locations are exempted.
+
+Limitations / Exceptions / Blocked Conditions:
+
+- The plane arrangement and splice-location status are REQUIRED typed inputs — missing → BLOCKED (`MISSING_BUNDLE_PLANE_ARRANGEMENT` / `MISSING_SPLICE_LOCATION_STATUS`); malformed values (including a plane count above the bundle size) → INVALID_INPUT.
+- More than two bars in one plane at a non-splice location → FAIL (`BUNDLE_BARS_PER_PLANE_EXCEEDED`); at a splice location the clause exception applies → PASS (noted in the trace message).
+
+Required Inputs:
+
+- bundle_n_bars — REQUIRED
+- bundle_max_bars_in_single_plane: integer ≥ 1 — REQUIRED, never assumed
+- bundle_is_splice_location: bool — REQUIRED, never assumed
+
+Units: dimensionless.
+
+Verification Method:
+
+Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF p. 463 / Printed p. 442; clause «9-21-5-5» visible; visually verified 2026-10-03, re-confirmed 2026-10-05).
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage B)
+
+Executable as `beamgenius.engine.detailing_bundle_mabhas9.evaluate_bundle_plane_arrangement` (registry `execution_allowed=True`; orchestrated with the bundle chain).
+
+---
+
+## BG-DETAIL-BUNDLE-006 — Bundled Bars: Equivalent Bar Diameter
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 463
+Printed Page: 442
+Clause: 9-21-5-6
+
+### SOURCE VERIFIED (visually verified 2026-10-03, re-confirmed 2026-10-05; ATNasr Mabhas 9 1399 PDF capture, page footer ۴۴۲)
+
+Formula / Requirement:
+
+For checks whose calculation is based on bar diameter — spacing limits, minimum cover, the confinement coefficient of Clause 9-21-3-2-1 and the coating factor of Clause 9-21-3-2-2 — a bundle is treated as one equivalent bar of equal total area whose centroid coincides with the bundle centroid. For n identical bars:
+
+    d_eq = db · √n
+
+(with equal-area identity n·π·db²/4 = π·d_eq²/4 enforced in the trace).
+
+Applicability:
+
+Identical-bar bundles for spacing-limit, minimum-cover, confinement-coefficient and coating-factor calculations (the clause scope). Development length is NOT derived from d_eq — Clause 9-21-5-7 provides its own multipliers (see `BG-DETAIL-BUNDLE-007`).
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Only the identical-bar closed form is implemented. Mixed-diameter bundles return BLOCKED (`UNSUPPORTED_CONFIGURATION`) — the equal-area/coincident-centroid construction exists in the source but no verified closed-form diameter is applied here; BLOCKED never becomes PASS.
+- Missing identical-flag or diameter → BLOCKED (`MISSING_BUNDLE_BARS_IDENTICAL` / `MISSING_GOVERNING_BAR_DIAMETER`); malformed values → INVALID_INPUT.
+- Integrating d_eq into the Phase 2E spacing/cover rules (`BG-DETAIL-LONG-SPACING-001`, `BG-DETAIL-LAYER-SPACING-001`, `BG-DETAIL-COVER-001`) is a separate pending stage; those rules keep returning `UNVERIFIED_BUNDLE_RULE` for bundled inputs until that integration is implemented.
+
+Required Inputs:
+
+- bundle_n_bars — REQUIRED
+- bundle_bar_diameter_mm — REQUIRED, never assumed
+- bundle_bars_identical: bool — REQUIRED, never assumed
+
+Units: mm (equivalent diameter).
+
+Verification Method:
+
+Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF p. 463 / Printed p. 442; clause «9-21-5-6» visible, including spacing/cover/9-21-3-2-1/9-21-3-2-2 references; visually verified 2026-10-03, re-confirmed 2026-10-05).
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage B)
+
+Executable as `beamgenius.engine.detailing_bundle_mabhas9.evaluate_bundle_equivalent_diameter` (registry `execution_allowed=True`; outcome COMPUTED with the equal-area check recorded in trace intermediates).
+
+---
+
+## BG-DETAIL-BUNDLE-007 — Bundled Bars: Development Length Multiplier
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 463
+Printed Page: 442
+Clause: 9-21-5-7
+
+### SOURCE VERIFIED (visually verified 2026-10-03, re-confirmed 2026-10-05; ATNasr Mabhas 9 1399 PDF capture, page footer ۴۴۲)
+
+Formula / Requirement:
+
+The development length of bars in a bundle, in tension or compression, equals the single-bar development length for a 2-bar bundle, and is 20% and 33% greater for 3-bar and 4-bar bundles respectively:
+
+    ld_bundle = factor · ld_single,  factor = 1.00 (2-bar) / 1.20 (3-bar) / 1.33 (4-bar)
+
+Applicability:
+
+Bar bundles in tension or compression — development-length scaling only.
+
+Limitations / Exceptions / Blocked Conditions:
+
+- This rule applies ONLY the verified bundle multipliers. The underlying single-bar development length of Clause 9-21-3 is NOT computed here (unverified dependency, `BG-DEV-LENGTH-PENDING`): a missing verified single-bar ld deterministically returns BLOCKED (`MISSING_SINGLE_BAR_DEVELOPMENT_LENGTH`) — the value is never invented; malformed ld → INVALID_INPUT.
+
+Required Inputs:
+
+- bundle_n_bars — REQUIRED
+- single_bar_development_length_mm (verified ld of a single bar) — REQUIRED, never computed here
+
+Units: mm.
+
+Verification Method:
+
+Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF p. 463 / Printed p. 442; clause «9-21-5-7» visible; visually verified 2026-10-03, re-confirmed 2026-10-05).
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage B)
+
+Executable as `beamgenius.engine.detailing_bundle_mabhas9.evaluate_bundle_development_length` (registry `execution_allowed=True`; multiplier table exported as `BG_DETAIL_BUNDLE_007_LD_MULTIPLIERS = {2: 1.00, 3: 1.20, 4: 1.33}`).
+
+---
+
+## BG-DETAIL-BUNDLE-008 — Bundled Bars: Lap Splice Constraints & Multiplier
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 463
+Printed Page: 442
+Clause: 9-21-5-8
+
+### SOURCE VERIFIED (visually verified 2026-10-03, re-confirmed 2026-10-05; ATNasr Mabhas 9 1399 PDF capture, page footer ۴۴۲; clause text continuing onto the following page)
+
+Formula / Requirement:
+
+1. The lap splice length of each bar in a bundle is computed from the single-bar development length including the Clause 9-21-5-7 bundle increase (lap = ld_single · factor, factor = 1.00 / 1.20 / 1.33 for 2/3/4-bar bundles).
+2. The laps of individual bars of a bundle must not overlap along the bars.
+3. A lap splice of a whole bundle with another bundle is prohibited.
+
+Applicability:
+
+Bar bundles being lap-spliced (bundle-specific splice constraints).
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Only these verified bundle-specific constraints are implemented. The underlying lap rules of Clause 9-21-4 and the single-bar ld of Clause 9-21-3 are NOT computed here (unverified dependencies): a missing verified single-bar ld deterministically returns BLOCKED (`MISSING_SINGLE_BAR_DEVELOPMENT_LENGTH`) — never an invented value; malformed ld → INVALID_INPUT.
+- Missing lap type / overlap status → BLOCKED (`MISSING_BUNDLE_LAP_TYPE` / `MISSING_BUNDLE_LAP_OVERLAP_STATUS`); malformed flags → INVALID_INPUT.
+- Bundle-to-bundle lap → FAIL (`BUNDLE_TO_BUNDLE_LAP_SPLICE_PROHIBITED`); overlapping individual laps → FAIL (`BUNDLE_INDIVIDUAL_LAPS_OVERLAP_PROHIBITED`); otherwise the per-bar lap length is COMPUTED.
+
+Required Inputs:
+
+- bundle_n_bars — REQUIRED
+- single_bar_development_length_mm (verified ld of a single bar) — REQUIRED, never computed here
+- bundle_is_bundle_to_bundle_lap: bool — REQUIRED, never assumed
+- bundle_laps_overlap: bool — REQUIRED, never assumed
+
+Units: mm (lap length).
+
+Verification Method:
+
+Actual source-page capture review (Mabhas 9, 1399 5th ed., PDF p. 463 / Printed p. 442; clause «9-21-5-8» visible with its continuation; visually verified 2026-10-03, re-confirmed 2026-10-05).
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage B)
+
+Executable as `beamgenius.engine.detailing_bundle_mabhas9.evaluate_bundle_lap_splice` (registry `execution_allowed=True`; uses the same verified multiplier table as `BG-DETAIL-BUNDLE-007`).
+
 
 ---
 
