@@ -346,6 +346,36 @@ The §4 dependency gate is **not** run for execution promotion in this stage. §
 
 Checks: source-verification only — no source/test change; pytest 340 passed (unchanged), `mypy --strict src` clean (21 files, unchanged).
 
+## 4E. Phase 2F Stage E (2026-10-06) — Clause 9-21-4 Lap Splices: PROMOTION Record
+
+Scope: **Clause 9-21-4 ONLY**. Baseline: Stage D commit `a75405e` (parent = immutable Stage C `f22ff45`); Stage C/D not re-run or reverted. Source basis: the committed evidence scan `phase2f-source-442-472/` on `origin/main` @ `df8067a` (Mabhas 9, 1399, 5th ed., ATNasr PDF), re-inspected page-by-page at full resolution on 2026-10-06 directly from the `page-NNN.jpg` scans; the `page-NNN.txt` Persian OCR was used for navigation only and never trusted for values. This record promotes the §9-21-4 sub-clauses whose dependencies are all verified and in-scope; it introduces **no new formula, number, condition, or interpretation**.
+
+**Promotion gate (§4 dependency gate) applied per clause:** only VERIFIED + CODE_RULE + MABHAS_9_COMPLIANCE + `execution_allowed=True` rules were promoted; no VERIFY_PENDING rule executes. The §9-21-4 lap lengths are expressed in terms of the Clause 9-21-3 development length `l_d`/`l_dc`, which is VERIFIED/executable from Stage C (`BG-DEV-LENGTH-TENSION-001`, `BG-DEV-LENGTH-COMPRESSION-001`, …); each lap evaluator consumes that length as a caller-provided verified value and deterministically returns BLOCKED (`MISSING_DEVELOPMENT_LENGTH`) when it is missing — it never computes Clause 9-21-3 and never invents a value. The excess-reinforcement reduction of 9-21-3-9 is NOT applied to any lap length (9-21-4-1-5).
+
+**Promoted to executable (7 rules; registry `execution_allowed=True`, evaluators in `beamgenius/engine/development_lap_splice_mabhas9.py`):**
+
+| Rule | Clause | Printed / PDF | Requirement (visually re-verified 2026-10-06) | Dependency status |
+| :--- | :--- | :--- | :--- | :--- |
+| `BG-DEV-LAP-APPLIC-001` | 9-21-4-1-1 / 9-21-4-1-2 | 436 / 456 | four methods (lap/bearing/welded/mechanical); lap permitted (tension & compression) d_b ≤ 34 mm; compression lap of ≤ 42 mm bar to ≤ 34 mm bar per 9-21-4-5-2 | none (self-contained) |
+| `BG-DEV-LAP-SPACING-001` | 9-21-4-1-4 | 437 / 457 | contact-lap transverse c–c ≤ min(lap/5, 150 mm) | none (self-contained) |
+| `BG-DEV-LAP-TENSION-001` | 9-21-4-2-1 | 437 / 457 | l_st = 1.3·l_d (B) / 1.0·l_d (A, if provided ≥ 2× required AND ≤ ½ spliced); ≥ 300 mm | l_d = VERIFIED (Stage C) |
+| `BG-DEV-LAP-TENSION-DIFFDIA-001` | 9-21-4-2 | 438 / 458 | l_s ≥ max(l_d larger bar, l_st smaller bar) | l_d, l_st = VERIFIED |
+| `BG-DEV-LAP-COMPRESSION-001` | 9-21-4-5-1 | 439 / 459 | l_sc = 0.071·f_y·d_b (f_y ≤ 420) / (0.13·f_y − 24)·d_b (f_y > 420); ≥ 300 mm; d_b ≤ 34 mm | none (f_y, d_b inputs) |
+| `BG-DEV-LAP-COMPRESSION-DIFFDIA-001` | 9-21-4-5-2 | 440 / 460 | l_s ≥ max(l_dc larger bar per 9-21-3-8, l_sc smaller bar per 9-21-4-5-1) | l_dc, l_sc = VERIFIED |
+| `BG-DEV-SPLICE-BEARING-001` | 9-21-4-6-1..-6-3 | 440 / 460 | compression-only, perpendicular coaxial ends, confined member; end-face deviation ≤ 5°, axial misalignment ≤ 3° | none (self-contained) |
+
+**Kept BLOCKED / VERIFY_PENDING (3 registered sentinels, `execution_allowed=False`):**
+
+| Rule | Clause | Printed / PDF | Blocked reason (out-of-scope dep / ambiguity) |
+| :--- | :--- | :--- | :--- |
+| `BG-DEV-LAP-WIRE-DEFORMED-PENDING` | 9-21-4-3 | 438 / 458 | NBC Chapter 9-4 welded-wire steel (incl. 9-4-8) out of window (VERIFY_PENDING); branches to 9-21-4-4 |
+| `BG-DEV-LAP-WIRE-PLAIN-PENDING` | 9-21-4-4 | 439 / 459 | 9-21-4-4-1-ب «و یا» disjunct unresolved (VERIFY_PENDING; recorded verbatim, never interpreted/executed) + Chapter 9-4 dep |
+| `BG-DEV-SPLICE-WELDED-MECH-PENDING` | 9-21-4-7 | 440–441 / 460–461 | 9-21-4-7-3 requires NBC Chapter 10 welding (out of window, VERIFY_PENDING); mechanical-splice strength coefficient glyph not independently re-confirmed |
+
+**Evidence re-confirmations recorded this session:** the compression-lap coefficients `0.071·f_y·d_b` (f_y ≤ 420) and `(0.13·f_y − 24)·d_b` (f_y > 420) and the 300 mm floor (§9-21-4-5-1) were read directly from printed 439 / PDF 459; the tension-lap factors 1.3·l_d (B) / 1.0·l_d (A) and the two class-A conditions (§9-21-4-2-1) from printed 437 / PDF 457; the mixed-diameter `≥ max(...)` forms (§9-21-4-2 / §9-21-4-5-2) from printed 438 / 440; and the bearing-splice angular limits **end-face deviation ≤ 5° and axial misalignment ≤ 3°** (§9-21-4-6-3) from printed 440 / PDF 460 — the **5°** value («انحراف حداکثر ۵ درجه») is independently re-confirmed this session, upholding the §4D.6 refinement over the earlier "1.5°" reading. §9-21-4-7-3 (Chapter 10) and the §9-21-4→§9-21-5 boundary (footer ۴۴۱) were re-confirmed on printed 441 / PDF 461.
+
+Checks: promotion only for the 7 in-scope rules; `pytest` 393 passed (was 340; +53 focused cases incl. boundary, missing/malformed-input, VERIFY_PENDING-dependency and jurisdiction blocking, registry/gatekeeper integration, no-reference-import invariant), `mypy --strict src` clean (22 files, was 21), `git diff --check` clean. No Chapter 9-4 / Chapter 10 / Mostofinejad dependency imported; the engine module does not import the reference package. §9-21-5, §9-21-6 and later stages untouched.
+
 ## 5. Phase 2B Flexural Resistance — Granular Source Verification Matrix
 
 Per Phase 2B Continuation Tasks 1–7, each required Mabhas 9 flexural source item has been verified against Mabhas 9 (1399) Chapters `9-3`, `9-4`, `9-6`, `9-7`, `9-8`, and `9-11` and classified below as `VERIFIED` or `VERIFY_PENDING` (`BLOCKED`).

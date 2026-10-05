@@ -2151,6 +2151,327 @@ RULE_BG_DEV_COMPRESSION_001 = RuleReference(
     dependencies=(),
 )
 
+# ============================================================================
+# Phase 2F Stage E — Clause 9-21-4 Lap / Bearing Splices (docs/VERIFIED_RULES.md)
+# Visually re-verified 2026-10-06 from phase2f-source-442-472 @ df8067a;
+# footer-confirmed Printed pp. 436-441 / PDF pp. 456-461.
+# ============================================================================
+
+RULE_BG_DEV_LAP_APPLIC_001 = RuleReference(
+    rule_id="BG-DEV-LAP-APPLIC-001",
+    title="Mabhas 9 Bar-Splice Methods and Lap Diameter Applicability",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=456,
+    printed_page=436,
+    clause_or_equation=(
+        "Clause 9-21-4-1-1 & 9-21-4-1-2 (Printed p. 436 / PDF p. 456); "
+        "9-21-4-1-2-ب (Printed p. 437 / PDF p. 457)"
+    ),
+    symbolic_formula=(
+        "methods in {lap, bearing, welded, mechanical}; lap permitted "
+        "(tension & compression) for d_b <= 34 mm; compression lap of a "
+        "<= 42 mm bar to a <= 34 mm bar"
+    ),
+    description=(
+        "General Clause 9-21-4-1: bar splices are permitted by one of four "
+        "methods (9-21-4-1-1: lap / bearing / welded / mechanical); a lap "
+        "splice is permitted, in tension and compression, for bars with "
+        "diameter d_b <= 34 mm (9-21-4-1-2-الف), and in compression a lap "
+        "splice of a bar of maximum diameter 42 mm to a bar of diameter "
+        "<= 34 mm is permitted with the length governed by 9-21-4-5-2 "
+        "(9-21-4-1-2-ب). Visually re-verified 2026-10-06 (page-456/457 "
+        "evidence JPGs). Applicability: all bar splices (the diameter limit "
+        "is lap-specific). Required typed inputs (never assumed): "
+        "splice_method, bar_stress_action (for lap), bar_diameter_mm, "
+        "larger_bar_diameter_mm (optional, compression different-diameter "
+        "case). Missing -> BLOCKED; malformed -> INVALID_INPUT; a lap with "
+        "d_b > 34 mm in tension (or outside the compression limits) -> FAIL."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_LAP_SPACING_001 = RuleReference(
+    rule_id="BG-DEV-LAP-SPACING-001",
+    title="Mabhas 9 Contact-Lap Transverse Centre-to-Centre Spacing",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=457,
+    printed_page=437,
+    clause_or_equation="Clause 9-21-4-1-4 (Printed p. 437 / PDF p. 457)",
+    symbolic_formula="s_transverse <= min(lap_length / 5, 150 mm)",
+    description=(
+        "For a contact lap splice in flexural members, the transverse "
+        "centre-to-centre spacing of the spliced bars shall not exceed one "
+        "fifth of the lap length and 150 mm (Clause 9-21-4-1-4). Visually "
+        "re-verified 2026-10-06 (page-457 evidence JPG). Applicability: "
+        "contact lap splices in flexural members. Required typed inputs "
+        "(never assumed): lap_length_mm, "
+        "transverse_center_to_center_spacing_mm. Missing -> BLOCKED; "
+        "malformed -> INVALID_INPUT; spacing above min(lap/5, 150 mm) -> FAIL."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_LAP_TENSION_001 = RuleReference(
+    rule_id="BG-DEV-LAP-TENSION-001",
+    title="Mabhas 9 Tension Lap Splice Length",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=457,
+    printed_page=437,
+    clause_or_equation="Clause 9-21-4-2-1 (Printed p. 437 / PDF p. 457)",
+    symbolic_formula=(
+        "l_st = 1.3*l_d (type B); l_st = 1.0*l_d (type A) only if provided "
+        ">= 2*required AND <= 1/2 of provided spliced; l_st >= 300 mm"
+    ),
+    description=(
+        "Tension lap splice length l_st of deformed bars/wires: general "
+        "(type B) l_st = 1.3*l_d; reduced (type A) l_st = 1.0*l_d only when "
+        "the reinforcement provided within the lap length is at least 2x the "
+        "required AND at most half of the provided reinforcement is spliced "
+        "within the lap length (Clause 9-21-4-2-1); minimum l_st = 300 mm. "
+        "l_d is the tension development length per 9-21-4-2-1-1 (Clause "
+        "9-21-3-1) and is a caller-provided VERIFIED value — never computed "
+        "here (missing l_d -> BLOCKED). The excess-reinforcement development "
+        "reduction of 9-21-3-9 is NOT applied (9-21-4-1-5). Visually "
+        "re-verified 2026-10-06 (page-457 evidence JPG). Applicability: "
+        "tension lap splices of bars with d_b <= 34 mm (9-21-4-1-2). Required "
+        "typed inputs (never assumed): development_length_mm, "
+        "tension_lap_class; as_provided_over_required_ratio and "
+        "fraction_of_provided_bars_spliced required for type A. Type A with "
+        "unmet conditions -> FAIL."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_LAP_TENSION_DIFFDIA_001 = RuleReference(
+    rule_id="BG-DEV-LAP-TENSION-DIFFDIA-001",
+    title="Mabhas 9 Different-Diameter Tension Lap Splice Length",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=458,
+    printed_page=438,
+    clause_or_equation="Clause 9-21-4-2 (different diameters) (Printed p. 438 / PDF p. 458)",
+    symbolic_formula=(
+        "l_s >= max(l_d for the larger bar, l_st for the smaller bar)"
+    ),
+    description=(
+        "When a tension lap splice joins bars of different diameters, the "
+        "lap length l_s shall not be less than either the development length "
+        "l_d for the larger bar or the tension lap length l_st for the "
+        "smaller bar (Clause 9-21-4-2). Both governing lengths are "
+        "caller-provided VERIFIED values (Stage C l_d; Clause 9-21-4-2-1 "
+        "l_st) — never computed here (missing -> BLOCKED). Visually "
+        "re-verified 2026-10-06 (page-458 evidence JPG). Applicability: "
+        "tension lap splices of different-diameter bars (d_b <= 34 mm per "
+        "9-21-4-1-2, checked by BG-DEV-LAP-APPLIC-001). Required typed "
+        "inputs (never assumed): development_length_larger_bar_mm, "
+        "tension_lap_length_smaller_bar_mm."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_LAP_COMPRESSION_001 = RuleReference(
+    rule_id="BG-DEV-LAP-COMPRESSION-001",
+    title="Mabhas 9 Compression Lap Splice Length",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=459,
+    printed_page=439,
+    clause_or_equation="Clause 9-21-4-5-1 (Printed p. 439 / PDF p. 459)",
+    symbolic_formula=(
+        "l_sc = 0.071*f_y*d_b (f_y <= 420 MPa); l_sc = (0.13*f_y - 24)*d_b "
+        "(f_y > 420 MPa); l_sc >= 300 mm; d_b <= 34 mm"
+    ),
+    description=(
+        "Compression lap splice length l_sc of deformed bars with diameter "
+        "d_b <= 34 mm (Clause 9-21-4-5-1): l_sc = 0.071*f_y*d_b for "
+        "f_y <= 420 MPa, and l_sc = (0.13*f_y - 24)*d_b for f_y > 420 MPa; "
+        "minimum l_sc = 300 mm. Visually re-verified 2026-10-06 (page-459 "
+        "evidence JPG). Applicability: compression lap splices of bars with "
+        "d_b <= 34 mm (d_b > 34 mm -> NOT_APPLICABLE, use the "
+        "different-diameter compression lap of 9-21-4-5-2 for the smaller "
+        "bar). Required typed inputs (never assumed): bar_diameter_mm, "
+        "yield_stress_mpa. Missing -> BLOCKED; malformed -> INVALID_INPUT."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_LAP_COMPRESSION_DIFFDIA_001 = RuleReference(
+    rule_id="BG-DEV-LAP-COMPRESSION-DIFFDIA-001",
+    title="Mabhas 9 Different-Diameter Compression Lap Splice Length",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=460,
+    printed_page=440,
+    clause_or_equation="Clause 9-21-4-5-2 (Printed p. 440 / PDF p. 460)",
+    symbolic_formula=(
+        "l_s >= max(l_dc for the larger bar per 9-21-3-8, l_sc for the "
+        "smaller bar per 9-21-4-5-1)"
+    ),
+    description=(
+        "When a compression lap splice joins bars of different diameters, "
+        "the lap length shall not be less than either the compression "
+        "development length l_dc for the larger bar (per Clause 9-21-3-8) or "
+        "the compression lap length l_sc for the smaller bar (per Clause "
+        "9-21-4-5-1) (Clause 9-21-4-5-2). Both governing lengths are "
+        "caller-provided VERIFIED values (Stage C l_dc; Clause 9-21-4-5-1 "
+        "l_sc) — never computed here (missing -> BLOCKED). Visually "
+        "re-verified 2026-10-06 (page-460 evidence JPG). Applicability: "
+        "compression lap splices of different-diameter bars. Required typed "
+        "inputs (never assumed): compression_dev_length_larger_bar_mm, "
+        "compression_lap_length_smaller_bar_mm."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_SPLICE_BEARING_001 = RuleReference(
+    rule_id="BG-DEV-SPLICE-BEARING-001",
+    title="Mabhas 9 Bearing Splice of Compression-Only Bars",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=460,
+    printed_page=440,
+    clause_or_equation="Clause 9-21-4-6-1..-6-3 (Printed p. 440 / PDF p. 460)",
+    symbolic_formula=(
+        "compression-only bars; ends cut perpendicular; coaxial; confined "
+        "member; end-face deviation <= 5 deg; axial misalignment <= 3 deg"
+    ),
+    description=(
+        "Bearing splice of bars under compression alone (Clause 9-21-4-6): "
+        "force transfer by bearing between two bars whose ends are cut "
+        "perpendicular to the bar axis, the two spliced bars coaxial (e.g. "
+        "via a ring) (9-21-4-6-1); permitted only in members with "
+        "confinement (خاموت: tied / spiral / دورگیر) (9-21-4-6-2); the bar "
+        "ends must lie on a flat surface perpendicular to the bar axis with "
+        "a maximum end-face deviation of 5 degrees, and the axial "
+        "misalignment of the two bars must not exceed 3 degrees (9-21-4-6-3; "
+        "the 5 deg value refines an earlier 1.5 deg reading). Visually "
+        "re-verified 2026-10-06 (page-460 evidence JPG). Applicability: "
+        "bearing splices of compression-only bars; this rule checks "
+        "geometry/applicability only and does not transfer force. Required "
+        "typed inputs (never assumed): bars_compression_only, "
+        "ends_cut_perpendicular, bars_coaxial, member_has_confinement, "
+        "end_face_deviation_deg, axial_misalignment_deg. Missing -> BLOCKED; "
+        "malformed -> INVALID_INPUT; any unmet condition -> FAIL."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_LAP_WIRE_DEFORMED_PENDING = RuleReference(
+    rule_id="BG-DEV-LAP-WIRE-DEFORMED-PENDING",
+    title="Welded Deformed-Wire Mesh Tension Lap Splice (PENDING)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=458,
+    printed_page=438,
+    clause_or_equation="Clause 9-21-4-3-1..-3-4 (Printed p. 438 / PDF p. 458)",
+    symbolic_formula="UNAVAILABLE (execution blocked)",
+    description=(
+        "Lap splice of welded deformed-wire reinforcement mesh in tension "
+        "(Clause 9-21-4-3): l_sd >= max(1.3*l_d, 200 mm) with l_d per "
+        "9-21-4-2-1-الف, plus outer cross-wire overlap >= 50 mm and all "
+        "wires deformed with d <= 20 mm; unmet conditions route to 9-21-4-2 "
+        "or 9-21-4-4, and galvanized welded deformed wire routes to 9-21-4-4."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Execution BLOCKED: Clause 9-21-4-3 depends on National Building "
+        "Regulations Chapter 9-4 welded-wire steel specifications (incl. "
+        "9-4-8), whose pages are out of the verified window (VERIFY_PENDING), "
+        "and its branch conditions reference the plain-wire clause 9-21-4-4 "
+        "(unresolved 9-21-4-4-1-ب disjunct). No formula/number is executed."
+    ),
+    dependencies=(),
+)
+
+RULE_BG_DEV_LAP_WIRE_PLAIN_PENDING = RuleReference(
+    rule_id="BG-DEV-LAP-WIRE-PLAIN-PENDING",
+    title="Welded Plain-Wire Mesh Tension Lap Splice (PENDING)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=459,
+    printed_page=439,
+    clause_or_equation="Clause 9-21-4-4-1 (Printed p. 439 / PDF p. 459)",
+    symbolic_formula="UNAVAILABLE (execution blocked)",
+    description=(
+        "Lap splice of welded plain-wire reinforcement mesh in tension "
+        "(Clause 9-21-4-4): l_s >= max(1.5*l_d per 9-21-3-7-1-الف; "
+        "cross-wire spacing + 50 mm, و یا 150 mm). The 9-21-4-4-1-ب branch "
+        "carries the unresolved «و یا» disjunct and is recorded verbatim but "
+        "NOT interpreted and NOT executed."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Execution BLOCKED: the 9-21-4-4-1-ب «و یا» disjunct "
+        "(«فاصله‌ی بین سیم‌های عمود بر امتداد وصله به علاوه‌ی ۵۰ میلی‌متر، "
+        "و یا ۱۵۰ میلی‌متر») leaves the governing combination undetermined "
+        "(VERIFY_PENDING; recorded verbatim in the source-verification matrix "
+        "§4D.3), and the clause depends on Chapter 9-4 welded-wire steel "
+        "specifications (out of window). No interpretation or execution."
+    ),
+    dependencies=(),
+)
+
+RULE_BG_DEV_SPLICE_WELDED_MECH_PENDING = RuleReference(
+    rule_id="BG-DEV-SPLICE-WELDED-MECH-PENDING",
+    title="Welded and Mechanical Bar Splices (PENDING)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=460,
+    printed_page=440,
+    clause_or_equation=(
+        "Clause 9-21-4-7-1..-7-8 (Printed pp. 440-441 / PDF pp. 460-461)"
+    ),
+    symbolic_formula="UNAVAILABLE (execution blocked)",
+    description=(
+        "Welded and mechanical splices of deformed bars in tension and "
+        "compression (Clause 9-21-4-7): welded splices mainly for "
+        "d_b >= 20 mm (9-21-4-7-1/-2); welding must satisfy National "
+        "Building Regulations Chapter 10 (9-21-4-7-3); mechanical splices "
+        "transfer force by bearing/friction/coupler and develop 1.25*f_y "
+        "(9-21-4-7-4..-6); adjacent welded/mechanical splices in tension "
+        "members staggered >= 750 mm (9-21-4-7-7/-8)."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Execution BLOCKED: Clause 9-21-4-7-3 requires welding to satisfy "
+        "National Building Regulations Chapter 10, whose pages are out of "
+        "the verified window (VERIFY_PENDING), and the mechanical-splice "
+        "strength-transfer coefficient glyph was not independently "
+        "re-confirmed. No formula/number is executed."
+    ),
+    dependencies=(),
+)
+
 
 _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     # Verified Mabhas 9 rules
@@ -2181,6 +2502,13 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_DEV_WIRE_DEFORMED_001,
     RULE_BG_DEV_WIRE_PLAIN_001,
     RULE_BG_DEV_COMPRESSION_001,
+    RULE_BG_DEV_LAP_APPLIC_001,
+    RULE_BG_DEV_LAP_SPACING_001,
+    RULE_BG_DEV_LAP_TENSION_001,
+    RULE_BG_DEV_LAP_TENSION_DIFFDIA_001,
+    RULE_BG_DEV_LAP_COMPRESSION_001,
+    RULE_BG_DEV_LAP_COMPRESSION_DIFFDIA_001,
+    RULE_BG_DEV_SPLICE_BEARING_001,
     RULE_BG_SHEAR_PHI_001,
     RULE_BG_SHEAR_VC_001,
     RULE_BG_SHEAR_VS_001,
@@ -2235,6 +2563,9 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_POS_SIMPLE_PENDING,
     RULE_BG_CUTOFF_COND_PENDING,
     RULE_BG_DEV_LENGTH_PENDING,
+    RULE_BG_DEV_LAP_WIRE_DEFORMED_PENDING,
+    RULE_BG_DEV_LAP_WIRE_PLAIN_PENDING,
+    RULE_BG_DEV_SPLICE_WELDED_MECH_PENDING,
     RULE_BG_NEG_EXT_PENDING,
     RULE_BG_SKIN_REINF_PENDING,
     RULE_BG_BENT_ANCHOR_PENDING,

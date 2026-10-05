@@ -1823,3 +1823,78 @@ Visual source-page verification (page-455 JPG; ψ_r class list read at high zoom
 ### EXECUTABLE IMPLEMENTATION (Phase 2F Stage C)
 
 Executable as `beamgenius.engine.development_length_mabhas9.evaluate_dev_length_compression`.
+
+---
+
+# Lap & Bearing Splices (Phase 2F Stage E — Clause 9-21-4)
+
+Promotion gate: only VERIFIED + CODE_RULE + MABHAS_9_COMPLIANCE + execution_allowed=True rules below were promoted. Every §9-21-4 value was visually re-verified 2026-10-06 from `phase2f-source-442-472` @ `df8067a` (footer-confirmed Printed pp. 436–441 / PDF pp. 456–461). Lap lengths consume the Stage C verified Clause 9-21-3 development length `l_d`/`l_dc` as a caller-provided value (never computed here; missing → BLOCKED). No NBC Chapter 9-4 / Chapter 10 / Mostofinejad dependency is imported or invented.
+
+## BG-DEV-LAP-APPLIC-001 — Bar-Splice Methods and Lap Diameter Applicability (Clause 9-21-4-1-1 / 9-21-4-1-2)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 456 | Printed 436
+
+Formula / Requirement: splices permitted by one of four methods (lap / bearing / welded / mechanical) per 9-21-4-1-1; a lap splice is permitted in tension and compression for d_b ≤ 34 mm (9-21-4-1-2-الف); in compression a lap of a bar ≤ 42 mm to a bar ≤ 34 mm is permitted (length per 9-21-4-5-2) per 9-21-4-1-2-ب.
+
+Applicability: all bar splices; the diameter limit is lap-specific (bearing/welded/mechanical → permitted method, specifics deferred to their own clauses).
+Required Inputs: splice_method (SpliceMethod), bar_stress_action (BarStressAction), bar_diameter_mm, larger_bar_diameter_mm (optional, compression different-diameter case). Missing → BLOCKED; malformed → INVALID_INPUT; d_b > 34 mm in tension (or outside compression limits) → FAIL.
+Units: mm. Executable as `beamgenius.engine.development_lap_splice_mabhas9.evaluate_lap_splice_applicability`.
+
+## BG-DEV-LAP-SPACING-001 — Contact-Lap Transverse Centre-to-Centre Spacing (Clause 9-21-4-1-4)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 457 | Printed 437
+
+Formula / Requirement: for a contact lap splice in flexural members, the transverse centre-to-centre spacing of the spliced bars shall not exceed one fifth of the lap length and 150 mm: s ≤ min(lap/5, 150 mm).
+Applicability: contact lap splices in flexural members. Required Inputs: lap_length_mm, transverse_center_to_center_spacing_mm. Missing → BLOCKED; malformed → INVALID_INPUT; above limit → FAIL.
+Units: mm. Executable as `beamgenius.engine.development_lap_splice_mabhas9.evaluate_lap_splice_spacing`.
+
+## BG-DEV-LAP-TENSION-001 — Tension Lap Splice Length (Clause 9-21-4-2-1)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 457 | Printed 437
+
+Formula / Requirement: l_st = 1.3·l_d (type B) general; l_st = 1.0·l_d (type A) only if provided ≥ 2× required AND ≤ ½ of provided is spliced within the lap length; l_st ≥ 300 mm; l_d per 9-21-4-2-1-1 (Clause 9-21-3-1).
+Applicability: tension lap splices of bars with d_b ≤ 34 mm (9-21-4-1-2). The excess-reinforcement l_d reduction of 9-21-3-9 is NOT applied (9-21-4-1-5). Required Inputs: development_length_mm (verified l_d; missing → BLOCKED, never invented), tension_lap_class (TensionLapClass); as_provided_over_required_ratio and fraction_of_provided_bars_spliced required for type A (missing → BLOCKED). Type A with unmet conditions → FAIL.
+Units: mm. Executable as `beamgenius.engine.development_lap_splice_mabhas9.evaluate_lap_splice_tension`.
+
+## BG-DEV-LAP-TENSION-DIFFDIA-001 — Different-Diameter Tension Lap Splice Length (Clause 9-21-4-2)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 458 | Printed 438
+
+Formula / Requirement: l_s ≥ max(l_d for the larger bar, l_st for the smaller bar).
+Applicability: tension lap splices of different-diameter bars (d_b ≤ 34 mm per 9-21-4-1-2, checked by BG-DEV-LAP-APPLIC-001). Both governing lengths are caller-provided verified values (missing → BLOCKED).
+Required Inputs: development_length_larger_bar_mm, tension_lap_length_smaller_bar_mm.
+Units: mm. Executable as `beamgenius.engine.development_lap_splice_mabhas9.evaluate_lap_splice_tension_diffdia`.
+
+## BG-DEV-LAP-COMPRESSION-001 — Compression Lap Splice Length (Clause 9-21-4-5-1)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 459 | Printed 439
+
+Formula / Requirement: for d_b ≤ 34 mm — l_sc = 0.071·f_y·d_b (f_y ≤ 420 MPa); l_sc = (0.13·f_y − 24)·d_b (f_y > 420 MPa); l_sc ≥ 300 mm.
+Applicability: compression lap splices of bars with d_b ≤ 34 mm; d_b > 34 mm → NOT_APPLICABLE (use BG-DEV-LAP-COMPRESSION-DIFFDIA-001 for the smaller bar).
+Required Inputs: bar_diameter_mm, yield_stress_mpa. Missing → BLOCKED; malformed → INVALID_INPUT.
+Units: mm. Executable as `beamgenius.engine.development_lap_splice_mabhas9.evaluate_lap_splice_compression`.
+
+## BG-DEV-LAP-COMPRESSION-DIFFDIA-001 — Different-Diameter Compression Lap Splice Length (Clause 9-21-4-5-2)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 460 | Printed 440
+
+Formula / Requirement: l_s ≥ max(l_dc for the larger bar per 9-21-3-8, l_sc for the smaller bar per 9-21-4-5-1).
+Applicability: compression lap splices of different-diameter bars. Both governing lengths are caller-provided verified values (missing → BLOCKED).
+Required Inputs: compression_dev_length_larger_bar_mm, compression_lap_length_smaller_bar_mm.
+Units: mm. Executable as `beamgenius.engine.development_lap_splice_mabhas9.evaluate_lap_splice_compression_diffdia`.
+
+## BG-DEV-SPLICE-BEARING-001 — Bearing Splice of Compression-Only Bars (Clause 9-21-4-6)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 460 | Printed 440
+
+Formula / Requirement: bearing transfer permitted only for bars under compression alone, ends cut perpendicular to the bar axis, the two spliced bars coaxial (e.g. via a ring) (9-21-4-6-1); only in members with confinement (خاموت: tied / spiral / دورگیر) (9-21-4-6-2); end-face deviation ≤ 5° and axial misalignment ≤ 3° (9-21-4-6-3 — the 5° value refines an earlier 1.5° reading).
+Applicability: bearing splices of compression-only bars; geometry/applicability check only (no force transfer). Required Inputs: bars_compression_only, ends_cut_perpendicular, bars_coaxial, member_has_confinement, end_face_deviation_deg, axial_misalignment_deg. Missing → BLOCKED; malformed → INVALID_INPUT; any unmet condition → FAIL.
+Units: deg. Executable as `beamgenius.engine.development_lap_splice_mabhas9.evaluate_splice_bearing`.
+
+### BLOCKED (not promoted) — §9-21-4-3 / §9-21-4-4 / §9-21-4-7
+
+- `BG-DEV-LAP-WIRE-DEFORMED-PENDING` (9-21-4-3, PDF 458 / Printed 438): welded deformed-wire mesh lap. BLOCKED — depends on NBC Chapter 9-4 welded-wire steel specs (incl. 9-4-8, out of window, VERIFY_PENDING) and branches to 9-21-4-4.
+- `BG-DEV-LAP-WIRE-PLAIN-PENDING` (9-21-4-4, PDF 459 / Printed 439): welded plain-wire mesh lap. BLOCKED — the 9-21-4-4-1-ب «و یا» disjunct («…۵۰ میلی‌متر، و یا ۱۵۰ میلی‌متر») is unresolved (VERIFY_PENDING; recorded verbatim, never interpreted/executed) plus the Chapter 9-4 dependency.
+- `BG-DEV-SPLICE-WELDED-MECH-PENDING` (9-21-4-7, PDF 460–461 / Printed 440–441): welded/mechanical splices. BLOCKED — 9-21-4-7-3 requires NBC Chapter 10 welding compliance (out of window, VERIFY_PENDING) and the mechanical-splice strength coefficient glyph was not independently re-confirmed.
+
+All three are registered with `execution_allowed=False`, `status=VERIFY_PENDING`, and a `blocked_reason`; the Gatekeeper returns `UNVERIFIED_RULE_BLOCKED` for any attempted execution.
