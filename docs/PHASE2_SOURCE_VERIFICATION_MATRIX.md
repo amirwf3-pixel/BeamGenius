@@ -376,6 +376,82 @@ Scope: **Clause 9-21-4 ONLY**. Baseline: Stage D commit `a75405e` (parent = immu
 
 Checks: promotion only for the 7 in-scope rules; `pytest` 393 passed (was 340; +53 focused cases incl. boundary, missing/malformed-input, VERIFY_PENDING-dependency and jurisdiction blocking, registry/gatekeeper integration, no-reference-import invariant), `mypy --strict src` clean (22 files, was 21), `git diff --check` clean. No Chapter 9-4 / Chapter 10 / Mostofinejad dependency imported; the engine module does not import the reference package. §9-21-5, §9-21-6 and later stages untouched.
 
+## 4F. Phase 2F Stage F (2026-10-06) — Clause 9-21-6 Transverse Reinforcement: SOURCE VERIFICATION Record
+
+Scope: **Clause 9-21-6 ONLY** («جزئیات آرماتورگذاری» / reinforcement detailing — transverse reinforcement & confinement: §9-21-6-1 خاموت‌ها, §9-21-6-2 تنگ‌ها, §9-21-6-3 دورپیچ‌ها, §9-21-6-4 دورگیر), through the real sub-clauses up to the start of §9-22. **SOURCE VERIFICATION ONLY** — no implementation, promotion, registry change, engine change, or test change occurred; no §9-21-6 rule becomes executable. Baseline: Stage E commit `29956da` (parents `a75405e`, `f22ff45`; `origin/main` @ `df8067a`). Source basis: the committed evidence scan `phase2f-source-442-472/` on `origin/main` @ `df8067a` (Mabhas 9, 1399, 5th ed., ATNasr PDF), re-inspected page-by-page at full resolution on 2026-10-06. The §9-21-6 page footers were read **directly from the `page-NNN.jpg` scans**; the `page-NNN.txt` Persian OCR was used for navigation only and is never trusted for values (its footer and numeric reads are demonstrably wrong — e.g. it read the §9-21-6-2-1-ب tie-spacing limits as "6×"/"8×" where the scans read **16×**/**48×**, and it read the §9-21-6-2-2-ب tie-diameter threshold as "24 mm" where the scan reads **34 mm**). Tight-digit regions (tie-diameter thresholds, rectangular/circular-tie limits, spiral spacing, the Table 9-21-7 lengths) were additionally confirmed from enlarged crops of the scans. No number, formula, limit, unit, or condition was added from memory or general knowledge; ambiguous wording is recorded `VERIFY_PENDING` and is not interpreted.
+
+### F.1 Footer-confirmed page mapping (visual reads; re-proves PDF = printed + 20)
+
+| PDF page | Printed footer (visual read) | §9-21-6 content |
+| :--- | :--- | :--- |
+| 462 | «۴۴۲» = **442** | tail of §9-21-5-2..-5-8 (bundles) — upper boundary |
+| 463 | «۴۴۳» = **443** | tail of §9-21-5-8; **§9-21-6 heading**; §9-21-6-1-1..-1-3 (confining ties / anchorage) |
+| 464 | «۴۴۴» = **444** | §9-21-6-1-4..-1-6 (welded-wire tie anchorage; torsion/integrity ties) |
+| 465 | «۴۴۵» = **445** | Figure 9-21-1; §9-21-6-1-7..-1-8 (two-piece torsion tie; closed-tie leg lap) |
+| 466 | «۴۴۶» = **446** | §9-21-6-1-8 tail; **§9-21-6-2 heading**; §9-21-6-2-1..-2-3 (tie spacing / diameter) |
+| 467 | «۴۴۷» = **447** | §9-21-6-2-4..-2-7 (rectangular / circular / torsion ties) |
+| 468 | «۴۴۸» = **448** | §9-21-6-2-7 tail; **§9-21-6-3 heading**; §9-21-6-3-1..-3-5 (spiral spacing / diameter / ratio / anchorage) |
+| 469 | «۴۴۹» = **449** | §9-21-6-3-5-ب..-3-6; **Table 9-21-7** (spiral lap splice) |
+| 470 | «۴۵۰» = **450** | **§9-21-6-4 heading**; §9-21-6-4-1..-4-2 (دورگیر) — lower boundary |
+| 471 | «۴۵۱» = **451** | **§9-22 «مدارک طرح، الزامات ساخت و نظارت» heading** — §9-21-6 ends |
+
+**Result: §9-21-6 occupies PDF pp. 463–470 = printed pp. 443–450**, bounded above by the tail of §9-21-5 (printed 442) and below by §9-22 (printed 451). Footer reads are monotone and unbroken (PDF = printed + 20), consistent with §4B.1/§4D.1.
+
+### F.2 Clause-by-clause record (status: `VERIFIED_SOURCE_ONLY` — documentation only; nothing promoted)
+
+All values below are the verbatim visual reads from the scans (enlarged crops used for tight digits). Status is `VERIFIED_SOURCE_ONLY` for every clause; `execution_allowed` remains unchanged (no §9-21-6 rule is executable after this stage).
+
+| Clause | Requirement (visually verified) | Printed / PDF | Dependency | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| `9-21-6-1-1` | Confining ties extend to the tension & compression faces as far as bar-cover limits allow, anchored at both ends; where used as shear reinforcement a tie must extend to **50% of the effective depth** measured from the compression face. | 443 / 463 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-1-2` | Between anchored ends, every bend in the continuous part of a single or multiple U-tie, and every bend in a closed tie, must engage a longitudinal bar. | 443 / 463 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-1-3` | Anchorage of a deformed bar/wire in a tie: (الف) bars/wires with d_b ≤ **16 mm**, and bars **8–25 mm** with f_y **< 280 MPa** → standard hook around a longitudinal bar; (ب) bars **18–25 mm** with f_y **> 280 MPa** → standard hook around a longitudinal bar **plus** an embedment length (mid-depth of section to the end of the standard hook) ≥ **(0.17·f_y)/(λ·√f′c) · d_b**; (پ) in joists (تیرچه), bars/wires with d_b ≤ **12 mm** → standard hook. | 443 / 463 | λ, f′c, f_y, d_b (in-scope material/geometry inputs) | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-1-4` | Anchorage of each leg of a welded-wire-mesh U-tie (Figure 9-21-1): (الف) two longitudinal wires **50 mm** apart in the compressive zone of the U-tie; (ب) one longitudinal wire within **< ¼·d** of the compression face and a second wire closer to the compression face and **> 50 mm** from the first, the second wire on a hook with minimum bend diameter **= 8× tie diameter**. | 444 / 464 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-1-5` | Anchorage of the two ends of a single-leg welded-wire tie by two longitudinal wires **≥ 50 mm** apart: (الف) at least one internal longitudinal wire at **> ¼·d** and **50 mm** from ½·d, whichever is greater; (ب) the outer wire in the tension face must lie closer to the tension face than the nearest main flexural longitudinal bars. | 444 / 464 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-1-6` | Ties for torsion or member integrity must be closed and perpendicular to the member axis (welded-wire cross-wire perpendicular to the member axis); anchorage by (الف) both ends terminating in a **135°** hook around a longitudinal bar, or (ب) where the surrounding concrete is not liable to spall (flange/web) per §9-21-6-1-3-الف/ب or §9-21-6-1-4. | 444 / 464 | §9-21-6-1-3/-1-4 (in-scope) | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-1-7` | Torsion/integrity ties may be two pieces: a U-tie with **135°** bends plus a cross tie (سنجاقی) whose **90°** bend must be adjacent to a member face where the concrete is not liable to spall (flange/web confinement). | 445 / 465 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-1-8` | Except where a tie is for torsion/integrity, a closed tie may be made from two U-ties; the U-tie leg lap must be at least **⅓ of the anchorage length**. In members with total depth **≥ 450 mm** and force per leg (f_y × tie area) **< 40 kN**, a leg lap continuing across the full member depth is sufficient. | 445–446 / 465–466 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-2-1` | Ties must be closed loops of deformed bars; spacing: (الف) clear spacing ≥ **⅓ × max nominal aggregate size**; (ب) centre-to-centre tie spacing ≤ min(**16 × longitudinal bar d_b**, **48 × transverse bar d_b**, **smallest member dimension**). | 446 / 466 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-2-2` | Minimum tie diameter: (الف) **10 mm** for longitudinal bars up to **32 mm**; (ب) **12 mm** for longitudinal bars **34 mm and larger**, or longitudinal bar bundles. | 446 / 466 | none | `VERIFIED_SOURCE_ONLY` † |
+| `9-21-6-2-3` | Deformed wire from welded-wire mesh may substitute for a deformed tie (equal area) subject to §9-21-6-2-1 and **§9-4-8**. | 446 / 466 | **§9-4-8 (out of window)** | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-2-4` | Rectangular ties: (الف) every corner longitudinal bar and the other longitudinal bars taken one-by-one must be restrained by a bend of angle ≤ **135°**; (ب) a tie bar without lateral restraint must have clear spacing ≤ **150 mm** from a restrained longitudinal bar; (پ) tie anchorage by a standard hook engaging a longitudinal bar; (ت) headed-bar assemblies are not permitted as ties. | 447 / 467 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-2-5` | Circular ties (circular bar arrangement): (الف) at each tie end the bars must overlap by at least **150 mm**; (ب) tie ends terminate in a standard hook engaging longitudinal bars; (پ) overlaps of successive circular ties on peripheral longitudinal bars must not coincide (opposite sides of the section). | 447 / 467 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-2-6` | A continuous deformed bar/wire is permitted as a tie if spacing meets §9-21-6-2-1, area meets §9-21-6-2-2, and end anchorage meets §9-21-6-2-4 or §9-21-6-2-5. | 447 / 467 | §9-21-6-2-1/-2-2/-2-4/-2-5 (in-scope) | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-2-7` | Ties resisting torsion must be perpendicular to the member axis: (الف) both ends terminate in a **135°** standard hook or a **seismic hook** around a longitudinal bar, and the bend ends must be anchored in the core concrete; (ب) where the surrounding concrete is not liable to spall, per §9-21-6-1-3-الف/ب or §9-21-6-1-4. | 447–448 / 467–468 | §9-21-6-1-3/-1-4 (in-scope) | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-3-1` | Spirals are continuous wound bar/wire; clear spacing: (الف) ≥ max(**⅓ × largest aggregate size**, **25 mm**); (ب) ≤ **75 mm**. | 448 / 468 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-3-2` | Spiral wire/bar diameter for cast-in-place concrete ≥ **10 mm**. | 448 / 468 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-3-3` | For transverse reinforcement in deep foundations, the spiral volumetric ratio: **ρ_s ≥ 0.45 · (A_g/A_ch − 1) · f′c/f_yt** [Eq. (9-21-8)]; the spiral yield stress f_yt must not be taken > **700 MPa**. | 448 / 468 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-3-4` | Spiral anchorage at each end by **1½ extra turns** of the spiral. | 448 / 468 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-3-5` | Spiral splice by one of: (الف) welded or mechanical splice per **§9-21-4-7**; (ب) lap splice per §9-21-6-3-6 for bars with f_y ≤ **420 MPa**. | 448–449 / 468–469 | **§9-21-4-7 (blocked, NBC Ch. 10)** | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-3-6` | Spiral lap splice per **Table 9-21-7**; length in any case ≥ **300 mm**; where a hook is required, the hook end must be anchored in the core enclosed by the spiral. | 449 / 469 | Table 9-21-7 | `VERIFIED_SOURCE_ONLY` |
+| `Table 9-21-7` | Spiral lap-splice lengths by spliced-bar type / coating / end condition: values are **48·d_b** or **72·d_b** — uncoated or galvanized deformed bar without hook, or any bar/wire with a standard transverse-reinforcement hook → **48·d_b**; epoxy- or dual-coated deformed bar/wire without hook, or plain bar/wire without hook → **72·d_b**; with a standard transverse-reinforcement hook → **48·d_b** (governed with the 300 mm floor of §9-21-6-3-6). | 449 / 469 | Table 9-21-7 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-4-1` | دورگیر (confinement tie) must be closed or wound continuous ties; it may be built from several pieces each with a **seismic hook** at both ends. | 450 / 470 | none | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-4-2` | Each دورگیر piece must be anchored by a **seismic hook** at both ends per §9-21-6-2-4; these hooks must engage one longitudinal bar; connected headed bars are not permitted as دورگیر. | 450 / 470 | §9-21-6-2-4 (in-scope) | `VERIFIED_SOURCE_ONLY` |
+
+† — see F.3.
+
+### F.3 VERIFY_PENDING notes (boundary observations; NOT interpreted)
+
+These are verbatim source features recorded for a future promotion stage; nothing is interpreted or executed here.
+
+1. **§9-21-6-2-2 tie-diameter threshold gap:** الف covers longitudinal bars **up to 32 mm** (10 mm tie) and ب covers bars **34 mm and larger** (12 mm tie). A **33 mm** longitudinal bar falls in neither branch as written. Both thresholds (32 / 34) are verified verbatim; the one-millimetre gap is recorded, not resolved. (Note: this clause is distinct from the already-executable beam rule `BG-DETAIL-TRANS-DIA-001`, Clause 9-11-6-5-11, which uses a 32 / 36 mm boundary.)
+2. **§9-21-6-1-3 anchorage boundaries:** الف uses f_y **< 280 MPa** and ب uses f_y **> 280 MPa** (f_y exactly 280 MPa is in neither); الف covers d_b ≤ 16 mm and bars 8–25 mm while ب covers 18–25 mm (a 17 mm bar and bars > 25 mm are not explicitly assigned). Recorded verbatim; not interpreted.
+3. **§9-21-6-1-4-ب wording:** the positioning/overlap condition for the second longitudinal wire is read verbatim (¼·d, 50 mm, 8× tie bend diameter); the exact spatial relation is recorded as printed without re-interpretation.
+
+### F.4 Out-of-scope dependencies (unchanged; nothing silenced to PASS)
+
+1. National Building Regulations **Chapter 9-4** bar/wire material specs incl. **9-4-8** welded-wire steel (referenced by **§9-21-6-2-3**) — pages not delivered.
+2. **§9-21-4-7** welded/mechanical splices (referenced by **§9-21-6-3-5-الف**) — itself blocked in Stage E via NBC **Chapter 10** welding (out of window).
+3. **§9-20-6** bar bending geometry and Mostofinejad reference pages — not consulted; only Mabhas 9 source used.
+
+These are cross-references inside otherwise source-verified §9-21-6 clauses; they do not affect the SOURCE VERIFICATION result, but a future promotion stage must run its own §4 dependency gate for any clause that consumes them (§9-21-6-2-3 via §9-4-8; §9-21-6-3-5-الف via §9-21-4-7).
+
+### F.5 §9-21-6 → §9-22 boundary confirmation
+
+Confirmed from footer and heading on the scans: §9-21-6 ends on **printed 450 / PDF 470** with §9-21-6-4-2 (دورگیر); the next section **§9-22 «مدارک طرح، الزامات ساخت و نظارت»** (design documents, construction & supervision requirements) begins on **printed 451 / PDF 471**. The footer on PDF 471 reads «۴۵۱» = 451 and the §9-22 heading is visible, fixing the lower boundary. No §9-22 content is recorded in this stage.
+
+Checks: source-verification only — no engine/registry/test change; `pytest` 393 passed (unchanged), `mypy --strict src` clean (22 files, unchanged), `git diff --check` clean. Only `docs/PHASE2_SOURCE_VERIFICATION_MATRIX.md` and `docs/DESIGN_RULES.md` changed. §9-21-4 and §9-21-5 unchanged; §9-22 not started.
+
 ## 5. Phase 2B Flexural Resistance — Granular Source Verification Matrix
 
 Per Phase 2B Continuation Tasks 1–7, each required Mabhas 9 flexural source item has been verified against Mabhas 9 (1399) Chapters `9-3`, `9-4`, `9-6`, `9-7`, `9-8`, and `9-11` and classified below as `VERIFIED` or `VERIFY_PENDING` (`BLOCKED`).
