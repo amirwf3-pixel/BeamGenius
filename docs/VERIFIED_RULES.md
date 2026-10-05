@@ -1898,3 +1898,107 @@ Units: deg. Executable as `beamgenius.engine.development_lap_splice_mabhas9.eval
 - `BG-DEV-SPLICE-WELDED-MECH-PENDING` (9-21-4-7, PDF 460–461 / Printed 440–441): welded/mechanical splices. BLOCKED — 9-21-4-7-3 requires NBC Chapter 10 welding compliance (out of window, VERIFY_PENDING) and the mechanical-splice strength coefficient glyph was not independently re-confirmed.
 
 All three are registered with `execution_allowed=False`, `status=VERIFY_PENDING`, and a `blocked_reason`; the Gatekeeper returns `UNVERIFIED_RULE_BLOCKED` for any attempted execution.
+
+# Transverse Reinforcement / Confinement (Phase 2F Stage G — Clause 9-21-6)
+
+Promotion gate: only VERIFIED + CODE_RULE + MABHAS_9_COMPLIANCE + execution_allowed=True rules below were promoted. Every §9-21-6 value was visually re-verified 2026-10-06 from `phase2f-source-442-472` @ `df8067a` (footer-confirmed Printed pp. 443–450 / PDF pp. 463–470; PDF = printed + 20). OCR `.txt` was navigation-only; tight digits were confirmed from enlarged `.jpg` crops. Only fully-verified clauses without unresolved dependency were promoted; every ambiguity/dependency stays BLOCKED. No NBC Chapter 9-4 / Chapter 10 / Mostofinejad dependency is imported or invented. This engine module does not import the reference package and reads no source file at runtime. Executable module: `beamgenius.engine.transverse_reinforcement_mabhas9`.
+
+## BG-TRANS-TIE-SHEAR-EXTENT-001 — Confining Tie Extent When Used as Shear Reinforcement (Clause 9-21-6-1-1)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 463 | Printed 443
+
+Formula / Requirement: where a tie is used as shear reinforcement it must extend to the effective depth d measured from the compression face (extent ≥ d). Corrects the earlier Stage F note of "50% of d" — the printed clause is the full effective depth d.
+Applicability: confining ties used as shear reinforcement; a tie not used as shear reinforcement → NOT_APPLICABLE for this extent check.
+Required Inputs: used_as_shear_reinforcement (bool; missing → BLOCKED), tie_extent_from_compression_face_mm, effective_depth_mm (missing → BLOCKED; malformed → INVALID_INPUT). extent < d → FAIL.
+Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_tie_shear_extent`.
+
+## BG-TRANS-CLOSED-TIE-LAP-001 — Closed-Tie Two-Piece U-Leg Lap (Clause 9-21-6-1-8)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 466 | Printed 446
+
+Formula / Requirement: a closed tie may be built from two U-ties; the U-tie leg lap ≥ anchorage_length/3. In members with total depth ≥ 450 mm and force per leg (f_y × tie area) < 40 kN, a leg lap continuing across the full member depth is sufficient (governing requirement = min(anchorage/3, total depth) under the exception).
+Applicability: two-piece closed ties (not torsion/integrity ties). Required Inputs: anchorage_length_mm (caller-provided verified value; missing → BLOCKED), total_depth_mm, force_per_leg_n, provided_leg_lap_mm (missing → BLOCKED; malformed → INVALID_INPUT). Insufficient lap → FAIL.
+Units: mm / N. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_closed_tie_lap`.
+
+## BG-TRANS-TIE-SPACING-001 — Tie Spacing Limits (Clause 9-21-6-2-1)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 466 | Printed 446
+
+Formula / Requirement: (الف) clear spacing ≥ d_agg/3; (ب) centre-to-centre tie spacing ≤ min(16 × longitudinal bar d_b, 48 × transverse (tie) bar d_b, smallest member dimension). (OCR misread 16×/48× as 6×/8×; visual is authoritative.)
+Applicability: closed deformed-bar tie spacing. Required Inputs: provided_clear_spacing_mm, provided_center_to_center_spacing_mm, aggregate_size_mm, longitudinal_bar_diameter_mm, transverse_bar_diameter_mm, smallest_member_dimension_mm (missing → BLOCKED; malformed → INVALID_INPUT). Either limit violated → FAIL.
+Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_tie_spacing`.
+
+## BG-TRANS-TIE-DIA-001 — Minimum Tie Diameter (Clause 9-21-6-2-2)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 466 | Printed 446
+
+Formula / Requirement: (الف) tie diameter ≥ 10 mm for longitudinal bars up to 32 mm; (ب) ≥ 12 mm for longitudinal bars 34 mm and larger, or longitudinal bar bundles. A non-bundled longitudinal bar with 32 < d_b < 34 mm (e.g. 33 mm) is in neither verified branch → deterministically BLOCKED (never interpolated).
+Applicability: closed deformed-bar tie diameter. Required Inputs: longitudinal_bar_diameter_mm, is_bundled (bool), provided_tie_diameter_mm (missing → BLOCKED; malformed → INVALID_INPUT). Diameter below the branch minimum → FAIL; the 33 mm gap → BLOCKED.
+Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_tie_diameter`.
+
+## BG-TRANS-RECT-TIE-001 — Rectangular-Tie Unrestrained Longitudinal Bar Spacing (Clause 9-21-6-2-4-ب)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 467 | Printed 447
+
+Formula / Requirement: a longitudinal bar without lateral (tie-bend) restraint must not have clear spacing greater than 150 mm from a restrained longitudinal bar. (The other sub-parts of 9-21-6-2-4 — الف 135° bend restraint, پ standard-hook anchorage, ت headed-bar prohibition — are positional/hook requirements verified by inspection and are NOT computed here.)
+Applicability: rectangular-tie longitudinal-bar restraint spacing. Required Inputs: unrestrained_bar_clear_spacing_mm (missing → BLOCKED; malformed → INVALID_INPUT). Above 150 mm → FAIL.
+Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_rect_tie_unrestrained_spacing`.
+
+## BG-TRANS-CIRC-TIE-001 — Circular-Tie End Overlap (Clause 9-21-6-2-5-الف)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 467 | Printed 447
+
+Formula / Requirement: where longitudinal bars have a circular arrangement, at each circular-tie end the bars must overlap by at least 150 mm. (The other sub-parts of 9-21-6-2-5 — ب standard-hook ends, پ non-coincident successive overlaps — are positional/hook requirements verified by inspection and are NOT computed here.)
+Applicability: circular ties. Required Inputs: tie_end_overlap_mm (missing → BLOCKED; malformed → INVALID_INPUT). Below 150 mm → FAIL.
+Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_circular_tie_overlap`.
+
+## BG-TRANS-SPIRAL-SPACING-001 — Spiral Clear Spacing and Pitch Limits (Clause 9-21-6-3-1)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 468 | Printed 448
+
+Formula / Requirement: (الف) clear spacing ≥ max(d_agg/3, 25 mm); (ب) pitch ≤ 75 mm.
+Applicability: spiral transverse reinforcement. Required Inputs: provided_clear_spacing_mm, provided_pitch_mm, aggregate_size_mm (missing → BLOCKED; malformed → INVALID_INPUT). Either limit violated → FAIL.
+Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_spiral_spacing`.
+
+## BG-TRANS-SPIRAL-DIA-001 — Minimum Spiral Diameter, Cast-in-Place (Clause 9-21-6-3-2)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 468 | Printed 448
+
+Formula / Requirement: spiral wire/bar diameter for cast-in-place concrete ≥ 10 mm.
+Applicability: cast-in-place spirals. Required Inputs: provided_spiral_diameter_mm (missing → BLOCKED; malformed → INVALID_INPUT). Below 10 mm → FAIL.
+Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_spiral_diameter`.
+
+## BG-TRANS-SPIRAL-RATIO-001 — Spiral Volumetric Reinforcement Ratio, Eq. (9-21-8) (Clause 9-21-6-3-3)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 468 | Printed 448
+
+Formula / Requirement: ρ_s ≥ 0.45·(A_g/A_ch − 1)·f′c/f_yτ [Eq. (9-21-8)], with the spiral yield stress f_yτ not taken greater than 700 MPa.
+Applicability: transverse reinforcement in deep foundations. Required Inputs: gross_area_mm2 (A_g), core_area_mm2 (A_ch), concrete_strength_mpa (f′c), spiral_yield_stress_mpa (f_yτ), provided_rho_s (missing → BLOCKED; malformed → INVALID_INPUT). f_yτ > 700 MPa → FAIL (not permitted for this equation); ρ_s below required → FAIL.
+Units: ratio (dimensionless) / MPa / mm². Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_spiral_ratio`.
+
+## BG-TRANS-SPIRAL-ANCHOR-001 — Spiral End Anchorage, Extra Turns (Clause 9-21-6-3-4)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 468 | Printed 448
+
+Formula / Requirement: spiral anchorage at each end is provided by 1½ extra turns of the spiral (extra turns ≥ 1.5 at each end).
+Applicability: spiral end anchorage. Required Inputs: extra_turns_each_end (missing → BLOCKED; malformed → INVALID_INPUT). Below 1.5 → FAIL.
+Units: turns. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_spiral_anchor_turns`.
+
+## BG-TRANS-SPIRAL-LAP-001 — Spiral Lap Splice Length, Table 9-21-7 (Clause 9-21-6-3-6)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 469 | Printed 449
+
+Formula / Requirement: lap = max(k·d_b, 300 mm), k = 48 or 72 per Table 9-21-7 (verified verbatim): deformed bar — uncoated/galvanized no hook → 48, epoxy/dual no hook → 72, epoxy/dual with standard transverse hook → 48; deformed wire — uncoated no hook → 48, epoxy no hook → 72, epoxy with hook → 48; plain bar — uncoated/galvanized no hook → 72, with hook → 48; plain wire — uncoated no hook → 72, with hook → 48. Any (type, coating, end-condition) combination not printed in Table 9-21-7 → deterministically BLOCKED (no interpretation about coating/hook).
+Applicability: spiral lap splices. Required Inputs: splice_bar_type (SpiralSpliceBarType), coating_class (SpiralSpliceCoating), end_condition (SpiralSpliceEndCondition), bar_diameter_mm (missing → BLOCKED; malformed → INVALID_INPUT; unlisted combination → BLOCKED).
+Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_spiral_lap_splice`.
+
+### BLOCKED (not promoted) — §9-21-6-1-3 / §9-21-6-1-4/-1-5 / §9-21-6-1-6/-1-7/-2-7 / §9-21-6-2-3 / §9-21-6-3-5 / §9-21-6-4
+
+- `BG-TRANS-TIE-ANCHOR-PENDING` (9-21-6-1-3, PDF 463 / Printed 443): tie deformed-bar anchorage. BLOCKED — unresolved boundary ambiguity (الف f_y < 280 MPa vs ب f_y > 280 MPa, exactly 280 MPa in neither; الف d_b ≤ 16 mm & 8–25 mm vs ب 18–25 mm, 17 mm and > 25 mm unassigned). Recorded verbatim, never interpolated/inferred.
+- `BG-TRANS-WIRE-TIE-PENDING` (9-21-6-1-4 & 9-21-6-1-5, PDF 464 / Printed 444): welded-wire tie anchorage. BLOCKED — the 9-21-6-1-4-ب positioning/overlap wording is not interpreted and the 9-21-6-1-5-ب outer-wire condition carries no governing number.
+- `BG-TRANS-TORSION-TIE-PENDING` (9-21-6-1-6/-1-7/-2-7, PDF 464–468 / Printed 444–448): torsion/integrity ties. BLOCKED — requires the 135° standard-hook and seismic-hook bend geometry; no such hook-geometry rule is VERIFIED and execution_allowed=True in the registry (geometry lives in Clause 9-20-6, out of window).
+- `BG-TRANS-WIRE-SUBST-PENDING` (9-21-6-2-3, PDF 466 / Printed 446): welded-wire substitute for a deformed tie. BLOCKED — depends on NBC Clause 9-4-8 welded-wire steel specs (out of window, VERIFY_PENDING).
+- `BG-TRANS-SPIRAL-SPLICE-SEL-PENDING` (9-21-6-3-5, PDF 469 / Printed 449): spiral splice method selection. BLOCKED — the (الف) welded/mechanical branch depends on Clause 9-21-4-7 (registered dependency `BG-DEV-SPLICE-WELDED-MECH-PENDING`), itself blocked via NBC Chapter 10 welding (transitive UNVERIFIED_RULE_BLOCKED). The lap-splice LENGTH itself is executable as BG-TRANS-SPIRAL-LAP-001 (9-21-6-3-6).
+- `BG-TRANS-DORGIR-PENDING` (9-21-6-4-1 & 9-21-6-4-2, PDF 470 / Printed 450): دورگیر confinement tie. BLOCKED — fundamentally requires the seismic hook at both ends, and no seismic-hook geometry rule is VERIFIED and execution_allowed=True in the registry (geometry lives in Clause 9-20-6, out of window).
+
+All six are registered with `execution_allowed=False`, `status=VERIFY_PENDING`, and a `blocked_reason`; the Gatekeeper returns `UNVERIFIED_RULE_BLOCKED` for any attempted execution (the spiral-splice-selection rule additionally reports `TRANSITIVE_DEPENDENCY_BLOCKED` via `BG-DEV-SPLICE-WELDED-MECH-PENDING`). No §9-21-6 clause was executed through an unverified branch; §9-22 was not started.

@@ -2473,6 +2473,517 @@ RULE_BG_DEV_SPLICE_WELDED_MECH_PENDING = RuleReference(
 )
 
 
+# ============================================================================
+# Phase 2F Stage G — Clause 9-21-6 Transverse Reinforcement (promoted)
+# Values visually re-verified 2026-10-06 from the committed evidence scan
+# phase2f-source-442-472 @ df8067a (footer-confirmed Printed pp. 443-450 /
+# PDF pp. 463-470). Only fully-verified clauses without unresolved dependency
+# are execution_allowed=True; every ambiguity/dependency stays BLOCKED.
+# ============================================================================
+
+RULE_BG_TRANS_TIE_SHEAR_EXTENT_001 = RuleReference(
+    rule_id="BG-TRANS-TIE-SHEAR-EXTENT-001",
+    title="Mabhas 9 Confining Tie Extent When Used as Shear Reinforcement",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=463,
+    printed_page=443,
+    clause_or_equation="Clause 9-21-6-1-1 (Printed p. 443 / PDF p. 463)",
+    symbolic_formula=(
+        "shear-reinforcement tie extent from compression face >= effective depth d"
+    ),
+    description=(
+        "Clause 9-21-6-1-1: confining ties extend, as far as bar-cover limits "
+        "allow, toward the tension and compression faces and are anchored at "
+        "both ends; where a tie is used as shear reinforcement it must extend "
+        "to the effective depth d measured from the compression face. The "
+        "evaluated requirement is the shear-reinforcement extent >= d. The "
+        "provided tie extent and the effective depth d are REQUIRED typed "
+        "inputs (never assumed); a tie not used as shear reinforcement is "
+        "NOT_APPLICABLE for this d-extent check. Visually re-verified "
+        "2026-10-06 (page-463 evidence JPG; the earlier Stage F note of "
+        "'50% of d' was a misreading corrected here to the full effective "
+        "depth d)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_CLOSED_TIE_LAP_001 = RuleReference(
+    rule_id="BG-TRANS-CLOSED-TIE-LAP-001",
+    title="Mabhas 9 Closed-Tie Two-Piece U-Leg Lap",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=466,
+    printed_page=446,
+    clause_or_equation=(
+        "Clause 9-21-6-1-8 (Printed pp. 445-446 / PDF pp. 465-466)"
+    ),
+    symbolic_formula=(
+        "U-tie leg lap >= anchorage_length/3; a full-depth leg lap is "
+        "sufficient when total depth >= 450 mm AND force_per_leg "
+        "(= f_y * tie_area) < 40 kN"
+    ),
+    description=(
+        "Clause 9-21-6-1-8: except where a tie is for torsion/integrity, a "
+        "closed tie may be built from two U-ties; the U-tie leg lap must be "
+        "at least one third of the anchorage length. In members with total "
+        "depth >= 450 mm and force per leg (f_y times tie cross-sectional "
+        "area) < 40 kN, a leg lap continuing across the full member depth is "
+        "sufficient. The anchorage length is a caller-provided verified value "
+        "(never computed here; missing -> BLOCKED). Total depth, force per "
+        "leg, and the provided leg lap are REQUIRED typed inputs. Visually "
+        "re-verified 2026-10-06 (page-466 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_TIE_SPACING_001 = RuleReference(
+    rule_id="BG-TRANS-TIE-SPACING-001",
+    title="Mabhas 9 Tie Spacing Limits",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=466,
+    printed_page=446,
+    clause_or_equation="Clause 9-21-6-2-1 (Printed p. 446 / PDF p. 466)",
+    symbolic_formula=(
+        "clear spacing >= d_agg/3; centre-to-centre spacing <= "
+        "min(16*db_longitudinal, 48*db_transverse, smallest_member_dimension)"
+    ),
+    description=(
+        "Clause 9-21-6-2-1 tie spacing: (الف) clear spacing at least one "
+        "third of the largest nominal aggregate size; (ب) centre-to-centre "
+        "tie spacing not greater than the least of 16 times the longitudinal "
+        "bar diameter, 48 times the transverse (tie) bar diameter, and the "
+        "smallest member dimension. Provided clear spacing, provided "
+        "centre-to-centre spacing, aggregate size, both bar diameters, and "
+        "the smallest member dimension are REQUIRED typed inputs (never "
+        "assumed). PASS only when both limits are satisfied; a violated "
+        "limit -> FAIL. Visually re-verified 2026-10-06 (page-466 evidence "
+        "JPG; OCR misread 16x/48x as 6x/8x)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_TIE_DIA_001 = RuleReference(
+    rule_id="BG-TRANS-TIE-DIA-001",
+    title="Mabhas 9 Minimum Tie Diameter",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=466,
+    printed_page=446,
+    clause_or_equation="Clause 9-21-6-2-2 (Printed p. 446 / PDF p. 466)",
+    symbolic_formula=(
+        "tie_dia >= 10 mm if db_longitudinal <= 32 mm; tie_dia >= 12 mm if "
+        "db_longitudinal >= 34 mm or bundled; 32 < db_longitudinal < 34 mm "
+        "(non-bundled) -> BLOCKED (no verified branch)"
+    ),
+    description=(
+        "Clause 9-21-6-2-2 minimum tie diameter: (الف) 10 mm for longitudinal "
+        "bars up to 32 mm; (ب) 12 mm for longitudinal bars of 34 mm and "
+        "larger, or longitudinal bar bundles. A non-bundled longitudinal bar "
+        "with 32 < d_b < 34 mm (e.g. 33 mm) falls in neither verified branch "
+        "and is deterministically BLOCKED (never interpolated). The "
+        "longitudinal bar diameter, the bundled flag, and the provided tie "
+        "diameter are REQUIRED typed inputs. This clause is distinct from "
+        "the already-executable beam rule BG-DETAIL-TRANS-DIA-001 (Clause "
+        "9-11-6-5-11, 32/36 mm boundary). Visually re-verified 2026-10-06 "
+        "(page-466 evidence JPG; OCR misread 34 mm as 24 mm)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_RECT_TIE_001 = RuleReference(
+    rule_id="BG-TRANS-RECT-TIE-001",
+    title="Mabhas 9 Rectangular-Tie Unrestrained Longitudinal Bar Spacing",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=467,
+    printed_page=447,
+    clause_or_equation="Clause 9-21-6-2-4-ب (Printed p. 447 / PDF p. 467)",
+    symbolic_formula=(
+        "clear spacing of a laterally-unrestrained longitudinal bar <= 150 mm "
+        "from the nearest restrained longitudinal bar"
+    ),
+    description=(
+        "Clause 9-21-6-2-4-ب: within the rectangular-tie requirements, a "
+        "longitudinal bar without lateral (tie-bend) restraint must not have "
+        "clear spacing greater than 150 mm from a restrained longitudinal "
+        "bar. The evaluated requirement is this 150 mm limit; the provided "
+        "clear spacing to the nearest restrained longitudinal bar is a "
+        "REQUIRED typed input. The other sub-parts of 9-21-6-2-4 (الف 135 "
+        "deg bend restraint, پ standard-hook anchorage, ت headed-bar "
+        "prohibition) are positional/hook requirements verified by "
+        "inspection and are NOT computed by this rule. Visually re-verified "
+        "2026-10-06 (page-467 evidence JPG; the earlier Stage F note named a "
+        "'tie bar' as the subject — corrected here to the longitudinal bar "
+        "printed in the source)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_CIRC_TIE_001 = RuleReference(
+    rule_id="BG-TRANS-CIRC-TIE-001",
+    title="Mabhas 9 Circular-Tie End Overlap",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=467,
+    printed_page=447,
+    clause_or_equation="Clause 9-21-6-2-5-الف (Printed p. 447 / PDF p. 467)",
+    symbolic_formula="circular tie end overlap >= 150 mm",
+    description=(
+        "Clause 9-21-6-2-5-الف: where longitudinal bars have a circular "
+        "arrangement, at each circular-tie end the bars must overlap by at "
+        "least 150 mm. The provided end overlap is a REQUIRED typed input. "
+        "The other sub-parts of 9-21-6-2-5 (ب standard-hook ends, پ "
+        "non-coincident successive overlaps on opposite faces) are "
+        "positional/hook requirements verified by inspection and are NOT "
+        "computed by this rule. Visually re-verified 2026-10-06 (page-467 "
+        "evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_SPIRAL_SPACING_001 = RuleReference(
+    rule_id="BG-TRANS-SPIRAL-SPACING-001",
+    title="Mabhas 9 Spiral Clear Spacing and Pitch Limits",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=468,
+    printed_page=448,
+    clause_or_equation="Clause 9-21-6-3-1 (Printed p. 448 / PDF p. 468)",
+    symbolic_formula=(
+        "clear spacing >= max(d_agg/3, 25 mm); pitch <= 75 mm"
+    ),
+    description=(
+        "Clause 9-21-6-3-1 spiral spacing: (الف) clear spacing at least the "
+        "greater of one third of the largest aggregate size and 25 mm; (ب) "
+        "pitch at most 75 mm. Provided clear spacing, provided pitch, and "
+        "aggregate size are REQUIRED typed inputs. PASS only when both "
+        "limits are satisfied; a violated limit -> FAIL. Visually "
+        "re-verified 2026-10-06 (page-468 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_SPIRAL_DIA_001 = RuleReference(
+    rule_id="BG-TRANS-SPIRAL-DIA-001",
+    title="Mabhas 9 Minimum Spiral Diameter (Cast-in-Place)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=468,
+    printed_page=448,
+    clause_or_equation="Clause 9-21-6-3-2 (Printed p. 448 / PDF p. 468)",
+    symbolic_formula="spiral wire/bar diameter >= 10 mm (cast-in-place)",
+    description=(
+        "Clause 9-21-6-3-2: the diameter of the spiral wire or bar for "
+        "cast-in-place concrete must be at least 10 mm. The provided spiral "
+        "diameter is a REQUIRED typed input. Visually re-verified 2026-10-06 "
+        "(page-468 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_SPIRAL_RATIO_001 = RuleReference(
+    rule_id="BG-TRANS-SPIRAL-RATIO-001",
+    title="Mabhas 9 Spiral Volumetric Reinforcement Ratio (Eq. 9-21-8)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=468,
+    printed_page=448,
+    clause_or_equation=(
+        "Clause 9-21-6-3-3 & Eq. (9-21-8) (Printed p. 448 / PDF p. 468)"
+    ),
+    symbolic_formula=(
+        "rho_s >= 0.45*(A_g/A_ch - 1)*f'c/f_y_tau; f_y_tau <= 700 MPa"
+    ),
+    description=(
+        "Clause 9-21-6-3-3 for transverse reinforcement in deep foundations "
+        "(Eq. 9-21-8): the spiral volumetric ratio rho_s must satisfy "
+        "rho_s >= 0.45*(A_g/A_ch - 1)*f'c/f_y_tau, and the spiral yield "
+        "stress f_y_tau must not be taken greater than 700 MPa. Gross area "
+        "A_g, core area A_ch, concrete strength f'c, spiral yield stress "
+        "f_y_tau, and provided rho_s are REQUIRED typed inputs (never "
+        "assumed). f_y_tau > 700 MPa -> FAIL (not permitted for this "
+        "equation per 9-21-6-3-3). Visually re-verified 2026-10-06 "
+        "(page-468 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_SPIRAL_ANCHOR_001 = RuleReference(
+    rule_id="BG-TRANS-SPIRAL-ANCHOR-001",
+    title="Mabhas 9 Spiral End Anchorage (Extra Turns)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=468,
+    printed_page=448,
+    clause_or_equation="Clause 9-21-6-3-4 (Printed p. 448 / PDF p. 468)",
+    symbolic_formula="spiral anchorage = 1.5 extra turns at each end",
+    description=(
+        "Clause 9-21-6-3-4: spiral anchorage at each end is provided by "
+        "winding one and a half extra turns of the spiral. The provided "
+        "number of extra turns at each end is a REQUIRED typed input; it "
+        "must be at least 1.5. Visually re-verified 2026-10-06 (page-468 "
+        "evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_SPIRAL_LAP_001 = RuleReference(
+    rule_id="BG-TRANS-SPIRAL-LAP-001",
+    title="Mabhas 9 Spiral Lap Splice Length (Table 9-21-7)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=469,
+    printed_page=449,
+    clause_or_equation=(
+        "Clause 9-21-6-3-6 & Table 9-21-7 (Printed p. 449 / PDF p. 469)"
+    ),
+    symbolic_formula=(
+        "lap = max(k*d_b, 300 mm); k = 48 or 72 per Table 9-21-7 "
+        "(bar/wire type, coating, end condition)"
+    ),
+    description=(
+        "Clause 9-21-6-3-6 and Table 9-21-7: the spiral lap splice length is "
+        "determined from Table 9-21-7 and in any case must not be less than "
+        "300 mm. Table 9-21-7 (verified verbatim): deformed bar, uncoated or "
+        "galvanized, hook not needed -> 48*d_b; deformed bar, epoxy or "
+        "dual-coated, hook not needed -> 72*d_b; deformed bar, epoxy or "
+        "dual-coated, standard transverse hook -> 48*d_b; deformed wire, "
+        "uncoated, hook not needed -> 48*d_b; deformed wire, epoxy, hook not "
+        "needed -> 72*d_b; deformed wire, epoxy, standard transverse hook -> "
+        "48*d_b; plain bar, uncoated or galvanized, hook not needed -> "
+        "72*d_b; plain bar, uncoated or galvanized, standard transverse hook "
+        "-> 48*d_b; plain wire, uncoated, hook not needed -> 72*d_b; plain "
+        "wire, uncoated, standard transverse hook -> 48*d_b. Any (type, "
+        "coating, end-condition) combination not printed in the table is "
+        "deterministically BLOCKED (no interpretation). Splice bar type, "
+        "coating class, end condition, and bar diameter are REQUIRED typed "
+        "inputs. Visually re-verified 2026-10-06 (page-469 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_TIE_ANCHOR_PENDING = RuleReference(
+    rule_id="BG-TRANS-TIE-ANCHOR-PENDING",
+    title="Mabhas 9 Tie Deformed-Bar Anchorage (PENDING)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=463,
+    printed_page=443,
+    clause_or_equation="Clause 9-21-6-1-3 (Printed p. 443 / PDF p. 463)",
+    symbolic_formula="UNAVAILABLE (execution blocked)",
+    description=(
+        "Anchorage of a deformed bar/wire in a tie (Clause 9-21-6-1-3): "
+        "(الف) d_b <= 16 mm, or bars 8-25 mm with f_y < 280 MPa -> standard "
+        "hook; (ب) bars 18-25 mm with f_y > 280 MPa -> standard hook plus "
+        "embedment >= (0.17*f_y/(lambda*sqrt(f'c)))*d_b; (پ) joist bars "
+        "d_b <= 12 mm -> standard hook."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Execution BLOCKED: unresolved boundary ambiguity. (الف) uses f_y < "
+        "280 MPa while (ب) uses f_y > 280 MPa (f_y exactly 280 MPa is in "
+        "neither branch); (الف) covers d_b <= 16 mm and 8-25 mm while (ب) "
+        "covers 18-25 mm (a 17 mm bar and bars > 25 mm are not explicitly "
+        "assigned). These boundaries are recorded verbatim and are never "
+        "interpolated or inferred; no formula/number is executed."
+    ),
+    dependencies=(),
+)
+
+RULE_BG_TRANS_WIRE_TIE_PENDING = RuleReference(
+    rule_id="BG-TRANS-WIRE-TIE-PENDING",
+    title="Mabhas 9 Welded-Wire Tie Anchorage (PENDING)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=464,
+    printed_page=444,
+    clause_or_equation=(
+        "Clauses 9-21-6-1-4 & 9-21-6-1-5 (Printed p. 444 / PDF p. 464)"
+    ),
+    symbolic_formula="UNAVAILABLE (execution blocked)",
+    description=(
+        "Anchorage of welded-wire-mesh U-tie legs (Clause 9-21-6-1-4) and "
+        "single-leg welded-wire tie ends (Clause 9-21-6-1-5), including the "
+        "50 mm / quarter-depth / 8x-bend-diameter positioning conditions."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Execution BLOCKED: the positioning/overlap wording of 9-21-6-1-4-ب "
+        "and the single-leg conditions of 9-21-6-1-5 are not interpreted "
+        "(per Stage G governance); the 9-21-6-1-5-ب outer-wire condition "
+        "carries no governing number. No formula/number is executed."
+    ),
+    dependencies=(),
+)
+
+RULE_BG_TRANS_TORSION_TIE_PENDING = RuleReference(
+    rule_id="BG-TRANS-TORSION-TIE-PENDING",
+    title="Mabhas 9 Torsion / Integrity Tie Detailing (PENDING)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=468,
+    printed_page=448,
+    clause_or_equation=(
+        "Clauses 9-21-6-1-6, 9-21-6-1-7 & 9-21-6-2-7 (Printed pp. 444-448 / "
+        "PDF pp. 464-468)"
+    ),
+    symbolic_formula="UNAVAILABLE (execution blocked)",
+    description=(
+        "Torsion and member-integrity ties must be closed and perpendicular "
+        "to the member axis and anchored by 135-degree standard or seismic "
+        "hooks (Clauses 9-21-6-1-6, 9-21-6-1-7, 9-21-6-2-7), with the "
+        "bend ends anchored in the core concrete."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Execution BLOCKED: these clauses require verifying the 135-degree "
+        "standard-hook and seismic-hook bend geometry, and no such "
+        "hook-geometry rule is VERIFIED and execution_allowed=True in the "
+        "Rule Registry (the geometry lives in Clause 9-20-6, out of the "
+        "verified window). Per Stage G governance the seismic-hook "
+        "prerequisite is not executable here; no formula/number is executed."
+    ),
+    dependencies=(),
+)
+
+RULE_BG_TRANS_WIRE_SUBST_PENDING = RuleReference(
+    rule_id="BG-TRANS-WIRE-SUBST-PENDING",
+    title="Mabhas 9 Welded-Wire Substitute for Deformed Tie (PENDING)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=466,
+    printed_page=446,
+    clause_or_equation="Clause 9-21-6-2-3 (Printed p. 446 / PDF p. 466)",
+    symbolic_formula="UNAVAILABLE (execution blocked)",
+    description=(
+        "Clause 9-21-6-2-3: deformed wire from welded-wire mesh may "
+        "substitute for a deformed tie (equal area) subject to Clauses "
+        "9-21-6-2-1, 9-21-6-2-2 and National Building Regulations Clause "
+        "9-4-8 (welded-wire steel)."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Execution BLOCKED: depends on National Building Regulations Clause "
+        "9-4-8 welded-wire steel specifications, whose pages are out of the "
+        "verified window (VERIFY_PENDING). No formula/number is executed."
+    ),
+    dependencies=(),
+)
+
+RULE_BG_TRANS_SPIRAL_SPLICE_SEL_PENDING = RuleReference(
+    rule_id="BG-TRANS-SPIRAL-SPLICE-SEL-PENDING",
+    title="Mabhas 9 Spiral Splice Method Selection (PENDING)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=469,
+    printed_page=449,
+    clause_or_equation="Clause 9-21-6-3-5 (Printed p. 449 / PDF p. 469)",
+    symbolic_formula="UNAVAILABLE (execution blocked)",
+    description=(
+        "Clause 9-21-6-3-5 spiral splice method: (الف) welded or mechanical "
+        "splice per Clause 9-21-4-7; (ب) lap splice per Clause 9-21-6-3-6 "
+        "for bars with f_y <= 420 MPa. The lap-splice LENGTH itself is "
+        "executable as BG-TRANS-SPIRAL-LAP-001 (Clause 9-21-6-3-6 / Table "
+        "9-21-7); this rule is the splice-METHOD selection and stays blocked."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Execution BLOCKED: the (الف) welded/mechanical-splice branch "
+        "depends on Clause 9-21-4-7, which is itself blocked via National "
+        "Building Regulations Chapter 10 welding requirements (out of the "
+        "verified window). No formula/number is executed."
+    ),
+    dependencies=("BG-DEV-SPLICE-WELDED-MECH-PENDING",),
+)
+
+RULE_BG_TRANS_DORGIR_PENDING = RuleReference(
+    rule_id="BG-TRANS-DORGIR-PENDING",
+    title="Mabhas 9 Confinement Tie دورگیر (PENDING)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFY_PENDING,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=470,
+    printed_page=450,
+    clause_or_equation=(
+        "Clauses 9-21-6-4-1 & 9-21-6-4-2 (Printed p. 450 / PDF p. 470)"
+    ),
+    symbolic_formula="UNAVAILABLE (execution blocked)",
+    description=(
+        "Clause 9-21-6-4 دورگیر: confinement ties must be closed or wound "
+        "continuous; each piece must be anchored by a seismic hook at both "
+        "ends per Clause 9-21-6-2-4 engaging one longitudinal bar, and "
+        "connected headed bars are not permitted as دورگیر."
+    ),
+    execution_allowed=False,
+    blocked_reason=(
+        "Execution BLOCKED: the دورگیر requirement is fundamentally the "
+        "seismic hook at both ends, and no seismic-hook geometry rule is "
+        "VERIFIED and execution_allowed=True in the Rule Registry (the "
+        "geometry lives in Clause 9-20-6, out of the verified window). Per "
+        "Stage G governance the seismic-hook prerequisite is not executable "
+        "here; no formula/number is executed."
+    ),
+    dependencies=(),
+)
+
+
 _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     # Verified Mabhas 9 rules
     RULE_BG_FLEX_MIN_001,
@@ -2515,6 +3026,18 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_SHEAR_VS_MAX_001,
     RULE_BG_SHEAR_MIN_001,
     RULE_BG_SHEAR_SPACING_001,
+    # Phase 2F Stage G — Clause 9-21-6 transverse reinforcement (executable)
+    RULE_BG_TRANS_TIE_SHEAR_EXTENT_001,
+    RULE_BG_TRANS_CLOSED_TIE_LAP_001,
+    RULE_BG_TRANS_TIE_SPACING_001,
+    RULE_BG_TRANS_TIE_DIA_001,
+    RULE_BG_TRANS_RECT_TIE_001,
+    RULE_BG_TRANS_CIRC_TIE_001,
+    RULE_BG_TRANS_SPIRAL_SPACING_001,
+    RULE_BG_TRANS_SPIRAL_DIA_001,
+    RULE_BG_TRANS_SPIRAL_RATIO_001,
+    RULE_BG_TRANS_SPIRAL_ANCHOR_001,
+    RULE_BG_TRANS_SPIRAL_LAP_001,
     # Isolated Mostofinejad reference rules
     RULE_BG_MOST_5_46,
     RULE_BG_MOST_5_47,
@@ -2566,6 +3089,13 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_DEV_LAP_WIRE_DEFORMED_PENDING,
     RULE_BG_DEV_LAP_WIRE_PLAIN_PENDING,
     RULE_BG_DEV_SPLICE_WELDED_MECH_PENDING,
+    # Phase 2F Stage G — Clause 9-21-6 blocked sentinels
+    RULE_BG_TRANS_TIE_ANCHOR_PENDING,
+    RULE_BG_TRANS_WIRE_TIE_PENDING,
+    RULE_BG_TRANS_TORSION_TIE_PENDING,
+    RULE_BG_TRANS_WIRE_SUBST_PENDING,
+    RULE_BG_TRANS_SPIRAL_SPLICE_SEL_PENDING,
+    RULE_BG_TRANS_DORGIR_PENDING,
     RULE_BG_NEG_EXT_PENDING,
     RULE_BG_SKIN_REINF_PENDING,
     RULE_BG_BENT_ANCHOR_PENDING,

@@ -69,6 +69,17 @@ def test_mabhas9_executable_rules_exact_set() -> None:
         "BG-SHEAR-VS-MAX-001",
         "BG-SHEAR-MIN-001",
         "BG-SHEAR-SPACING-001",
+        "BG-TRANS-TIE-SHEAR-EXTENT-001",
+        "BG-TRANS-CLOSED-TIE-LAP-001",
+        "BG-TRANS-TIE-SPACING-001",
+        "BG-TRANS-TIE-DIA-001",
+        "BG-TRANS-RECT-TIE-001",
+        "BG-TRANS-CIRC-TIE-001",
+        "BG-TRANS-SPIRAL-SPACING-001",
+        "BG-TRANS-SPIRAL-DIA-001",
+        "BG-TRANS-SPIRAL-RATIO-001",
+        "BG-TRANS-SPIRAL-ANCHOR-001",
+        "BG-TRANS-SPIRAL-LAP-001",
     )
     for rule in list_mabhas9_executable_rules():
         assert rule.status == VerificationStatus.VERIFIED

@@ -452,6 +452,73 @@ Confirmed from footer and heading on the scans: §9-21-6 ends on **printed 450 /
 
 Checks: source-verification only — no engine/registry/test change; `pytest` 393 passed (unchanged), `mypy --strict src` clean (22 files, unchanged), `git diff --check` clean. Only `docs/PHASE2_SOURCE_VERIFICATION_MATRIX.md` and `docs/DESIGN_RULES.md` changed. §9-21-4 and §9-21-5 unchanged; §9-22 not started.
 
+
+## 4G. Phase 2F Stage G (2026-10-06) — Clause 9-21-6 Transverse Reinforcement: PROMOTION Record
+
+Scope: **Clause 9-21-6 ONLY**, IMPLEMENTATION / PROMOTION of the fully-verified, dependency-free parts into executable rules. Baseline: Stage F commit `eb0c18c` (parents `29956da`, `a75405e`, `f22ff45`; `origin/main` @ `df8067a`). No Stage C/D/E/F re-run/rebuild/revert. Source basis: committed scan `phase2f-source-442-472/` @ `df8067a`, re-inspected page-by-page on 2026-10-06; **every value used in the implementation was re-read from the real `.jpg` scans** (OCR `.txt` navigation-only). Governance honored: only VERIFIED + CODE_RULE + MABHAS_9_COMPLIANCE + execution_allowed=True rules were promoted; no VERIFY_PENDING rule is executable; no ambiguity was interpreted; no number/boundary/condition was guessed; missing/invalid/unverified dependencies → BLOCKED; BLOCKED is never PASS; the reference PDF/OCR is not a runtime dependency and the engine module imports no reference package and opens no file (AST-invariant tested). §9-22 was NOT started; NBC Chapter 9-4 / Chapter 10 were NOT brought in as scope creep.
+
+### G.1 Corrections to the Stage F §4F record (from Stage G re-verification)
+
+Recorded here so the historical §4F note stays intact while the corrected values are authoritative for implementation:
+
+1. **§9-21-6-1-1:** the shear-reinforcement tie must extend to the **full effective depth d** from the compression face (PDF 463 / Printed 443) — §4F's "50% of the effective depth" was a misreading; corrected.
+2. **§9-21-6-2-4-ب:** the 150 mm limit applies to a **longitudinal** bar without lateral restraint measured to the nearest restrained **longitudinal** bar (PDF 467 / Printed 447) — §4F named a "tie bar"; corrected to the printed longitudinal-bar subject.
+3. **Table 9-21-7 (PDF 469 / Printed 449):** §4F's coating/hook description was garbled. The verified table is reconstructed in G.3 below and implemented verbatim.
+
+### G.2 Executable rules promoted (VERIFIED, CODE_RULE, MABHAS_9_COMPLIANCE, execution_allowed=True, dependencies=())
+
+| Rule ID | Clause | PDF / Printed | Requirement (deterministic) |
+| :--- | :--- | :--- | :--- |
+| `BG-TRANS-TIE-SHEAR-EXTENT-001` | 9-21-6-1-1 | 463 / 443 | shear-reinforcement tie extent from compression face ≥ effective depth d |
+| `BG-TRANS-CLOSED-TIE-LAP-001` | 9-21-6-1-8 | 466 / 446 | U-leg lap ≥ anchorage/3; full-depth lap sufficient when depth ≥ 450 mm AND force/leg < 40 kN |
+| `BG-TRANS-TIE-SPACING-001` | 9-21-6-2-1 | 466 / 446 | clear ≥ d_agg/3; c-c ≤ min(16·db_long, 48·db_trans, smallest member dim) |
+| `BG-TRANS-TIE-DIA-001` | 9-21-6-2-2 | 466 / 446 | tie dia ≥ 10 mm (db_long ≤ 32 mm) / ≥ 12 mm (db_long ≥ 34 mm or bundled); 32 < db_long < 34 mm non-bundled → BLOCKED |
+| `BG-TRANS-RECT-TIE-001` | 9-21-6-2-4-ب | 467 / 447 | laterally-unrestrained longitudinal bar clear spacing ≤ 150 mm to nearest restrained longitudinal bar |
+| `BG-TRANS-CIRC-TIE-001` | 9-21-6-2-5-الف | 467 / 447 | circular-tie end overlap ≥ 150 mm |
+| `BG-TRANS-SPIRAL-SPACING-001` | 9-21-6-3-1 | 468 / 448 | clear ≥ max(d_agg/3, 25 mm); pitch ≤ 75 mm |
+| `BG-TRANS-SPIRAL-DIA-001` | 9-21-6-3-2 | 468 / 448 | spiral wire/bar diameter ≥ 10 mm (cast-in-place) |
+| `BG-TRANS-SPIRAL-RATIO-001` | 9-21-6-3-3 / Eq. 9-21-8 | 468 / 448 | ρ_s ≥ 0.45·(A_g/A_ch − 1)·f′c/f_yτ; f_yτ ≤ 700 MPa (else FAIL) |
+| `BG-TRANS-SPIRAL-ANCHOR-001` | 9-21-6-3-4 | 468 / 448 | 1½ extra turns at each end (≥ 1.5) |
+| `BG-TRANS-SPIRAL-LAP-001` | 9-21-6-3-6 / Table 9-21-7 | 469 / 449 | lap = max(k·d_b, 300 mm), k = 48 or 72 per Table 9-21-7 |
+
+### G.3 Table 9-21-7 (implemented verbatim; PDF 469 / Printed 449)
+
+k in lap = k·d_b (then floored at 300 mm). Combinations not listed → deterministically BLOCKED (no coating/hook interpretation added):
+
+| Bar/wire type | Coating | End condition | k |
+| :--- | :--- | :--- | :--- |
+| deformed bar | uncoated or galvanized | hook not needed | 48 |
+| deformed bar | epoxy or dual-coated | hook not needed | 72 |
+| deformed bar | epoxy or dual-coated | standard transverse hook | 48 |
+| deformed wire | uncoated | hook not needed | 48 |
+| deformed wire | epoxy | hook not needed | 72 |
+| deformed wire | epoxy | standard transverse hook | 48 |
+| plain bar | uncoated or galvanized | hook not needed | 72 |
+| plain bar | uncoated or galvanized | standard transverse hook | 48 |
+| plain wire | uncoated | hook not needed | 72 |
+| plain wire | uncoated | standard transverse hook | 48 |
+
+### G.4 Blocked sentinels (execution_allowed=False, status=VERIFY_PENDING; nothing executed)
+
+| Rule ID | Clause(s) | PDF / Printed | Block reason |
+| :--- | :--- | :--- | :--- |
+| `BG-TRANS-TIE-ANCHOR-PENDING` | 9-21-6-1-3 | 463 / 443 | boundary ambiguity: f_y < 280 vs > 280 MPa; d_b ≤ 16 & 8–25 vs 18–25 mm (17 mm / > 25 mm unassigned). Never interpolated. |
+| `BG-TRANS-WIRE-TIE-PENDING` | 9-21-6-1-4, 9-21-6-1-5 | 464 / 444 | welded-wire positioning wording not interpreted; 9-21-6-1-5-ب has no governing number. |
+| `BG-TRANS-TORSION-TIE-PENDING` | 9-21-6-1-6, -1-7, -2-7 | 464–468 / 444–448 | needs 135°/seismic-hook bend geometry; no verified+executable hook-geometry rule in registry (Clause 9-20-6 out of window). |
+| `BG-TRANS-WIRE-SUBST-PENDING` | 9-21-6-2-3 | 466 / 446 | depends on NBC Clause 9-4-8 welded-wire steel (out of window). |
+| `BG-TRANS-SPIRAL-SPLICE-SEL-PENDING` | 9-21-6-3-5 | 469 / 449 | (الف) welded/mechanical branch depends on Clause 9-21-4-7 (registered dependency `BG-DEV-SPLICE-WELDED-MECH-PENDING`, blocked via NBC Ch. 10) → transitive UNVERIFIED_RULE_BLOCKED. Lap LENGTH is executable as `BG-TRANS-SPIRAL-LAP-001`. |
+| `BG-TRANS-DORGIR-PENDING` | 9-21-6-4-1, -4-2 | 470 / 450 | دورگیر requires the seismic hook; no verified+executable seismic-hook geometry rule in registry (Clause 9-20-6 out of window). |
+
+Categorical §9-21-6 sub-parts verified in Stage F but NOT promoted to executable rules (positional / by-inspection requirements with no deterministic scalar computation): §9-21-6-1-2 (each bend engages a longitudinal bar), §9-21-6-2-4-الف/-پ/-ت (135° bend restraint / standard hook / headed-bar prohibition), §9-21-6-2-5-ب/-پ (standard-hook ends / non-coincident overlaps), and §9-21-6-2-6 (continuous bar/wire permission, which delegates to the partly hook-dependent -2-4/-2-5). These remain documented source-verified-only; they are not executable and no registry sentinel claims them.
+
+### G.5 Architecture / governance compliance
+
+- Dedicated engine module `beamgenius.engine.transverse_reinforcement_mabhas9` (Stage C/E pattern): typed domain inputs, deterministic calculations, `CalculationTraceStep` traceability, full `RuleReference`, registry + gatekeeper integration, explicit BLOCKED / FAIL / NOT_APPLICABLE / COMPUTED / PASS semantics, no reference imports.
+- Registry: 17 new `RuleReference` entries (11 executable + 6 blocked) added to `catalog.py` and `_ALL_RULES_TUPLE`; executable Mabhas 9 rule set extended (exact-set registry test updated). Gatekeeper transitive-dependency check surfaces the §9-21-6-3-5 → §9-21-4-7 block.
+- Eq. (9-21-8) computed exactly with the 700 MPa cap as a FAIL (not a silent clamp); the closed-tie-lap 450 mm / 40 kN exception encoded; Table 9-21-7 encoded verbatim with unlisted combinations → BLOCKED; the 33 mm tie-diameter gap → BLOCKED. No default was ever substituted for a missing prerequisite.
+
+Checks: `pytest` **472 passed** (was 393; +79 focused cases incl. PASS/FAIL/COMPUTED boundaries, missing→BLOCKED, malformed→INVALID, ambiguous-boundary (33 mm)→BLOCKED, unlisted Table 9-21-7 combination→BLOCKED, transitive-dependency block, registry/gatekeeper integration, and the no-reference-import AST invariant); `mypy --strict src` clean (**23 files**, was 22); `git diff --check` clean. Files changed: `src/beamgenius/registry/catalog.py`, `src/beamgenius/engine/transverse_reinforcement_mabhas9.py` (new), `tests/test_mabhas9_transverse_reinforcement.py` (new), `tests/test_registry_and_gatekeeper.py`, `docs/VERIFIED_RULES.md`, `docs/PHASE2_SOURCE_VERIFICATION_MATRIX.md`, `docs/DESIGN_RULES.md`. §9-21-4 and §9-21-5 unchanged; §9-22 not started; `main` untouched.
+
 ## 5. Phase 2B Flexural Resistance — Granular Source Verification Matrix
 
 Per Phase 2B Continuation Tasks 1–7, each required Mabhas 9 flexural source item has been verified against Mabhas 9 (1399) Chapters `9-3`, `9-4`, `9-6`, `9-7`, `9-8`, and `9-11` and classified below as `VERIFIED` or `VERIFY_PENDING` (`BLOCKED`).
