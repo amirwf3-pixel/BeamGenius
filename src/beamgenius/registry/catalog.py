@@ -1784,6 +1784,374 @@ RULE_BG_DETAIL_BUNDLE_008 = RuleReference(
 )
 
 
+# ============================================================================
+# 1b. VERIFIED PRODUCTION MABHAS 9 CODE RULES: CLAUSE 9-21-3 DEVELOPMENT
+#     LENGTH (Phase 2F Stage C, promoted 2026-10-05 — visual verification of
+#     the committed phase2f-source-442-472 evidence scan; see
+#     docs/VERIFIED_RULES.md and matrix §4B/§4C)
+# ============================================================================
+
+RULE_BG_DEV_LENGTH_TENSION_001 = RuleReference(
+    rule_id="BG-DEV-LENGTH-TENSION-001",
+    title="Mabhas 9 Development Length of Deformed Bars in Tension (General Relation)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=445,
+    printed_page=425,
+    clause_or_equation=(
+        "Clause 9-21-3-1-3..6 & 9-21-3-2-1 & Eq. (9-21-1) (Printed pp. 425-426 / "
+        "PDF pp. 445-446); Eq. (9-21-2) K_tr & cap (Printed p. 426 / PDF p. 446); "
+        "Table 9-21-3 factors (Printed p. 427 / PDF p. 447); reduction limits "
+        "9-21-3-9 (Printed pp. 435-436 / PDF pp. 455-456)"
+    ),
+    symbolic_formula=(
+        "l_d = (psi_t*psi_e*psi_s*psi_g / (lambda * min((c_b+K_tr)/d_b, 2.5))) * "
+        "(0.9 * f_y / sqrt(min(sqrt(f'c), 8.3)**2)) * d_b, >= 300 mm; "
+        "K_tr = 40*A_tr/(s*n) (K_tr = 0 always permitted); psi_t*psi_e <= 1.7"
+    ),
+    description=(
+        "Development length of deformed bars or wires in tension, Clause "
+        "9-21-3-2-1-الف: l_d = [psi_t*psi_e*psi_s*psi_g/(lambda*((c_b+K_tr)/d_b))] "
+        "* (0.9*f_y/sqrt(f'c)) * d_b per Eq. (9-21-1), with c_b = min(distance "
+        "from bar center to nearest concrete surface, half center-to-center bar "
+        "spacing), K_tr = 40*A_tr/(s*n) per Eq. (9-21-2) (K_tr = 0 is always "
+        "permitted even when transverse reinforcement is present), confinement "
+        "index (c_b+K_tr)/d_b capped at 2.5, minimum l_d = 300 mm "
+        "(9-21-3-2-1-ب). No resistance factor phi (9-21-3-1-4); sqrt(f'c) "
+        "clamped at 8.3 MPa (9-21-3-1-5); lambda = 1.0 normal-weight / 0.75 "
+        "lightweight (9-21-3-1-6). Modification factors per Table 9-21-3 "
+        "(9-21-3-2-2): psi_g = 1.0 (S340/S350/S400/S420) or 1.15 (S500/S520); "
+        "psi_e = 1.5 (epoxy/dual-coated with cover < 3*d_b or clear spacing "
+        "< 6*d_b) / 1.2 (other epoxy/dual-coated) / 1.0 (uncoated or "
+        "galvanized); psi_s = 0.8 (d_b < 20 mm) / 1.0; psi_t = 1.3 (horizontal "
+        "bar with >= 300 mm fresh concrete cast below) / 1.0; psi_t*psi_e "
+        "<= 1.7. Excess-reinforcement reduction (9-21-3-9) permitted by the "
+        "ratio A_s,required/A_s,provided only for the listed equation cases "
+        "and only when none of the 9-21-3-9-2 contexts apply; the 300 mm "
+        "floor is preserved after any reduction. Visually verified 2026-10-05 "
+        "from the committed phase2f-source-442-472 evidence scan "
+        "(git show df8067a:phase2f-source-442-472/page-NNN.jpg). Applicability: "
+        "tension development of single deformed bars/wires (not hooks/heads — "
+        "see BG-DEV-LENGTH-HOOKED-001 / BG-DEV-LENGTH-HEADED-001). Required "
+        "typed inputs (never assumed): steel_grade, bar_diameter_mm, "
+        "yield_stress_mpa, concrete_strength_mpa, concrete_weight_class, "
+        "concrete_cover_mm, clear_spacing_mm, provide_top_bar_placement, "
+        "coating_class, apply_k_tr (with transverse_area_mm2, "
+        "transverse_spacing_mm, developed_bar_count when True). Reduction "
+        "inputs only when excess_reinforcement_reduction is requested."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_LENGTH_TENSION_TABLE_001 = RuleReference(
+    rule_id="BG-DEV-LENGTH-TENSION-TABLE-001",
+    title="Mabhas 9 Simplified Development Length of Deformed Bars in Tension (Table 9-21-4)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=448,
+    printed_page=428,
+    clause_or_equation=(
+        "Clause 9-21-3-2-3 & Table 9-21-4 (Printed p. 428 / PDF p. 448); "
+        "Table 9-21-3 factors (Printed p. 427 / PDF p. 447); floors "
+        "9-21-3-2-1-ب (Printed p. 426 / PDF p. 446)"
+    ),
+    symbolic_formula=(
+        "l_d = psi_t*psi_e*psi_g * f_y/(D*lambda*sqrt(min(sqrt(f'c),8.3)**2)) "
+        "* d_b, D = 2.1/1.7 (confined row: (clear >= d_b & min ties) or "
+        "(clear >= 2*d_b & cover >= d_b), d_b<20/>=20) or 1.4/1.1 (other); "
+        ">= 300 mm"
+    ),
+    description=(
+        "Simplified development length of deformed bars or wires in tension "
+        "per Clause 9-21-3-2-3 and Table 9-21-4: l_d = (psi_t*psi_e*psi_g) * "
+        "f_y/(D*lambda*sqrt(f'c)) * d_b. Confined row (clear spacing or "
+        "splice >= d_b with minimum code ties provided along l_d, OR clear "
+        "spacing or splice >= 2*d_b with cover >= d_b): D = 2.1 (d_b < 20 mm) "
+        "/ 1.7 (d_b >= 20 mm). Other cases: D = 1.4 / 1.1. In all cases the "
+        "300 mm minimum of 9-21-3-2-1-ب governs. Factors per Table 9-21-3 "
+        "with the same verification as BG-DEV-LENGTH-TENSION-001 "
+        "(psi_t*psi_e <= 1.7; sqrt(f'c) <= 8.3 clamp; lambda weight class). "
+        "Excess-reinforcement reduction per 9-21-3-9 with the 300 mm floor "
+        "preserved; prohibited contexts (9-21-3-9-2) block the reduction. "
+        "Visually verified 2026-10-05 (page-447/448 evidence JPGs). "
+        "Applicability: tension development via the simplified table; the "
+        "general relation path is BG-DEV-LENGTH-TENSION-001. Required typed "
+        "inputs (never assumed): steel_grade, bar_diameter_mm, "
+        "yield_stress_mpa, concrete_strength_mpa, concrete_weight_class, "
+        "concrete_cover_mm, clear_spacing_mm, provide_top_bar_placement, "
+        "coating_class, min_code_ties_provided_along_ld."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_LENGTH_HOOKED_001 = RuleReference(
+    rule_id="BG-DEV-LENGTH-HOOKED-001",
+    title="Mabhas 9 Development Length of Deformed Bars with Standard Hooks in Tension",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=448,
+    printed_page=428,
+    clause_or_equation=(
+        "Clause 9-21-3-3-1 & Eq. (9-21-3) (Printed p. 428 / PDF p. 448); "
+        "Table 9-21-5 factors (Printed p. 430 / PDF p. 450); A_th definition "
+        "9-21-3-3-3 (Printed p. 429 / PDF p. 449)"
+    ),
+    symbolic_formula=(
+        "l_dh = (psi_e*psi_r*psi_o*psi_c / lambda) * (0.043 * f_y / "
+        "sqrt(min(sqrt(f'c),8.3)**2)) * d_b^1.5, >= max(8*d_b, 150 mm)"
+    ),
+    description=(
+        "Development length of deformed bars anchored with a standard hook in "
+        "tension, Clause 9-21-3-3-1-الف: l_dh = [psi_e*psi_r*psi_o*psi_c/lambda] "
+        "* (0.043*f_y/sqrt(f'c)) * d_b^1.5 per Eq. (9-21-3); minimum "
+        "max(8*d_b, 150 mm) (3-3-1-ب). Table 9-21-5 factors (9-21-3-3-2): "
+        "psi_e = 1.2 (epoxy/dual-coated) / 1.0 (uncoated/galvanized); "
+        "psi_r = 1.0 (d_b <= 34 mm AND A_th >= 0.40*A_hs AND anchored-bar "
+        "spacing > 6*d_b), else 1.6; psi_o = 1.0 (d_b <= 34 mm AND anchored "
+        "in a column core AND side cover normal to hook plane > 65 mm or "
+        "> 6*d_b), else 1.25; psi_c = f'c/105 + 0.6 (f'c < 42 MPa) / 1.0. "
+        "A_th is the total area of enclosing ties/hoops per 9-21-3-3-3 "
+        "(length >= 0.75*l_dh from the hook bend; tie placement zones of "
+        "3-3-3-الف/ب and the cover < 65 mm enclosure of 3-3-4 are placement "
+        "requirements recorded for traceability, not computed by this "
+        "length evaluator). Hooks/heads never develop bars in compression "
+        "(9-21-3-1-3). Excess-reinforcement reduction is NOT permitted for "
+        "hooked anchorage (9-21-3-9-2-ث). Visually verified 2026-10-05 "
+        "(page-448/449/450 evidence JPGs). Applicability: tension anchorage "
+        "with standard hooks (anchor geometry of Table 9-21-2 out of scope "
+        "here). Required typed inputs (never assumed): bar_diameter_mm, "
+        "yield_stress_mpa, concrete_strength_mpa, concrete_weight_class, "
+        "coating_class, a_th_mm2, a_hs_mm2, anchored_bar_clear_spacing_mm, "
+        "anchored_in_column_core, side_cover_normal_to_hook_plane_mm."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_LENGTH_HEADED_001 = RuleReference(
+    rule_id="BG-DEV-LENGTH-HEADED-001",
+    title="Mabhas 9 Development Length of Headed Deformed Bars in Tension",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=450,
+    printed_page=430,
+    clause_or_equation=(
+        "Clause 9-21-3-4-1 (Printed p. 430-431 / PDF pp. 450-451); Eq. (9-21-4) "
+        "9-21-3-4-2 (Printed p. 431 / PDF p. 451); Table 9-21-6 factors "
+        "(Printed p. 432 / PDF p. 452)"
+    ),
+    symbolic_formula=(
+        "l_dt = (psi_e*psi_c*psi_p*psi_o / lambda) * (0.032 * f_y / "
+        "sqrt(min(sqrt(f'c),8.3)**2)) * d_b^1.5, >= max(8*d_b, 150 mm); "
+        "limits: d_b <= 34, A_brg >= 4*A_b, normal-weight only, cover >= "
+        "2*d_b, spacing >= 3*d_b"
+    ),
+    description=(
+        "Development length of headed deformed bars in tension, Clause "
+        "9-21-3-4-2-الف: l_dt = [psi_e*psi_c*psi_p*psi_o/lambda] * "
+        "(0.032*f_y/sqrt(f'c)) * d_b^1.5 per Eq. (9-21-4); minimum "
+        "max(8*d_b, 150 mm). Applicability limits of 9-21-3-4-1: bar "
+        "diameter <= 34 mm (ب), bearing section of the head >= 4 * bar "
+        "area (پ), normal-weight concrete only (ت), clear cover >= 2*d_b "
+        "(ث), center-to-center spacing >= 3*d_b (ج). Table 9-21-6 factors "
+        "(9-21-3-4-3): psi_e = 1.2 (epoxy/dual-coated) / 1.0 "
+        "(uncoated/galvanized); psi_p = 1.0 (d_b <= 34 AND (anchored in a "
+        "beam-column joint with A_tt >= 0.3*A_ts, A_tt per 9-21-3-4-4 "
+        "within 8*d_b of head, OR anchorage connection with anchored-bar "
+        "spacing > 6*d_b)), else 1.6; psi_o = 1.0 (anchored in a column "
+        "core with side cover normal to head plane > 65 mm or > 6*d_b), "
+        "else 1.25; psi_c = f'c/105 + 0.6 (f'c < 42 MPa) / 1.0. "
+        "Excess-reinforcement reduction is NOT permitted for headed "
+        "anchorage (9-21-3-9-2-ث); hooks/heads never develop bars in "
+        "compression (9-21-3-1-3). Visually verified 2026-10-05 "
+        "(page-450/451/452 evidence JPGs). Applicability: tension anchorage "
+        "with headed bars meeting every 9-21-3-4-1 limit. Required typed "
+        "inputs (never assumed): bar_diameter_mm, yield_stress_mpa, "
+        "concrete_strength_mpa, concrete_weight_class, coating_class, "
+        "head_bearing_area_mm2, concrete_cover_mm, bar_spacing_cc_mm, "
+        "anchored_in_column_core, side_cover_normal_to_head_plane_mm, "
+        "connection_class, a_tt_mm2/a_ts_mm2 (beam-column joints), "
+        "anchored_bar_clear_spacing_mm."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_MECH_ANCHOR_001 = RuleReference(
+    rule_id="BG-DEV-MECH-ANCHOR-001",
+    title="Mabhas 9 Mechanical Anchorage of Deformed Bars in Tension",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=453,
+    printed_page=433,
+    clause_or_equation="Clause 9-21-3-5-1 (Printed p. 433 / PDF p. 453)",
+    symbolic_formula=(
+        "device/attachment provides f_y capability + design engineer approval "
+        "+ approved test results for combined anchorage (no length equation "
+        "given)"
+    ),
+    description=(
+        "Clause 9-21-3-5-1: the use of any welded attachment or mechanical "
+        "device capable of developing the yield strength f_y of the bar is "
+        "permitted only with the design engineer's approval; combined "
+        "anchorage (mechanical anchor plus development length between the "
+        "critical section and the attachment/device) is permitted on the "
+        "basis of approved test results. This evaluator enforces exactly "
+        "this three-part gate: required typed inputs (never assumed) "
+        "device_supplies_yield_capacity, designer_engineer_approved, and "
+        "approved_test_results_present; any missing input is BLOCKED; any "
+        "false input is a verifiable FAIL; all three true PASS (admissible "
+        "mechanical anchorage). No anchorage length is computed — none is "
+        "given by the verified clause and none is invented. Visually verified "
+        "2026-10-05 (page-453 evidence JPG). Applicability: tension "
+        "mechanical anchorage of deformed bars. Excess-reinforcement "
+        "reduction is NOT applicable (9-21-3-9-2-ث)."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_WIRE_DEFORMED_001 = RuleReference(
+    rule_id="BG-DEV-WIRE-DEFORMED-001",
+    title="Mabhas 9 Development Length of Welded Deformed Wire Mesh in Tension",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=453,
+    printed_page=433,
+    clause_or_equation=(
+        "Clause 9-21-3-6-1 & Eq. (9-21-5) (Printed p. 433 / PDF p. 453); "
+        "Eq. (9-21-6-الف/ب) psi_w & 9-21-3-6-3/-4 routing (Printed p. 434 / "
+        "PDF p. 454)"
+    ),
+    symbolic_formula=(
+        "l_d = (psi_t*psi_e*psi_s*psi_w / (lambda*min((c_b+K_tr)/d_b,2.5))) * "
+        "(0.90*f_y/sqrt(f'c)) * d_b, >= 200 mm; psi_w = max(min((f_y-240)/"
+        "f_y,1.0), min(5*d_b/s,1.0)) with cross wire >= 50 mm in l_d, else 1.0"
+    ),
+    description=(
+        "Development length of welded deformed-wire mesh in tension from the "
+        "critical section, Clause 9-21-3-6-1-الف: l_d = [psi_t*psi_e*psi_s*"
+        "psi_w/(lambda*((c_b+K_tr)/d_b))] * (0.90*f_y/sqrt(f'c)) * d_b per "
+        "Eq. (9-21-5); minimum 200 mm (3-6-1-ب). Applicability: DEFORMED "
+        "wires with d_b <= 16 mm; plain wire of any diameter, deformed wire "
+        "> 16 mm, and galvanized mesh are routed to 9-21-3-7 (3-6-3/-4) and "
+        "are NOT_APPLICABLE here. psi_t/psi_e/psi_s per 9-21-3-2-2 "
+        "(psi_t*psi_e <= 1.7); for epoxy-coated welded-wire mesh psi_e MAY "
+        "be taken 1.0 (explicit permission of 3-6-1). c_b and K_tr per "
+        "9-21-3-2-1 (K_tr = 0 always permitted; index <= 2.5). psi_w "
+        "(9-21-3-6-2): with at least one cross wire within l_d at >= 50 mm "
+        "from the critical section, psi_w is the greater of (f_y-240)/f_y "
+        "and 5*d_b/s, each capped at 1.0; with no cross wire in l_d or a "
+        "cross wire at < 50 mm, psi_w = 1.0 (s = spacing of the anchored "
+        "wires). Excess-reinforcement reduction permitted for the Eq. "
+        "(9-21-5) case (9-21-3-9) with the 200 mm floor preserved. "
+        "Visually verified 2026-10-05 (page-453/454 evidence JPGs). Required "
+        "typed inputs (never assumed): bar_diameter_mm, yield_stress_mpa, "
+        "concrete_strength_mpa, concrete_weight_class, wire_surface_class, "
+        "epoxy_coated_psi_e_unit_permission (when epoxy), "
+        "cross_wire_in_development, cross_wire_distance_from_critical_mm and "
+        "anchored_wire_spacing_mm (when a cross wire is present), geometry "
+        "cover/spacing inputs as BG-DEV-LENGTH-TENSION-001, apply_k_tr "
+        "bundle of transverse inputs."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_WIRE_PLAIN_001 = RuleReference(
+    rule_id="BG-DEV-WIRE-PLAIN-001",
+    title="Mabhas 9 Development Length of Welded Plain Wire Mesh in Tension",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=454,
+    printed_page=434,
+    clause_or_equation=(
+        "Clause 9-21-3-7-1 & Eq. (9-21-7) (Printed pp. 434-435 / PDF pp. "
+        "454-455)"
+    ),
+    symbolic_formula=(
+        "l_dt = (3.3 * f_y / (lambda*sqrt(f'c))) * (A_b / s); floors "
+        "max(150 mm, s + 50 mm); >= 2 cross wires within l_dt"
+    ),
+    description=(
+        "Development length of welded plain-wire mesh in tension from the "
+        "critical section to the OUTERMOST cross wire, Clause 9-21-3-7-1-الف: "
+        "l_dt = (3.3*f_y/(lambda*sqrt(f'c))) * (A_b/s) per Eq. (9-21-7), "
+        "where s is the spacing of the anchored wires and A_b the wire "
+        "cross-sectional area; minimum: the greater of 150 mm and s + 50 mm "
+        "(3-7-1-ب); at least two cross wires must exist within l_dt in all "
+        "cases — fewer than two is a verifiable FAIL. No psi factors apply "
+        "to this equation. Excess-reinforcement reduction permitted "
+        "(9-21-3-9) with both floors (150 mm and s+50 mm) preserved. "
+        "Visually verified 2026-10-05 (page-454/455 evidence JPGs). "
+        "Applicability: tension development of welded PLAIN wire mesh "
+        "(also governs deformed wires > 16 mm and galvanized mesh per "
+        "9-21-3-6-3/-4 routing). Required typed inputs (never assumed): "
+        "bar_diameter_mm, anchored_wire_spacing_mm, yield_stress_mpa, "
+        "concrete_strength_mpa, concrete_weight_class, "
+        "cross_wires_in_development_length."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+RULE_BG_DEV_COMPRESSION_001 = RuleReference(
+    rule_id="BG-DEV-LENGTH-COMPRESSION-001",
+    title="Mabhas 9 Development Length of Deformed Bars and Wires in Compression",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=455,
+    printed_page=435,
+    clause_or_equation="Clause 9-21-3-8-1 (Printed p. 435 / PDF p. 455)",
+    symbolic_formula=(
+        "l_dc = max{ (psi_r * 0.24 * f_y / (lambda*sqrt(f'c))) * d_b, "
+        "0.043 * f_y * psi_r * d_b }, >= 200 mm; psi_r = 0.75 for the "
+        "listed confinement classes else 1.0"
+    ),
+    description=(
+        "Development length of deformed bars and wires in compression, "
+        "Clause 9-21-3-8-1-الف: l_dc = max{ (psi_r*0.24*f_y/(lambda*"
+        "sqrt(f'c)))*d_b , 0.043*f_y*psi_r*d_b }; minimum 200 mm "
+        "(3-8-1-ب). psi_r = 0.75 for confinement by: a spiral (دورپیچ); a "
+        "continuous circular tie with diameter > 6 mm at spacing < 100 mm; "
+        "a wire tie (تنگ سیمی) with diameter > 12 mm at spacing < 100 mm "
+        "[the exact Persian noun of this branch is VERIFY_PENDING per the "
+        "source-verification record — the branch is deterministically "
+        "BLOCKED, never executed]; or a دوریگر/دورگیر (confinement tie per "
+        "Clause 9-21-6-4) at spacing < 100 mm; psi_r = 1.0 for all other "
+        "cases. Hooks/heads never develop bars in compression (9-21-3-1-3). "
+        "Excess-reinforcement reduction permitted (9-21-3-9) with the "
+        "200 mm floor preserved; prohibited contexts (9-21-3-9-2) block the "
+        "reduction. Visually verified 2026-10-05 (page-455 evidence JPG). "
+        "Applicability: compression development of single deformed bars/"
+        "wires. Required typed inputs (never assumed): bar_diameter_mm, "
+        "yield_stress_mpa, concrete_strength_mpa, concrete_weight_class, "
+        "confinement_tie_class (with confinement tie diameter/spacing where "
+        "a class qualifies)."
+    ),
+    execution_allowed=True,
+    dependencies=(),
+)
+
+
 _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     # Verified Mabhas 9 rules
     RULE_BG_FLEX_MIN_001,
@@ -1805,6 +2173,14 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_DETAIL_BUNDLE_006,
     RULE_BG_DETAIL_BUNDLE_007,
     RULE_BG_DETAIL_BUNDLE_008,
+    RULE_BG_DEV_LENGTH_TENSION_001,
+    RULE_BG_DEV_LENGTH_TENSION_TABLE_001,
+    RULE_BG_DEV_LENGTH_HOOKED_001,
+    RULE_BG_DEV_LENGTH_HEADED_001,
+    RULE_BG_DEV_MECH_ANCHOR_001,
+    RULE_BG_DEV_WIRE_DEFORMED_001,
+    RULE_BG_DEV_WIRE_PLAIN_001,
+    RULE_BG_DEV_COMPRESSION_001,
     RULE_BG_SHEAR_PHI_001,
     RULE_BG_SHEAR_VC_001,
     RULE_BG_SHEAR_VS_001,

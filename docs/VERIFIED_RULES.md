@@ -1503,3 +1503,323 @@ For every VERIFIED rule, BeamGenius shall retain:
 If OCR conflicts with the source page, the source page governs.
 
 If Mostofinejad and Mabhas 9 differ, Mabhas 9 governs mandatory code compliance while Mostofinejad remains the primary engineering reference for calculation methodology.
+
+---
+
+## BG-DEV-LENGTH-TENSION-001 — Development Length of Deformed Bars in Tension (General Relation, Clause 9-21-3-2-1 / Eq. 9-21-1)
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 445 (clause spans PDF pp. 445-447; floors/reduction PDF pp. 446, 455-456)
+Printed Page: 425 (clause spans Printed pp. 425-427; reduction Printed pp. 435-436)
+Clause: 9-21-3-1-3..6, 9-21-3-2-1, Eq. (9-21-1), Eq. (9-21-2), Table 9-21-3, 9-21-3-9
+
+### SOURCE VERIFIED (visually verified 2026-10-05; evidence scan `phase2f-source-442-472` @ commit df8067a; PDF page-445/446/447/455/456 JPGs; canonical offset PDF = printed + 20)
+
+Formula / Requirement:
+
+l_d = [ψ_t·ψ_e·ψ_s·ψ_g / (λ·((c_b + K_tr)/d_b))] · (0.9·f_y/√f′c) · d_b per Eq. (9-21-1), with c_b = min(distance from bar center to nearest concrete surface, half center-to-center bar spacing), K_tr = 40·A_tr/(s·n) per Eq. (9-21-2) (K_tr = 0 is permitted even when transverse reinforcement is present), confinement index (c_b+K_tr)/d_b capped at 2.5, minimum l_d = 300 mm (9-21-3-2-1-ب). No φ is applied (9-21-3-1-4); √f′c clamped at 8.3 MPa (9-21-3-1-5); λ = 1.0 (normal-weight) / 0.75 (lightweight) (9-21-3-1-6). Table 9-21-3 (9-21-3-2-2): ψ_g = 1.0 (S340/S350/S400/S420) / 1.15 (S500/S520); ψ_e = 1.5 (epoxy/dual-coated with cover < 3·d_b or clear spacing < 6·d_b) / 1.2 (other epoxy/dual-coated) / 1.0 (uncoated or galvanized); ψ_s = 0.8 (d_b < 20 mm) / 1.0; ψ_t = 1.3 (≥ 300 mm fresh concrete cast below) / 1.0; ψ_t·ψ_e ≤ 1.7. Excess-reinforcement reduction (9-21-3-9): permitted for this equation case by the ratio required/provided only when no 9-21-3-9-2 context applies; the 300 mm floor is preserved after reduction.
+
+Applicability:
+
+Tension development of single deformed bars or wires. Hooks, heads, mechanical anchorage, welded-wire mesh and compression have their own Stage C rules.
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Reduction is deterministically BLOCKED in any 9-21-3-9-2 context (`PROHIBITED_EXCESS_REDUCTION_CONTEXT`): non-continuous supports, yield-development-required locations, continuity-required bars, intermediate/high-ductility seismic systems, anchored headed/hooked/mechanical bars, pile-head anchorage.
+- A reduction ratio as_required > as_provided is INVALID_INPUT (not a reduction).
+- Every required input missing → BLOCKED; malformed → INVALID_INPUT. BLOCKED never becomes PASS.
+
+Required Inputs:
+
+- steel_grade (SteelGradeClass), bar_diameter_mm, yield_stress_mpa, concrete_strength_mpa, concrete_weight_class (ConcreteWeightClass), coating_class (BarCoatingClass), top_bar_placement, concrete_cover_mm, clear_spacing_mm, apply_k_tr (with transverse_area_mm2, transverse_spacing_mm, developed_bar_count when True) — all REQUIRED typed inputs, never assumed. Reduction inputs required only when apply_excess_reinforcement_reduction is True.
+
+Units: mm.
+
+Verification Method:
+
+Visual source-page verification of the committed evidence scan (git show df8067a:phase2f-source-442-472/page-445..447.jpg + page-455/456.jpg for 9-21-3-9), 2026-10-05; recorded in docs/PHASE2_SOURCE_VERIFICATION_MATRIX.md §4B/§4C.
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage C)
+
+Executable as `beamgenius.engine.development_length_mabhas9.evaluate_dev_length_tension` (registry `execution_allowed=True`).
+
+---
+
+## BG-DEV-LENGTH-TENSION-TABLE-001 — Simplified Development Length of Deformed Bars in Tension (Table 9-21-4, Clause 9-21-3-2-3)
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 448
+Printed Page: 428
+Clause: 9-21-3-2-3, Table 9-21-4 (factors Table 9-21-3 Printed p. 427 / PDF p. 447; floor 9-21-3-2-1-ب Printed p. 426 / PDF p. 446)
+
+### SOURCE VERIFIED (visually verified 2026-10-05; page-447/448 JPGs @ df8067a)
+
+Formula / Requirement:
+
+l_d = (ψ_t·ψ_e·ψ_g)·f_y/(D·λ·√f′c)·d_b with divisor D = 2.1 (confined row, d_b < 20) / 1.7 (confined, d_b ≥ 20) / 1.4 (other, d_b < 20) / 1.1 (other, d_b ≥ 20); confined row requires (clear spacing or splice ≥ d_b AND minimum code ties provided along l_d) OR (clear spacing or splice ≥ 2·d_b AND cover ≥ d_b). The 300 mm minimum of 9-21-3-2-1-ب governs in all cases. Factor verification and clamps identical to BG-DEV-LENGTH-TENSION-001; ψ_t·ψ_e ≤ 1.7. Reduction per 9-21-3-9 with the floor preserved.
+
+Applicability:
+
+Alternative simplified path for tension development length of deformed bars/wires, exactly as printed in Table 9-21-4; nothing is interpolated beyond the two printed rows × two diameter classes.
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Same reduction prohibitions/gates as BG-DEV-LENGTH-TENSION-001.
+- The row-selection inputs (clear spacing, cover, ties flag) are REQUIRED — the confined row is never assumed.
+
+Required Inputs:
+
+- As BG-DEV-LENGTH-TENSION-001 minus K_tr, plus min_code_ties_provided_along_ld (REQUIRED).
+
+Units: mm.
+
+Verification Method:
+
+Visual source-page verification (page-448 JPG, Table 9-21-4 cells read at full resolution), 2026-10-05.
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage C)
+
+Executable as `beamgenius.engine.development_length_mabhas9.evaluate_dev_length_tension_table`.
+
+---
+
+## BG-DEV-LENGTH-HOOKED-001 — Development Length of Deformed Bars with Standard Hooks in Tension (Eq. 9-21-3, Clause 9-21-3-3)
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 448 (table PDF p. 450; definitions PDF p. 449)
+Printed Page: 428 (table Printed p. 430; definitions Printed p. 429)
+Clause: 9-21-3-3-1/-2/-3/-4, Eq. (9-21-3), Table 9-21-5
+
+### SOURCE VERIFIED (visually verified 2026-10-05; page-448/449/450 JPGs @ df8067a)
+
+Formula / Requirement:
+
+l_dh = [ψ_e·ψ_r·ψ_o·ψ_c / λ] · (0.043·f_y/√f′c) · d_b^1.5 per Eq. (9-21-3); minimum max(8·d_b, 150 mm) (3-3-1-ب). Table 9-21-5: ψ_e = 1.2 (epoxy/dual-coated) / 1.0 (uncoated, galvanized); ψ_r = 1.0 (d_b ≤ 34 mm AND A_th ≥ 0.40·A_hs AND anchored-bar spacing > 6·d_b), else 1.6; ψ_o = 1.0 (d_b ≤ 34 mm AND anchored in column core AND side cover normal to hook plane > 65 mm or > 6·d_b), else 1.25; ψ_c = f′c/105 + 0.6 (f′c < 42 MPa) / 1.0 (f′c ≥ 42). A_th per 9-21-3-3-3 (≥ 0.75·l_dh from hook bend; tie placement zones of 3-3-3-الف/ب and 3-3-4 are placement requirements recorded for traceability).
+
+Applicability:
+
+Tension anchorage with standard hooks. Hooks are never permitted to develop bars in compression (9-21-3-1-3).
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Excess-reinforcement reduction is NOT permitted for hooked anchorage (9-21-3-9-2-ث) — not offered by the evaluator.
+- The tie-placement geometry of 9-21-3-3-3/-4 is not computed by this length evaluator (documented dependency, not silently dropped).
+
+Required Inputs:
+
+- bar_diameter_mm, yield_stress_mpa, concrete_strength_mpa, concrete_weight_class, coating_class, a_th_mm2, a_hs_mm2, anchored_bar_clear_spacing_mm, anchored_in_column_core, side_cover_normal_to_hook_plane_mm — all REQUIRED, never assumed.
+
+Units: mm.
+
+Verification Method:
+
+Visual source-page verification (page-448/449/450 JPGs; Table 9-21-5 factor cells), 2026-10-05.
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage C)
+
+Executable as `beamgenius.engine.development_length_mabhas9.evaluate_dev_length_hooked`.
+
+---
+
+## BG-DEV-LENGTH-HEADED-001 — Development Length of Headed Deformed Bars in Tension (Eq. 9-21-4, Clause 9-21-3-4)
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 450 (equation PDF p. 451; table PDF p. 452)
+Printed Page: 430 (equation Printed p. 431; table Printed p. 432)
+Clause: 9-21-3-4-1/-2/-3/-4/-5, Eq. (9-21-4), Table 9-21-6
+
+### SOURCE VERIFIED (visually verified 2026-10-05; page-450/451/452 JPGs @ df8067a)
+
+Formula / Requirement:
+
+l_dt = [ψ_e·ψ_c·ψ_p·ψ_o / λ] · (0.032·f_y/√f′c) · d_b^1.5 per Eq. (9-21-4); minimum max(8·d_b, 150 mm). Applicability limits (9-21-3-4-1): d_b ≤ 34 mm; head bearing section A_brg ≥ 4·A_b; normal-weight concrete only; cover ≥ 2·d_b; center-to-center spacing ≥ 3·d_b — each a verifiable FAIL when violated. Table 9-21-6: ψ_e = 1.2 / 1.0 (coating); ψ_p = 1.0 (d_b ≤ 34 AND (beam-column joint with A_tt ≥ 0.3·A_ts, A_tt per 9-21-3-4-4 within 8·d_b, OR connection with anchored-bar spacing > 6·d_b)), else 1.6; ψ_o = 1.0 / 1.25 (column-core side-cover condition as Table 9-21-5); ψ_c as Table 9-21-5.
+
+Applicability:
+
+Tension anchorage with headed bars meeting every 9-21-3-4-1 limit. Heads never develop bars in compression (9-21-3-1-3).
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Reduction NOT permitted (9-21-3-9-2-ث) — not offered.
+- A_tt/A_ts inputs are REQUIRED when connection_class = BEAM_COLUMN_JOINT (missing → BLOCKED); for ANY_OTHER connections the joint-area branch is not evaluated.
+
+Required Inputs:
+
+- bar_diameter_mm, yield_stress_mpa, concrete_strength_mpa, concrete_weight_class, coating_class, head_bearing_area_mm2, concrete_cover_mm, bar_spacing_cc_mm, anchored_in_column_core, side_cover_normal_to_head_plane_mm, connection_class, a_tt_mm2/a_ts_mm2 (beam-column joints), anchored_bar_clear_spacing_mm — all REQUIRED, never assumed.
+
+Units: mm.
+
+Verification Method:
+
+Visual source-page verification (page-450/451/452 JPGs; Table 9-21-6 factor cells), 2026-10-05.
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage C)
+
+Executable as `beamgenius.engine.development_length_mabhas9.evaluate_dev_length_headed`.
+
+---
+
+## BG-DEV-MECH-ANCHOR-001 — Mechanical Anchorage of Deformed Bars in Tension (Clause 9-21-3-5)
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 453
+Printed Page: 433
+Clause: 9-21-3-5-1
+
+### SOURCE VERIFIED (visually verified 2026-10-05; page-453 JPG @ df8067a)
+
+Formula / Requirement:
+
+No length equation is given by the clause (and none is invented): any welded attachment or mechanical device capable of developing the bar yield f_y is permitted only with the design engineer's approval, and combined anchorage (mechanical anchor + development length between the critical section and the device) is permitted on the basis of approved test results. The evaluator enforces exactly this three-part gate.
+
+Applicability:
+
+Tension mechanical anchorage of deformed bars.
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Any missing condition → BLOCKED; any false condition → FAIL (device supplies f_y, engineer approval, approved test results). Reduction is not applicable to mechanical anchorage (9-21-3-9-2-ث).
+
+Required Inputs:
+
+- device_supplies_yield_capacity, designer_engineer_approved, approved_test_results_present — all REQUIRED booleans, never assumed.
+
+Units: dimensionless gate (unit "1").
+
+Verification Method:
+
+Visual source-page verification (page-453 JPG, clause 9-21-3-5-1 read at full resolution), 2026-10-05.
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage C)
+
+Executable as `beamgenius.engine.development_length_mabhas9.evaluate_dev_mech_anchorage`.
+
+---
+
+## BG-DEV-WIRE-DEFORMED-001 — Development Length of Welded Deformed-Wire Mesh in Tension (Eq. 9-21-5, Clause 9-21-3-6)
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 453 (ψ_w equations PDF p. 454)
+Printed Page: 433 (ψ_w equations Printed p. 434)
+Clause: 9-21-3-6-1/-2/-3/-4, Eq. (9-21-5), Eqs. (9-21-6-الف/ب)
+
+### SOURCE VERIFIED (visually verified 2026-10-05; page-453/454 JPGs @ df8067a)
+
+Formula / Requirement:
+
+l_d = [ψ_t·ψ_e·ψ_s·ψ_w / (λ·((c_b+K_tr)/d_b))] · (0.90·f_y/√f′c) · d_b per Eq. (9-21-5); floor 200 mm (3-6-1-ب). ψ_t/ψ_e/ψ_s per 9-21-3-2-2 (ψ_t·ψ_e ≤ 1.7); for epoxy-coated welded-wire mesh ψ_e may be taken 1.0 (3-6-1 explicit permission — typed option). c_b and K_tr per 9-21-3-2-1 (index ≤ 2.5). ψ_w per Eqs. (9-21-6-الف/ب): with a cross wire within l_d at ≥ 50 mm from the critical section, ψ_w = max(min((f_y−240)/f_y, 1.0), min(5·d_b/s, 1.0)); otherwise ψ_w = 1.0. Reduction permitted (9-21-3-9) with the 200 mm floor preserved.
+
+Applicability:
+
+Tension development of welded DEFORMED-wire mesh with d_b ≤ 16 mm, uncoated or epoxy-coated.
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Plain wire (any diameter), deformed wire d_b > 16 mm, and galvanized mesh are routed to 9-21-3-7 (3-6-3/-4) → NOT_APPLICABLE (`BG-DEV-WIRE-PLAIN-001` governs).
+- Supplying a cross-wire distance while declaring no cross wire is INVALID (INCONSISTENT_CROSS_WIRE_INPUTS).
+
+Required Inputs:
+
+- bar_diameter_mm, yield_stress_mpa, concrete_strength_mpa, concrete_weight_class, wire_surface_class (WireSurfaceClass), wire_is_deformed, epoxy_psi_e_unit_permission (epoxy only), top_bar_placement, concrete_cover_mm, clear_spacing_mm, cross_wire_in_development (with cross_wire_distance_from_critical_mm and anchored_wire_spacing_mm when True), apply_k_tr (+ transverse inputs when True) — all REQUIRED, never assumed.
+
+Units: mm.
+
+Verification Method:
+
+Visual source-page verification (page-453/454 JPGs; Eqs. (9-21-6-الف/ب) read at full resolution), 2026-10-05.
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage C)
+
+Executable as `beamgenius.engine.development_length_mabhas9.evaluate_dev_wire_deformed`.
+
+---
+
+## BG-DEV-WIRE-PLAIN-001 — Development Length of Welded Plain-Wire Mesh in Tension (Eq. 9-21-7, Clause 9-21-3-7)
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 454 (floors/mins PDF p. 455)
+Printed Page: 434 (floors/mins Printed p. 435)
+Clause: 9-21-3-7-1, Eq. (9-21-7)
+
+### SOURCE VERIFIED (visually verified 2026-10-05; page-454/455 JPGs @ df8067a)
+
+Formula / Requirement:
+
+l_dt = (3.3·f_y / (λ·√f′c)) · (A_b/s) per Eq. (9-21-7), measured from the critical section to the OUTERMOST cross wire (s = spacing of the anchored wires; A_b = wire cross-section); minimum: the greater of 150 mm and s + 50 mm (3-7-1-ب); at least two cross wires must exist within l_dt in all cases — fewer is a verifiable FAIL. Reduction permitted (9-21-3-9) with both floors preserved.
+
+Applicability:
+
+Tension development of welded PLAIN-wire mesh; also governs deformed wires > 16 mm and galvanized mesh (9-21-3-6-3/-4 routing).
+
+Limitations / Exceptions / Blocked Conditions:
+
+- Fewer than two cross wires → FAIL (PLAIN_WIRE_FEWER_THAN_TWO_CROSS_WIRES).
+- No ψ factors apply to this equation (none printed); none invented.
+
+Required Inputs:
+
+- bar_diameter_mm, anchored_wire_spacing_mm, yield_stress_mpa, concrete_strength_mpa, concrete_weight_class, cross_wires_in_development_length — all REQUIRED, never assumed.
+
+Units: mm.
+
+Verification Method:
+
+Visual source-page verification (page-454/455 JPGs; Eq. (9-21-7) and floors), 2026-10-05.
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage C)
+
+Executable as `beamgenius.engine.development_length_mabhas9.evaluate_dev_wire_plain`.
+
+---
+
+## BG-DEV-LENGTH-COMPRESSION-001 — Development Length of Deformed Bars and Wires in Compression (Clause 9-21-3-8)
+
+Status: VERIFIED
+Type: CODE_RULE
+Source: Iranian National Building Regulations — Mabhas 9 (1399, 5th ed.)
+PDF Page: 455
+Printed Page: 435
+Clause: 9-21-3-8-1
+
+### SOURCE VERIFIED (visually verified 2026-10-05; page-455 JPG @ df8067a)
+
+Formula / Requirement:
+
+l_dc = max{ (ψ_r·0.24·f_y/(λ·√f′c))·d_b , 0.043·f_y·ψ_r·d_b }, minimum 200 mm. ψ_r = 0.75 for confinement by a spiral, a continuous circular tie (diameter > 6 mm at spacing < 100 mm), a wire tie (diameter > 12 mm at spacing < 100 mm) [VERIFY_PENDING branch — see limitation], or a دوریگر/دورگیر per Clause 9-21-6-4 at spacing < 100 mm; ψ_r = 1.0 otherwise. Reduction permitted (9-21-3-9) with the 200 mm floor preserved.
+
+Applicability:
+
+Compression development of single deformed bars or wires. Hooks/heads never develop bars in compression (9-21-3-1-3).
+
+Limitations / Exceptions / Blocked Conditions:
+
+- The «تنگ سیمی» (wire tie > 12 mm @ < 100 mm) ψ_r branch keeps its recorded noun ambiguity (source-verification matrix §4B †1: the printed noun requires re-confirmation) — the branch is deterministically BLOCKED (`VERIFY_PENDING_CONFINEMENT_TIE_CLASS`) and never executed.
+- Circular-tie/dورگیر classes require their diameter/spacing inputs; qualifications fully below the printed thresholds yield ψ_r = 1.0 (never assumed).
+
+Required Inputs:
+
+- bar_diameter_mm, yield_stress_mpa, concrete_strength_mpa, concrete_weight_class, confinement_tie_class (CompressionConfinementClass; +confinement_tie_diameter_mm for CIRCULAR_TIE, +confinement_tie_spacing_mm for CIRCULAR_TIE/DORGIR_9_21_6_4) — all REQUIRED, never assumed.
+
+Units: mm.
+
+Verification Method:
+
+Visual source-page verification (page-455 JPG; ψ_r class list read at high zoom), 2026-10-05.
+
+### EXECUTABLE IMPLEMENTATION (Phase 2F Stage C)
+
+Executable as `beamgenius.engine.development_length_mabhas9.evaluate_dev_length_compression`.

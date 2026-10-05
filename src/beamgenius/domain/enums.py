@@ -82,6 +82,101 @@ class CoverReinforcementType(str, Enum):
     TRANSVERSE = "TRANSVERSE"
 
 
+class ConcreteWeightClass(str, Enum):
+    """Concrete weight classification for the lambda factor (Mabhas 9 Clause 9-21-3-1-6).
+
+    The weight class is a REQUIRED typed input of every Clause 9-21-3
+    development-length evaluator and is never silently assumed.
+
+    NORMAL_WEIGHT: lambda = 1.0.
+    LIGHTWEIGHT: lambda = 0.75.
+    """
+
+    NORMAL_WEIGHT = "NORMAL_WEIGHT"
+    LIGHTWEIGHT = "LIGHTWEIGHT"
+
+
+class SteelGradeClass(str, Enum):
+    """Reinforcing steel grade class for the psi_g factor (Mabhas 9 Table 9-21-3).
+
+    S340/S350/S400/S420: psi_g = 1.0.
+    S500/S520: psi_g = 1.15.
+    The grade class is a REQUIRED typed input (never assumed); the numeric
+    yield stress f_y remains a separate REQUIRED numeric input.
+    """
+
+    S340 = "S340"
+    S350 = "S350"
+    S400 = "S400"
+    S420 = "S420"
+    S500 = "S500"
+    S520 = "S520"
+
+
+class BarCoatingClass(str, Enum):
+    """Bar coating classification for the psi_e coating factor (Tables 9-21-3
+    / 9-21-5 / 9-21-6).
+
+    UNCOATED_OR_GALVANIZED: psi_e = 1.0 everywhere the table applies.
+    EPOXY_OR_DUAL_COATED: psi_e per the verified table branch conditions.
+    """
+
+    UNCOATED_OR_GALVANIZED = "UNCOATED_OR_GALVANIZED"
+    EPOXY_OR_DUAL_COATED = "EPOXY_OR_DUAL_COATED"
+
+
+class WireSurfaceClass(str, Enum):
+    """Surface class of welded-wire reinforcement (Mabhas 9 Clauses
+    9-21-3-6 and 9-21-3-7).
+
+    UNCOATED / EPOXY: governed by 9-21-3-6 for deformed wires <= 16 mm
+    (epoxy mesh carries the explicit psi_e = 1.0 permission of 9-21-3-6-1).
+    GALVANIZIZED-galvanized mesh: routed to 9-21-3-7 by 9-21-3-6-4 and is
+    NOT_APPLICABLE in the deformed-wire rule.
+    """
+
+    UNCOATED = "UNCOATED"
+    EPOXY = "EPOXY"
+    GALVANIZED = "GALVANIZED"
+
+
+class AnchorConnectionClass(str, Enum):
+    """Anchorage connection classification for the headed-bar psi_p factor
+    (Mabhas 9 Table 9-21-6).
+
+    BEAM_COLUMN_JOINT: a beam-column joint anchorage; A_tt >= 0.3*A_ts
+    qualifies for psi_p = 1.0 (A_tt per Clause 9-21-3-4-4).
+    ANY_OTHER: any other connection; only the anchored-bar spacing (> 6*d_b)
+    branch qualifies for psi_p = 1.0.
+    """
+
+    BEAM_COLUMN_JOINT = "BEAM_COLUMN_JOINT"
+    ANY_OTHER = "ANY_OTHER"
+
+
+class CompressionConfinementClass(str, Enum):
+    """Confinement classification for the compression psi_r factor
+    (Mabhas 9 Clause 9-21-3-8-1).
+
+    SPIRAL: confinement by a spiral (دورپیچ) -> psi_r = 0.75.
+    CIRCULAR_TIE: continuous circular tie with diameter > 6 mm at spacing
+    < 100 mm (both are REQUIRED typed inputs) -> psi_r = 0.75, else 1.0.
+    WIRE_TIE: the printed «تنگ سیمی» (wire tie) branch (diameter > 12 mm at
+    spacing < 100 mm). The exact Persian noun of this branch is
+    VERIFY_PENDING per the source-verification record; the branch is
+    deterministically BLOCKED and never executed.
+    DORGIR_9_21_6_4: closed confinement tie (دوریگر) per Clause 9-21-6-4 at
+    spacing < 100 mm (REQUIRED typed input) -> psi_r = 0.75, else 1.0.
+    NONE: none of the listed confinement classes -> psi_r = 1.0.
+    """
+
+    SPIRAL = "SPIRAL"
+    CIRCULAR_TIE = "CIRCULAR_TIE"
+    WIRE_TIE = "WIRE_TIE"
+    DORGIR_9_21_6_4 = "DORGIR_9_21_6_4"
+    NONE = "NONE"
+
+
 class JurisdictionMode(str, Enum):
     """Active engineering jurisdiction / execution mode.
 

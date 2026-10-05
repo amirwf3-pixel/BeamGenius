@@ -464,7 +464,7 @@ Source: Mabhas 9, file page 230, Clause 9-11-6-6-4 (OCR token: 11-6-6-4-9)
 
 
 
-Structural-integrity longitudinal reinforcement shall be fully anchored so that reinforcement at the face of support can develop yield stress (the quantitative development/hook length source is now `VERIFIED_SOURCE_ONLY` per matrix §4B, 2026-10-05 — execution BLOCKED; not computable here until Stage C promotion).
+Structural-integrity longitudinal reinforcement shall be fully anchored so that reinforcement at the face of support can develop yield stress (a verified single-bar development/hook length is computable since Stage C via `BG-DEV-LENGTH-TENSION-001` / `BG-DEV-LENGTH-HOOKED-001`; integrating it into the integrity anchor-age check remains a separate, not yet implemented integration stage).
 
 
 
@@ -532,7 +532,7 @@ The following shall NOT be implemented as executable engineering rules until sou
 
 - Mabhas 9 bent-up longitudinal bar shear resistance (`Eq. 9-8-18`), beams with web openings (`Clause 9-8-4-1-4`), variable-depth haunches (`Clause 9-8-4-1-6`), and seismic capacity-design shear provisions (`Clause 9-7-4-5` / `Chapter 9-20`)
 
-- Integration of the VERIFIED bundled-bar equivalent diameter (Clause 9-21-5-6, implemented as `BG-DETAIL-BUNDLE-006` in Phase 2F Stage B) into the bundled branches of the clear-spacing (`BG-DETAIL-LONG-SPACING-001`), layer-spacing (`BG-DETAIL-LAYER-SPACING-001`) and cover (Clause 9-4-9-5-2, `BG-DETAIL-COVER-001`) rules (those branches keep returning `UNVERIFIED_BUNDLE_RULE` until this integration stage); corrosive/unusual-environment cover computations per Appendix 9-پ1 (Clauses 9-4-9-6/9-4-9-7; Tables 9-پ1-2..4 and 9-پ1-6 remain VERIFY_PENDING); cover diameter classes outside db ≤ 16 mm and db 18–58 mm (Table 9-4-6); the underlying single-bar development length (Clause 9-21-3, source now `VERIFIED_SOURCE_ONLY` per matrix §4B — still NOT executable, `BG-DEV-LENGTH-PENDING` unchanged) and lap rules (Clause 9-21-4, source now `VERIFIED_SOURCE_ONLY` per matrix §4B — still NOT executable) consumed as typed inputs by `BG-DETAIL-BUNDLE-007/008`
+- Integration of the VERIFIED bundled-bar equivalent diameter (Clause 9-21-5-6, implemented as `BG-DETAIL-BUNDLE-006` in Phase 2F Stage B) into the bundled branches of the clear-spacing (`BG-DETAIL-LONG-SPACING-001`), layer-spacing (`BG-DETAIL-LAYER-SPACING-001`) and cover (Clause 9-4-9-5-2, `BG-DETAIL-COVER-001`) rules (those branches keep returning `UNVERIFIED_BUNDLE_RULE` until this integration stage); corrosive/unusual-environment cover computations per Appendix 9-پ1 (Clauses 9-4-9-6/9-4-9-7; Tables 9-پ1-2..4 and 9-پ1-6 remain VERIFY_PENDING); cover diameter classes outside db ≤ 16 mm and db 18–58 mm (Table 9-4-6); the underlying single-bar development length (Clause 9-21-3 — **implemented 2026-10-05, Stage C**: `BG-DEV-LENGTH-TENSION-001` / `BG-DEV-LENGTH-COMPRESSION-001`), while lap rules (Clause 9-21-4, `VERIFIED_SOURCE_ONLY` — still NOT executable) consumed as typed inputs by `BG-DETAIL-BUNDLE-007/008` remain caller-supplied; bundle evaluators 007/008 themselves are unchanged
 
 - Clause 9-11-6-6-2 non-perimeter beam structural integrity reinforcement
 
@@ -540,7 +540,7 @@ The following shall NOT be implemented as executable engineering rules until sou
 
 - Clause 9-11-6-2-5 (OCR 5-2-6-11-9) cutoff conditions
 
-- Development-length, hooked/headed development and lap-splice equations (Mabhas 9 Clauses 9-21-3 / 9-21-4; supersedes the former OCR token `Clause 2-3-6-9` placeholder): source `VERIFIED_SOURCE_ONLY` per `docs/PHASE2_SOURCE_VERIFICATION_MATRIX.md` §4B (2026-10-05, Printed pp. 424–441 / PDF pp. 444–461) — execution stays BLOCKED (§4B.4); residual `ψ_r` noun nuance and `9-21-4-4-1-ب` semantics `VERIFY_PENDING`
+- Development-length and anchorage equations of Mabhas 9 Clause 9-21-3 (supersedes the former OCR token `Clause 2-3-6-9` placeholder): **PROMOTED & IMPLEMENTED 2026-10-05 (Phase 2F Stage C)** as `BG-DEV-LENGTH-TENSION-001` / `BG-DEV-LENGTH-TENSION-TABLE-001` / `BG-DEV-LENGTH-HOOKED-001` / `BG-DEV-LENGTH-HEADED-001` / `BG-DEV-MECH-ANCHOR-001` / `BG-DEV-WIRE-DEFORMED-001` / `BG-DEV-WIRE-PLAIN-001` / `BG-DEV-LENGTH-COMPRESSION-001` (registry `execution_allowed=True`; see `docs/VERIFIED_RULES.md` and matrix §4C; the compression wire-tie ψ_r branch stays `VERIFY_PENDING` by design). Still pending: lap-splice equations (Clause 9-21-4 — `VERIFIED_SOURCE_ONLY`, not yet executable, `9-21-4-4-1-ب` semantics `VERIFY_PENDING`), negative bar extension, skin reinforcement, flexural bar extension (`9-11-6-2-4`) and cutoff (`9-11-6-2-5`)
 
 - Negative reinforcement extension equation
 
