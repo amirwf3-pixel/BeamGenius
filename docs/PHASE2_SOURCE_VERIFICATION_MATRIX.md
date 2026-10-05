@@ -281,6 +281,71 @@ compression ψ_r class list, and the 9-21-3-9-2 prohibition list).
 Checks at promotion: pytest 340 passed (74 new Stage C tests);
 strict mypy clean (21 source files).
 
+## 4D. Phase 2F Stage D (2026-10-05) — Clause 9-21-4 Lap Splices: SOURCE VERIFICATION Record
+
+Scope: **Clause 9-21-4 ONLY** («وصله‌ی میلگردها» / bar splices). **SOURCE VERIFICATION ONLY** — this stage performs the dedicated, footer-confirmed visual inspection and documentation of §9-21-4-1 through §9-21-4-7. **No implementation, no registry change, no status widening, no promotion, no engine/test change** occurred. Source basis: the committed evidence scan `phase2f-source-442-472/` on `origin/main` @ `df8067a` (Mabhas 9, 1399, 5th ed., ATNasr PDF), re-inspected page-by-page at full resolution on 2026-10-05. The six §9-21-4 page footers were read **directly from the `page-NNN.jpg` scans**; the `page-NNN.txt` Persian OCR was used for navigation only and is never trusted for values (its footer reads are demonstrably wrong — e.g. OCR "337"/"441" against the true printed footers read below). This record refines the §4B.2 `VERIFIED_SOURCE_ONLY` rows for §9-21-4 with an explicit footer-verified clause/page map; it does not alter any §4B engineering verdict.
+
+### D.1 Footer-confirmed page mapping (visual reads of all six §9-21-4 pages)
+
+Every printed-page footer was read directly from the scan. The run is unbroken and monotone, re-proving **PDF = printed + 20** for this scan (consistent with the §4B.1 signed-off run 442↔422 … 471↔451):
+
+| PDF page | Printed footer (visual read) | §9-21-4 content on the page |
+| :--- | :--- | :--- |
+| 456 | «۴۳۶» = **436** | tail of §9-21-3-9; **§9-21-4 heading**; §9-21-4-1-1 (splice methods); §9-21-4-1-2-الف (lap, d_b ≤ 34) |
+| 457 | «۴۳۷» = **437** | §9-21-4-1-2-ب (compression lap ≤42→≤34 per §9-21-4-5-2); §9-21-4-1-4 (contact-lap spacing); §9-21-4-1-5 (no excess-ld reduction); §9-21-4-2 heading + §9-21-4-2-1 (tension lap) |
+| 458 | «۴۳۸» = **438** | §9-21-4-2 (mixed-diameter tension lap); §9-21-4-3 heading + §9-21-4-3-1..-3-4 (welded deformed-wire lap) |
+| 459 | «۴۳۹» = **439** | §9-21-4-4 heading + §9-21-4-4-1 (plain-wire lap, incl. **-4-1-ب** disjunct); §9-21-4-5 heading + §9-21-4-5-1 (compression lap) |
+| 460 | «۴۴۰» = **440** | §9-21-4-5-2 (mixed-diameter compression lap); §9-21-4-6 heading + §9-21-4-6-1..-6-3 (bearing splice); §9-21-4-7 heading + §9-21-4-7-1..-7-2 (welded/mechanical) |
+| 461 | «۴۴۱» = **441** | §9-21-4-7-3..-7-7 (welded/mechanical); **§9-21-5 «گروه میلگردها» heading + §9-21-5-1 visible at the foot → §9-21-4 lower boundary** |
+
+**Result: §9-21-4 occupies PDF pp. 456–461 = printed pp. 436–441** (the expected window), bounded above by the tail of §9-21-3-9 on printed 436 and below by §9-21-5 on printed 441.
+
+### D.2 Clause-by-clause verbatim record (status: `VERIFIED_SOURCE_ONLY` — documentation only; nothing promoted)
+
+| Clause | Verbatim content (visually read) | Printed p. | PDF p. | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| `9-21-4-1-1` | «وصله‌ی میلگردها به یکی از طرق زیر مجاز است: الف- وصله‌ی پوششی؛ ب- وصله‌ی اتکایی؛ پ- وصله‌ی جوشی؛ ت- وصله‌ی مکانیکی.» (four permitted methods: lap / bearing / welded / mechanical) | 436 | 456 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-1-2` | lap permitted: (الف) tension & compression, d_b ≤ 34 mm; (ب) compression, max 42 mm bar to ≤ 34 mm bar, satisfying `9-21-4-5-2` | 436–437 | 456–457 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-1-4` | «برای وصله‌ی پوششی تماسی در اعضای خمشی، فاصله‌ی عرضی مرکز به مرکز میلگردهای وصله شده نباید از یک پنجم طول وصله و ۱۵۰ میلی‌متر تجاوز نماید.» (contact lap in flexural members: transverse c–c ≤ lap/5 and ≤ 150 mm) | 437 | 457 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-1-5` | «کاهش طول گیرایی برای در نظر گرفتن اثر آرماتور اضافی مطابق بند ۹-۲۱-۳-۹ در محاسبه‌ی طول وصله‌ها مجاز نیست.» (no excess-reinforcement ld reduction in lap calc) | 437 | 457 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-2-1` | tension lap `l_st` = **1.3·l_d (type B)** general; **1.0·l_d (type A)** only if (الف) provided ≥ 2× required AND (ب) ≤ ½ of bars spliced in the lap length; **min 300 mm**; `l_d` per `9-21-4-2-1-1` | 437 | 457 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-2` (mixed dia.) | different-diameter tension lap `l_s` ≥ max(الف: `l_d` for the larger bar; ب: `l_st` for the smaller bar) | 438 | 458 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-3-1` | welded deformed-wire-mesh lap `l_sd` ≥ **max(1.3·l_d, 200 mm)** (`l_d` per `9-21-4-2-1-الف`); plus (الف) outer cross-wire overlap ≥ 50 mm, (ب) all wires deformed & d ≤ 20 mm | 438 | 458 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-3-2/-3/-4` | if (الف) unmet → per `9-21-4-2`; if (ب) unmet → per `9-21-4-4`; galvanized welded deformed wire → per `9-21-4-4` | 438 | 458 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-4-1` | plain welded-wire-mesh lap ≥ max(الف: **1.5·l_d** per `9-21-3-7-1-الف`; ب: cross-wire spacing + 50 mm **و یا** 150 mm) — see D.3 | 439 | 459 | `VERIFIED_SOURCE_ONLY` † |
+| `9-21-4-5-1` | compression lap `l_sc` (d_b ≤ 34 mm): (الف) f_y ≤ 420 → **0.071·f_y·d_b**; (ب) f_y > 420 → **(0.13·f_y − 24)·d_b**; **min 300 mm** | 439 | 459 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-5-2` | different-diameter compression lap ≥ max(الف: `l_dc` larger bar per `9-21-3-8`; ب: `l_sc` smaller bar per `9-21-4-5-1`) | 440 | 460 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-6-1` | bearing transfer between two compression-only bars, ends cut perpendicular to the bar axis; the two spliced bars must be coaxial (e.g. via a ring/طوقه) | 440 | 460 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-6-2` | bearing splice permitted only in members with confinement (خاموت; §4B glosses as tied/spiral/دورگیر) | 440 | 460 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-6-3` | end-face deviation ≤ **5°** («انحراف حداکثر ۵ درجه») and axial misalignment ≤ **3°** («اختلاف امتداد دو میلگرد از ۳ درجه بیشتر نباشد») — **refines §4B.2's "1.5°"** (see D.6) | 440 | 460 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-7-1/-7-2` | welded splices mainly for d_b ≥ 20 mm; for large bars, end-to-end butt weld preferred | 440 | 460 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-7-3` | welding must satisfy National Building Regulations **Chapter 10** | 441 | 461 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-7-4/-7-5` | mechanical-splice force transfer via bearing / friction / coupler etc.; cover must account for any mechanical-splice size increase; splice develops the bar yield in tension or compression (§4B records the multiplier as 1.25·f_y — the leading coefficient glyph was not independently re-confirmed at this zoom and is left as §4B recorded) | 441 | 461 | `VERIFIED_SOURCE_ONLY` |
+| `9-21-4-7-6/-7-7` | staggered mechanical/welded splices not required at every section except in tension members (`9-21-4-7-8`); in tension members (arch ties, load transfer to a higher support, etc.) adjacent welded/mechanical splices must be staggered ≥ **750 mm** along the bar | 441 | 461 | `VERIFIED_SOURCE_ONLY` |
+
+† — **VERIFY_PENDING (semantics):** see D.3. Clause `9-21-4-4-1-ب` is recorded verbatim and is **not interpreted and not executed**; any future implementation must adopt a conservative interpretation only after the disjunct is resolved.
+
+### D.3 VERIFY_PENDING retained — §9-21-4-4-1-ب disjunct (NOT interpreted, NOT executed)
+
+Confirmed verbatim on printed 439 / PDF 459: «ب- فاصله‌ی بین سیم‌های عمود بر امتداد وصله به علاوه‌ی ۵۰ میلی‌متر، **و یا** ۱۵۰ میلی‌متر.» The printed disjunct («و یا» = "or") leaves the governing combination undetermined — e.g. whether it is "cross-wire spacing + 50 mm **or** 150 mm", or a max()/min() form like the explicit «هر کدام بزرگ‌تر» of `9-21-3-7-1`. The verbatim text is recorded; **no interpretation or execution is performed**. Status is unchanged from §4B †2 and §4C.2: `VERIFY_PENDING`. Per the Stage D directive this clause is explicitly **not** to be interpreted or executed.
+
+### D.4 Promotion gate result (SOURCE VERIFICATION ONLY — nothing promoted)
+
+The §4 dependency gate is **not** run for execution promotion in this stage. §9-21-4 remains `VERIFIED_SOURCE_ONLY` / **non-executable**; code behavior is unchanged (`UNVERIFIED_RULE_BLOCKED` for any attempted lap-splice execution). Unblocking prerequisites recorded for a *future* promotion stage (each still needs its own §4 dependency-gate row): `9-21-4-2` tension laps consume the §9-21-3 `l_d` (now VERIFIED/executable from Stage C, but the lap equations themselves are not promoted here); `9-21-4-5` compression laps consume §9-21-3-8 `l_dc`; `9-21-4-3/-4` wire laps consume §9-21-3-6/-7; `9-21-4-7` welded-splice *strength-transfer* depends on NBC Chapter 10 (out-of-window, `VERIFY_PENDING`); and the `9-21-4-4-1-ب` semantic residue (D.3) persists.
+
+### D.5 Out-of-window dependencies (unchanged `VERIFY_PENDING`; nothing silenced to PASS)
+
+1. National Building Regulations **Chapter 10** welding (referenced by `9-21-4-7-3`) — pages not delivered.
+2. Chapter **9-4** bar material specs incl. **9-4-8** welded-wire steel (referenced by the wire-lap clauses `9-21-4-3`/`9-21-4-4`) — pages not delivered.
+3. **9-20-6** bar bending geometry — pages not delivered.
+4. Mostofinejad reference-methodology pages for splice topics — never consulted; only Mabhas 9 source used.
+
+### D.6 Evidence refinement recorded during Stage D inspection
+
+- `9-21-4-6-3` angular limits read directly from printed 440 / PDF 460 as end-face deviation ≤ **5°** and axial-misalignment ≤ **3°**; this **refines the "1.5°" figure** carried in the §4B.2 §9-21-4-6 summary row (a misread of «۵» as «۱٬۵»; the Persian OCR independently reads «۵ درجه»). The value is now pinned to the verbatim visual read. **No §9-21-4 status changes as a result** — the clause was and remains `VERIFIED_SOURCE_ONLY`; §4B engineering verdicts are otherwise unaffected.
+
+Checks: source-verification only — no source/test change; pytest 340 passed (unchanged), `mypy --strict src` clean (21 files, unchanged).
+
 ## 5. Phase 2B Flexural Resistance — Granular Source Verification Matrix
 
 Per Phase 2B Continuation Tasks 1–7, each required Mabhas 9 flexural source item has been verified against Mabhas 9 (1399) Chapters `9-3`, `9-4`, `9-6`, `9-7`, `9-8`, and `9-11` and classified below as `VERIFIED` or `VERIFY_PENDING` (`BLOCKED`).
