@@ -3471,16 +3471,27 @@ RULE_BG_TRANS_WIRE_SUBST_PENDING = RuleReference(
     clause_or_equation="Clause 9-21-6-2-3 (Printed p. 446 / PDF p. 466)",
     symbolic_formula="UNAVAILABLE (execution blocked)",
     description=(
-        "Clause 9-21-6-2-3: deformed wire from welded-wire mesh may "
-        "substitute for a deformed tie (equal area) subject to Clauses "
-        "9-21-6-2-1, 9-21-6-2-2 and National Building Regulations Clause "
-        "9-4-8 (welded-wire steel)."
+        "Clause 9-21-6-2-3: a deformed wire or a welded-wire mesh may "
+        "substitute for a deformed tie of equal cross-sectional area, "
+        "subject to Clauses 9-21-6-2-1 and 9-4-8. The verified source "
+        "citation is 9-21-6-2-1 and 9-4-8 only; the earlier '9-21-6-2-2' "
+        "citation was removed in Stage H.15 as not present in the print, "
+        "and the earlier 'welded-wire steel' description of Clause 9-4-8 "
+        "was corrected (9-4-8 is the general reinforcement specification "
+        "clause)."
     ),
     execution_allowed=False,
     blocked_reason=(
-        "Execution BLOCKED: depends on National Building Regulations Clause "
-        "9-4-8 welded-wire steel specifications, whose pages are out of the "
-        "verified window (VERIFY_PENDING). No formula/number is executed."
+        "Execution BLOCKED: Clause 9-4-8 is now visually verified "
+        "(Stage H.14, phase2f-source-948/, printed pp. 66-69), but its "
+        "operative condition for this substitution - Clause 9-4-8-7 - "
+        "requires conformity of plain wire, deformed wire and welded meshes "
+        "to Iranian National Standard 11558 (INSO/ISIRI 11558). Stage H.15 "
+        "found that standard's authoritative text unavailable in this "
+        "environment (KEEP BLOCKED). A residual ambiguity over welded-mesh "
+        "admissibility for a tie also remains (the Table 9-4-4 shear/tie row "
+        "carries no mesh permission; footnote [2] sits on the flexure/axial "
+        "row). No formula/number is executed."
     ),
     dependencies=(),
 )

@@ -191,7 +191,7 @@ Visually verified footer pairs (current evidence scan): **PDF 442↔422, 444↔4
 
 ### B.3 Out-of-window dependencies — all `VERIFY_PENDING` (no evidence delivered for these; nothing may be silenced to PASS)
 
-1. Chapter **9-4** bar material specifications, incl. **9-4-8** welded-wire steel (referenced by `9-21-3-4-1-الف` and `9-21-6-2-3`) — pages not delivered: `VERIFY_PENDING`.
+1. Chapter **9-4** bar material specifications, incl. **9-4-8** (referenced by `9-21-3-4-1-الف` and `9-21-6-2-3`) — **RESOLVED FOR 9-4-8**: the §9-4-8 pages were delivered and visually verified in Stage H.14 (`phase2f-source-948/`, PDF 86–89 / printed 66–69). §9-4-8-7 requires conformity to INSO 11558, whose authoritative text Stage H.15 could not obtain — that residual dependency remains `VERIFY_PENDING`.
 2. **9-20-6** bar bending geometry (referenced by the `9-21-2-2` hook definitions / Table 9-21-2 bend-diameter semantics for detailing geometry beyond the lengths recorded here) — `VERIFY_PENDING`.
 3. National Building Regulations **Chapter 10** welding requirements (referenced by `9-21-4-7-3`) — `VERIFY_PENDING`; welded-splice *strength-transfer* semantics therefore blocked even though `9-21-4-7` clauses are visually verified.
 4. **PDF 440 / 441** (printed 420 / 421 — the page pair holding `9-21-2-1` text top-of-page) are outside the delivered window; their mapping is projected by the +20 adjacency and is flagged, not used to promote anything. (`9-21-2-1-1` itself remains VERIFIED from the earlier capture, row 5.)
@@ -336,7 +336,7 @@ The §4 dependency gate is **not** run for execution promotion in this stage. §
 ### D.5 Out-of-window dependencies (unchanged `VERIFY_PENDING`; nothing silenced to PASS)
 
 1. National Building Regulations **Chapter 10** welding (referenced by `9-21-4-7-3`) — pages not delivered.
-2. Chapter **9-4** bar material specs incl. **9-4-8** welded-wire steel (referenced by the wire-lap clauses `9-21-4-3`/`9-21-4-4`) — pages not delivered.
+2. Chapter **9-4** bar material specs incl. **9-4-8** (referenced by the wire-lap clauses `9-21-4-3`/`9-21-4-4`) — **§9-4-8 pages delivered and visually verified in Stage H.14** (see `docs/PHASE2F_STAGE_H14_D_RESOLUTION.md`); the residual INSO 11558 conformity dependency (§9-4-8-7) remains unresolved per Stage H.15.
 3. **9-20-6** bar bending geometry — pages not delivered.
 4. Mostofinejad reference-methodology pages for splice topics — never consulted; only Mabhas 9 source used.
 
@@ -368,7 +368,7 @@ Scope: **Clause 9-21-4 ONLY**. Baseline: Stage D commit `a75405e` (parent = immu
 
 | Rule | Clause | Printed / PDF | Blocked reason (out-of-scope dep / ambiguity) |
 | :--- | :--- | :--- | :--- |
-| `BG-DEV-LAP-WIRE-DEFORMED-PENDING` | 9-21-4-3 | 438 / 458 | NBC Chapter 9-4 welded-wire steel (incl. 9-4-8) out of window (VERIFY_PENDING); branches to 9-21-4-4 |
+| `BG-DEV-LAP-WIRE-DEFORMED-PENDING` | 9-21-4-3 | 438 / 458 | §9-4-8 now verified (H.14); residual dependency is INSO 11558 conformity via §9-4-8-7 (H.15, unresolved); branches to 9-21-4-4 |
 | `BG-DEV-LAP-WIRE-PLAIN-PENDING` | 9-21-4-4 | 439 / 459 | 9-21-4-4-1-ب «و یا» disjunct unresolved (VERIFY_PENDING; recorded verbatim, never interpreted/executed) + Chapter 9-4 dep |
 | `BG-DEV-SPLICE-WELDED-MECH-PENDING` | 9-21-4-7 | 440–441 / 460–461 | 9-21-4-7-3 requires NBC Chapter 10 welding (out of window, VERIFY_PENDING); mechanical-splice strength coefficient glyph not independently re-confirmed |
 
@@ -413,7 +413,7 @@ All values below are the verbatim visual reads from the scans (enlarged crops us
 | `9-21-6-1-8` | Except where a tie is for torsion/integrity, a closed tie may be made from two U-ties; the U-tie leg lap must be at least **⅓ of the anchorage length**. In members with total depth **≥ 450 mm** and force per leg (f_y × tie area) **< 40 kN**, a leg lap continuing across the full member depth is sufficient. | 445–446 / 465–466 | none | `VERIFIED_SOURCE_ONLY` |
 | `9-21-6-2-1` | Ties must be closed loops of deformed bars; spacing: (الف) clear spacing ≥ **⅓ × max nominal aggregate size**; (ب) centre-to-centre tie spacing ≤ min(**16 × longitudinal bar d_b**, **48 × transverse bar d_b**, **smallest member dimension**). | 446 / 466 | none | `VERIFIED_SOURCE_ONLY` |
 | `9-21-6-2-2` | Minimum tie diameter: (الف) **10 mm** for longitudinal bars up to **32 mm**; (ب) **12 mm** for longitudinal bars **34 mm and larger**, or longitudinal bar bundles. | 446 / 466 | none | `VERIFIED_SOURCE_ONLY` † |
-| `9-21-6-2-3` | Deformed wire from welded-wire mesh may substitute for a deformed tie (equal area) subject to §9-21-6-2-1 and **§9-4-8**. | 446 / 466 | **§9-4-8 (out of window)** | `VERIFIED_SOURCE_ONLY` |
+| `9-21-6-2-3` | A deformed wire or a welded-wire mesh may substitute for a deformed tie (equal area) subject to §9-21-6-2-1 and **§9-4-8**. | 446 / 466 | **§9-4-8 verified (H.14, `phase2f-source-948/`); residual: INSO 11558 conformity via §9-4-8-7 (H.15 unresolved) and welded-mesh/tie ambiguity** | `VERIFIED_SOURCE_ONLY` |
 | `9-21-6-2-4` | Rectangular ties: (الف) every corner longitudinal bar and the other longitudinal bars taken one-by-one must be restrained by a bend of angle ≤ **135°**; (ب) a tie bar without lateral restraint must have clear spacing ≤ **150 mm** from a restrained longitudinal bar; (پ) tie anchorage by a standard hook engaging a longitudinal bar; (ت) headed-bar assemblies are not permitted as ties. | 447 / 467 | none | `VERIFIED_SOURCE_ONLY` |
 | `9-21-6-2-5` | Circular ties (circular bar arrangement): (الف) at each tie end the bars must overlap by at least **150 mm**; (ب) tie ends terminate in a standard hook engaging longitudinal bars; (پ) overlaps of successive circular ties on peripheral longitudinal bars must not coincide (opposite sides of the section). | 447 / 467 | none | `VERIFIED_SOURCE_ONLY` |
 | `9-21-6-2-6` | A continuous deformed bar/wire is permitted as a tie if spacing meets §9-21-6-2-1, area meets §9-21-6-2-2, and end anchorage meets §9-21-6-2-4 or §9-21-6-2-5. | 447 / 467 | §9-21-6-2-1/-2-2/-2-4/-2-5 (in-scope) | `VERIFIED_SOURCE_ONLY` |
@@ -440,7 +440,7 @@ These are verbatim source features recorded for a future promotion stage; nothin
 
 ### F.4 Out-of-scope dependencies (unchanged; nothing silenced to PASS)
 
-1. National Building Regulations **Chapter 9-4** bar/wire material specs incl. **9-4-8** welded-wire steel (referenced by **§9-21-6-2-3**) — pages not delivered.
+1. National Building Regulations **Chapter 9-4** bar/wire material specs incl. **9-4-8** (referenced by **§9-21-6-2-3**) — **§9-4-8 delivered and visually verified in Stage H.14**; the remaining external dependency is **INSO 11558** via §9-4-8-7 (Stage H.15, unresolved).
 2. **§9-21-4-7** welded/mechanical splices (referenced by **§9-21-6-3-5-الف**) — itself blocked in Stage E via NBC **Chapter 10** welding (out of window).
 3. **§9-20-6** bar bending geometry and Mostofinejad reference pages — not consulted; only Mabhas 9 source used.
 
@@ -505,7 +505,7 @@ k in lap = k·d_b (then floored at 300 mm). Combinations not listed → determin
 | `BG-TRANS-TIE-ANCHOR-PENDING` | 9-21-6-1-3-ب only | 463 / 443 | **H.7 narrowed from the whole clause to the unimplemented branches; H.8 narrowed it again to branch (ب) only.** Branch (الف) is now the executable `BG-TRANS-TIE-ANCHOR-STD-HOOK-001` (d_b ≤ 16 mm any f_y, or d_b 18–25 mm with f_y < 280 MPa) and branch (پ) is now the executable `BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001` (in joists, d_b ≤ 12 mm → standard hook, no f_y gate). Remaining: branch (ب) (d_b 18–25 mm with f_y > 280 MPa — standard hook + embedment length + min outer bend dia 0.17·f_y/(λ·√f′c)·d_b, λ undefined in §9-21-6), plus the genuine gaps f_y = 280 MPa exactly, d_b = 17 mm and d_b > 25 mm. Never interpolated. |
 | `BG-TRANS-WIRE-TIE-PENDING` | 9-21-6-1-5 | 464 / 444 | single-leg welded-wire tie anchorage: positioning wording not interpreted; 9-21-6-1-5-ب has no governing number. (§9-21-6-1-4 was promoted in H.5 to `BG-TRANS-WIRE-TIE-UTIE-001`.) |
 | `BG-TRANS-TORSION-TIE-PENDING` | 9-21-6-1-6-ب, 9-21-6-2-7-ب | 464–468 / 444–448 | Stage H.3 promoted the deterministic branches (§9-21-6-1-6-الف, §9-21-6-1-7, §9-21-6-2-7-الف seismic) and H.5 the §9-21-6-2-7-الف standard 135° hook (`BG-TRANS-TORSION-TIE-STANDARD-HOOK-001`, geometry per Table 9-21-2, PDF 443). This sentinel now keeps only the (ب) branches: they route through §9-21-6-1-3 (boundary gap) / §9-21-6-1-4 (welded-wire), and §9-21-6-2-7-ب delegates to §9-21-6-1-3-الف/-ب OR §9-21-6-1-4 — the JPG (PDF 468) shows «9-21-6-1-3-الف/-ب or 9-21-6-1-4», NOT «9-21-6-4-1» (sentinel corrected in H.5). **H.7: the §9-21-6-1-4 route was promoted to the executable `BG-TRANS-TORSION-TIE-WIRE-ROUTE-001` (U-tie geometry delegated to `BG-TRANS-WIRE-TIE-UTIE-001`), so that route is NO LONGER blocked.** The §9-21-6-1-3 route stays BLOCKED (its branch (ب) is unimplemented — λ undefined and a positional embedment datum — and it carries the f_y = 280 MPa / d_b = 17 mm / d_b > 25 mm boundary gap), so this sentinel is retained for it and (ب) as a whole is NOT executable — implementing one OR route never promotes the whole clause. The obsolete «geometry lives in Clause 9-20-6» reason was corrected in Stage H.1. |
-| `BG-TRANS-WIRE-SUBST-PENDING` | 9-21-6-2-3 | 466 / 446 | depends on NBC Clause 9-4-8 welded-wire steel (out of window). |
+| `BG-TRANS-WIRE-SUBST-PENDING` | 9-21-6-2-3 | 466 / 446 | §9-4-8 now verified (H.14); blocked on INSO 11558 conformity (§9-4-8-7, H.15) and the welded-mesh/tie ambiguity. |
 | `BG-TRANS-SPIRAL-SPLICE-SEL-PENDING` | 9-21-6-3-5-الف | 468 / 448 | (الف) welded/mechanical branch depends on Clause 9-21-4-7 (registered dependency `BG-DEV-SPLICE-WELDED-MECH-PENDING`, blocked via NBC Ch. 10) → transitive UNVERIFIED_RULE_BLOCKED. The lap-splice route §9-21-6-3-5-ب is executable as `BG-TRANS-SPIRAL-SPLICE-LAP-SEL-001` (length delegated to `BG-TRANS-SPIRAL-LAP-001`). |
 
 Categorical §9-21-6 sub-parts verified in Stage F but NOT promoted to executable rules (positional / by-inspection requirements with no deterministic scalar computation): §9-21-6-1-2 (each bend engages a longitudinal bar), §9-21-6-2-4-الف/-پ/-ت (135° bend restraint / standard hook / headed-bar prohibition), §9-21-6-2-5-ب/-پ (standard-hook ends / non-coincident overlaps), and §9-21-6-2-6 (continuous bar/wire permission, which delegates to the partly hook-dependent -2-4/-2-5). These remain documented source-verified-only; they are not executable and no registry sentinel claims them.
