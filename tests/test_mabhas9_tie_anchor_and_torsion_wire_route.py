@@ -474,24 +474,27 @@ def test_tie_anchor_rule_metadata_is_verified_and_executable() -> None:
 # --- sentinel narrowing ---------------------------------------------------
 
 
-def test_tie_anchor_pending_narrowed_to_be_and_pe() -> None:
+def test_tie_anchor_pending_narrowed_to_be_only() -> None:
     rule = RULE_BG_TRANS_TIE_ANCHOR_PENDING
     assert rule.execution_allowed is False
     assert rule.status == "VERIFY_PENDING"
     clause = rule.clause_or_equation or ""
     # No longer claims the whole clause.
     assert "Clause 9-21-6-1-3 (Printed" not in clause
-    # Only the unimplemented branches remain.
+    # Only the unimplemented branch remains: branch (ب) needs lambda and an
+    # embedment datum. Branch (پ) was promoted by Stage H.8.
     assert "9-21-6-1-3-ب" in clause
-    assert "9-21-6-1-3-پ" in clause
+    assert "9-21-6-1-3-پ" not in clause
     # M4: the "8-25 mm" wording is gone (specific erroneous phrasing only —
     # "d_b 18-25 mm" legitimately contains the "8-25" substring, and the
     # correction note itself quotes the old value).
     assert "and 8-25 mm" not in (rule.description or "")
     assert "d_b <= 16 mm and 8-25 mm" not in (rule.description or "")
     assert "and 8-25 mm" not in (rule.blocked_reason or "")
-    # The promoted branch is named.
+    # The promoted branches are named.
     assert "BG-TRANS-TIE-ANCHOR-STD-HOOK-001" in (rule.description or "")
+    assert "BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001" in (rule.description or "")
+    assert "BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001" in (rule.blocked_reason or "")
     # The corrected source-faithful sub-conditions are stated.
     assert "d_b <= 16 mm" in (rule.description or "")
     assert "d_b 18-25 mm" in (rule.description or "")
@@ -500,6 +503,8 @@ def test_tie_anchor_pending_narrowed_to_be_and_pe() -> None:
     assert "f_y = 280 MPa" in reason
     assert "d_b = 17 mm" in reason
     assert "d_b > 25 mm" in reason
+    # The joist branch must no longer be described as unimplemented.
+    assert "branch (پ) is a deterministic joist case that" not in reason
 
 
 def test_spiral_splice_sel_pending_pages_corrected_m1() -> None:
@@ -576,8 +581,8 @@ def test_new_rules_are_registered_and_executable() -> None:
 
 def test_registry_counts_and_no_duplicates() -> None:
     all_rules = list_all_rules()
-    assert len(all_rules) == 120
-    assert len(list_mabhas9_executable_rules()) == 62
+    assert len(all_rules) == 121
+    assert len(list_mabhas9_executable_rules()) == 63
     assert len(list_blocked_rules()) == 48
     ids = [r.rule_id for r in all_rules]
     assert len(ids) == len(set(ids))
@@ -592,7 +597,9 @@ def test_section_9216_counts() -> None:
         r for r in list_blocked_rules()
         if "9-21-6" in (r.clause_or_equation or "")
     ]
-    assert len(exe) == 22  # 20 §9-21-6 rules + 2 §9-21-3 rules citing §9-21-6
+    # 19 §9-21-6 rules + the 2 H.7 anchorage rules + the H.8 joist rule,
+    # plus 2 §9-21-3 rules that cite Table 9-21-6 / Eq. (9-21-6-الف/ب).
+    assert len(exe) == 23
     assert len(blk) == 5
 
 

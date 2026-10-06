@@ -3250,6 +3250,68 @@ RULE_BG_TRANS_TORSION_TIE_WIRE_ROUTE_001 = RuleReference(
     dependencies=("BG-TRANS-WIRE-TIE-UTIE-001",),
 )
 
+RULE_BG_TRANS_TIE_ANCHOR_JOIST_STD_HOOK_001 = RuleReference(
+    rule_id="BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001",
+    title=(
+        "Mabhas 9 Tie Deformed-Bar Anchorage, Joist Standard-Hook Branch "
+        "(Clause 9-21-6-1-3-Pe)"
+    ),
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=463,
+    printed_page=443,
+    clause_or_equation=(
+        "Clause 9-21-6-1-3-پ (Printed p. 443 / PDF p. 463); hook geometry per "
+        "Clause 9-21-2-2-2 / Table 9-21-2 (Printed p. 443 / PDF p. 443)"
+    ),
+    symbolic_formula=(
+        "branch پ applicability: member is a joist (تیرچه) AND d_b <= 12 mm -> "
+        "standard hook; geometry delegated to BG-TRANS-STANDARD-HOOK-001"
+    ),
+    description=(
+        "Clause 9-21-6-1-3(پ), read verbatim from the PDF p. 463 JPG on "
+        "2026-10-06: «پ- در تیرچه‌ها، برای میلگردها یا سیم‌های با قطر کوچکتر یا "
+        "مساوی ۱۲ میلی‌متر، وجوب قلاب استاندارد.» i.e. \"(Pe) - In joists "
+        "(تیرچه‌ها), for bars or wires with a diameter less than or equal to "
+        "12 mm, a standard hook shall be provided.\" The branch-marker glyph "
+        "was cropped at >=10x magnification and its three sub-bowl dots "
+        "counted (ب carries one dot, پ carries three) before this branch was "
+        "attributed to (پ). Applicability: the member is a joist AND d_b <= "
+        "12 mm, exactly as printed. Branch (پ) carries NO f_y condition, NO "
+        "embedment length and NO outer bend-diameter formula, so "
+        "yield_stress_mpa is deliberately not an input - no condition is "
+        "invented. The standard hook is the one of Clause 9-21-2-2-2 / Table "
+        "9-21-2 and is DELEGATED to BG-TRANS-STANDARD-HOOK-001; the inner bend "
+        "diameter, straight extension, angle table and the requirement that "
+        "the hook enclose a longitudinal bar are not duplicated here. The "
+        "clause names no unique hook angle, so hook_angle_deg is a "
+        "caller-supplied typed input validated through the delegate. "
+        "in_joist False -> NOT_APPLICABLE (branch (پ) does not govern the "
+        "member; its anchorage follows branch (الف) or (ب) instead). "
+        "in_joist True and d_b > 12 mm -> BLOCKED: the joist provision is "
+        "printed only up to 12 mm and this rule never silently falls back to "
+        "another branch or interpolates the limit. Branch (الف) "
+        "(BG-TRANS-TIE-ANCHOR-STD-HOOK-001) and branch (ب) (still blocked "
+        "under BG-TRANS-TIE-ANCHOR-PENDING) are not evaluated here; this rule "
+        "is kept separate because its applicability differs. Required Inputs: "
+        "in_joist (bool), bar_diameter_mm, hook_angle_deg, "
+        "inner_bend_diameter_mm, straight_extension_mm, "
+        "encloses_longitudinal_bar (bool) (missing -> BLOCKED; malformed / "
+        "non-bool -> INVALID_INPUT; d_b > 12 mm -> BLOCKED; not enclosing / "
+        "under-size delegated geometry -> FAIL). Visually re-verified "
+        "2026-10-06 (page-463 clause + page-443 Table 9-21-2 evidence JPGs; "
+        "branch letters read at >=10x magnification; clause number "
+        "9-21-6-1-3 and the 12 mm figure each confirmed with a narrow "
+        "high-magnification crop; printed page 443 read from the page "
+        "footer)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=("BG-TRANS-STANDARD-HOOK-001",),
+)
+
 RULE_BG_TRANS_TIE_ANCHOR_PENDING = RuleReference(
     rule_id="BG-TRANS-TIE-ANCHOR-PENDING",
     title="Mabhas 9 Tie Deformed-Bar Anchorage (PENDING)",
@@ -3260,35 +3322,37 @@ RULE_BG_TRANS_TIE_ANCHOR_PENDING = RuleReference(
     pdf_page=463,
     printed_page=443,
     clause_or_equation=(
-        "Clause 9-21-6-1-3-ب & Clause 9-21-6-1-3-پ (Printed p. 443 / PDF p. 463)"
+        "Clause 9-21-6-1-3-ب (Printed p. 443 / PDF p. 463)"
     ),
     symbolic_formula="UNAVAILABLE (execution blocked)",
     description=(
-        "Remaining BLOCKED branches of Clause 9-21-6-1-3 after Stage H.7 "
-        "promoted branch (الف) to the executable "
-        "BG-TRANS-TIE-ANCHOR-STD-HOOK-001. Branch (ب): bars with d_b 18-25 mm "
-        "and f_y > 280 MPa -> standard hook around the longitudinal bar plus "
-        "an embedment length plus a minimum outer bend diameter "
-        "0.17*f_y/(lambda*sqrt(f'c))*d_b. Branch (پ): in joists, bars/wires "
-        "with d_b <= 12 mm -> standard hook. Also kept here: the genuine "
-        "source gaps f_y = 280 MPa exactly, d_b = 17 mm and d_b > 25 mm, and "
-        "any other unsupported combination. (Stage H.7 corrected the earlier "
-        "'bars 8-25 mm' wording: Clause 9-21-6-1-3 prints only 'd_b <= 16 mm' "
-        "and 'd_b 18-25 mm'; no 8 mm lower bound appears in this clause.)"
+        "Remaining BLOCKED branch of Clause 9-21-6-1-3 after Stage H.7 "
+        "promoted branch (الف) to BG-TRANS-TIE-ANCHOR-STD-HOOK-001 and Stage "
+        "H.8 promoted branch (پ) to BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001. "
+        "Branch (ب): bars with d_b 18-25 mm and f_y > 280 MPa -> standard "
+        "hook around the longitudinal bar plus an embedment length plus a "
+        "minimum outer bend diameter 0.17*f_y/(lambda*sqrt(f'c))*d_b. Also "
+        "kept here: the genuine source gaps f_y = 280 MPa exactly, d_b = 17 "
+        "mm and d_b > 25 mm, and any other unsupported combination. (Stage "
+        "H.7 corrected the earlier 'bars 8-25 mm' wording: Clause 9-21-6-1-3 "
+        "prints only 'd_b <= 16 mm' and 'd_b 18-25 mm'; no 8 mm lower bound "
+        "appears in this clause.)"
     ),
     execution_allowed=False,
     blocked_reason=(
         "Execution BLOCKED: branch (ب) requires an embedment length whose "
         "datum wording is positional and a minimum outer bend diameter "
         "0.17*f_y/(lambda*sqrt(f'c))*d_b whose lambda is not defined anywhere "
-        "in Clause 9-21-6, and branch (پ) is a deterministic joist case that "
-        "Stage H.7 did not implement (scope limited to branch (الف)). The "
-        "genuine source gaps are also kept: f_y = 280 MPa exactly is in "
-        "neither (الف) nor (ب); d_b = 17 mm falls in the gap between the "
-        "printed <= 16 mm and 18-25 mm sub-conditions; d_b > 25 mm is "
-        "assigned to neither branch. These boundaries are recorded verbatim "
-        "and are never interpolated or inferred; no formula/number is "
-        "executed."
+        "in Clause 9-21-6; no interpolation and no outside-code substitution "
+        "is permitted. Branches (الف) and (پ) of Clause 9-21-6-1-3 are now "
+        "executable (BG-TRANS-TIE-ANCHOR-STD-HOOK-001 and "
+        "BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001 respectively), so this "
+        "sentinel keeps only branch (ب) plus the genuine source gaps: f_y = "
+        "280 MPa exactly is in neither (الف) nor (ب); d_b = 17 mm falls in the "
+        "gap between the printed <= 16 mm and 18-25 mm sub-conditions; d_b > "
+        "25 mm is assigned to neither branch. These boundaries are recorded "
+        "verbatim and are never interpolated or inferred; no formula/number "
+        "is executed."
     ),
     dependencies=(),
 )
@@ -3344,15 +3408,20 @@ RULE_BG_TRANS_TORSION_TIE_PENDING = RuleReference(
     symbolic_formula="UNAVAILABLE (execution blocked)",
     description=(
         "Remaining BLOCKED (ب) branches of the torsion / member-integrity "
-        "tie clauses after Stages H.3/H.5/H.7 promoted the deterministic "
+        "tie clauses after Stages H.3/H.5/H.7/H.8 promoted the deterministic "
         "branches. Clause 9-21-6-1-6-ب and Clause 9-21-6-2-7-ب both delegate "
         "to Clause 9-21-6-1-3-الف/-ب OR Clause 9-21-6-1-4. Stage H.7 promoted "
         "the Clause 9-21-6-1-4 route to the executable "
         "BG-TRANS-TORSION-TIE-WIRE-ROUTE-001 (which delegates the U-tie "
         "geometry to BG-TRANS-WIRE-TIE-UTIE-001); that route is therefore NO "
-        "LONGER blocked. The Clause 9-21-6-1-3 route stays BLOCKED here "
-        "(f_y = 280 MPa / d_b = 17 mm / d_b > 25 mm boundary gap, and its "
-        "branch (پ) is not implemented), so this sentinel is retained for it. "
+        "LONGER blocked. The Clause 9-21-6-1-3 route stays BLOCKED here: its "
+        "branch (ب) is unimplemented (lambda undefined, positional embedment "
+        "datum) and it carries the f_y = 280 MPa / d_b = 17 mm / d_b > 25 mm "
+        "boundary gap. Branches (الف) and (پ) of Clause 9-21-6-1-3 are now "
+        "executable (BG-TRANS-TIE-ANCHOR-STD-HOOK-001 and "
+        "BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001), but that does not resolve "
+        "branch (ب) or the boundary gaps, so this sentinel is retained for "
+        "the Clause 9-21-6-1-3 route. "
         "Clause 9-21-6-2-7-ب delegates to Clause 9-21-6-1-3-الف/-ب OR Clause "
         "9-21-6-1-4 - corrected in Stage H.5: the JPG, PDF p. 468, shows "
         "9-21-6-1-3-الف/-ب or 9-21-6-1-4, NOT 9-21-6-4-1. Implementing one OR "
@@ -3370,8 +3439,12 @@ RULE_BG_TRANS_TORSION_TIE_PENDING = RuleReference(
     execution_allowed=False,
     blocked_reason=(
         "Execution BLOCKED: the remaining (ب) branches delegate to Clause "
-        "9-21-6-1-3, which carries the unresolved fy=280 / d_b=17 / d_b>25 "
-        "boundary gap and whose branch (پ) is not implemented. The OR-"
+        "9-21-6-1-3, whose branch (ب) is unimplemented and which carries the "
+        "unresolved fy=280 / d_b=17 / d_b>25 boundary gap. (Branches (الف) "
+        "and (پ) of Clause 9-21-6-1-3 are executable as "
+        "BG-TRANS-TIE-ANCHOR-STD-HOOK-001 and "
+        "BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001 since Stages H.7/H.8, but "
+        "that does not resolve branch (ب) or the boundary gaps.) The OR-"
         "alternative via Clause 9-21-6-1-4 is NO LONGER blocked - it was "
         "promoted in Stage H.7 to BG-TRANS-TORSION-TIE-WIRE-ROUTE-001 - but "
         "the 9-21-6-1-3 route stays blocked, so this sentinel is retained "
@@ -3516,6 +3589,8 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     # Phase 2F Stage H.7 — tie-anchor الف split + torsion-tie welded-wire route
     RULE_BG_TRANS_TIE_ANCHOR_STD_HOOK_001,
     RULE_BG_TRANS_TORSION_TIE_WIRE_ROUTE_001,
+    # Phase 2F Stage H.8 — tie-anchor joist (پ) branch split
+    RULE_BG_TRANS_TIE_ANCHOR_JOIST_STD_HOOK_001,
     # Isolated Mostofinejad reference rules
     RULE_BG_MOST_5_46,
     RULE_BG_MOST_5_47,

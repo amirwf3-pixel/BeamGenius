@@ -680,6 +680,6 @@ def test_no_duplicate_rule_ids() -> None:
     assert len(ids) == len(set(ids))
 
 
-def test_executable_count_is_62() -> None:
-    """Stage H.5 delivered 60 executable rules; H.7 added 2 more."""
-    assert len(list_mabhas9_executable_rules()) == 62
+def test_executable_count_is_63() -> None:
+    """Stage H.5 delivered 60 executable rules; H.7 added 2 and H.8 added 1."""
+    assert len(list_mabhas9_executable_rules()) == 63

@@ -96,6 +96,7 @@ from beamgenius.registry.catalog import (
     RULE_BG_TRANS_SPIRAL_SPACING_001,
     RULE_BG_TRANS_SPIRAL_SPLICE_LAP_SEL_001,
     RULE_BG_TRANS_STANDARD_HOOK_001,
+    RULE_BG_TRANS_TIE_ANCHOR_JOIST_STD_HOOK_001,
     RULE_BG_TRANS_TIE_ANCHOR_STD_HOOK_001,
     RULE_BG_TRANS_TIE_DIA_001,
     RULE_BG_TRANS_TIE_SHEAR_EXTENT_001,
@@ -207,11 +208,12 @@ BG_TRANS_SPIRAL_SPLICE_LAP_MAX_FY_MPA: float = 420.0
 #         longitudinal bar plus an embedment length plus a minimum outer bend
 #         diameter 0.17*f_y/(lambda*sqrt(f'c))*d_b.
 #   (پ)  in joists (تیرچه‌ها), bars/wires with d_b <= 12 mm -> standard hook.
-# Stage H.7 promotes ONLY branch (الف); branches (ب) and (پ) remain blocked
-# under BG-TRANS-TIE-ANCHOR-PENDING. Genuine source gaps, never interpolated:
-# f_y = 280 MPa exactly is in neither (الف) nor (ب); d_b = 17 mm falls in the
-# gap between the printed <= 16 mm and 18-25 mm sub-conditions; d_b > 25 mm is
-# assigned to neither branch. All are deterministically BLOCKED.
+# Stage H.7 promotes ONLY branch (الف); branch (ب) remains blocked under
+# BG-TRANS-TIE-ANCHOR-PENDING. Stage H.8 promotes branch (پ) to
+# BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001. Genuine source gaps, never
+# interpolated: f_y = 280 MPa exactly is in neither (الف) nor (ب); d_b = 17 mm
+# falls in the gap between the printed <= 16 mm and 18-25 mm sub-conditions;
+# d_b > 25 mm is assigned to neither branch. All are deterministically BLOCKED.
 BG_TRANS_TIE_ANCHOR_FY_LIMIT_MPA: float = 280.0
 BG_TRANS_TIE_ANCHOR_DB_SMALL_MAX_MM: float = 16.0
 BG_TRANS_TIE_ANCHOR_DB_LARGE_MIN_MM: float = 18.0
@@ -4671,4 +4673,310 @@ def evaluate_torsion_tie_wire_route(
         )
     return _blocked_step(
         gate, raw_inputs=raw_inputs, diagnostics=list(wire_step.diagnostics)
+    )
+
+
+# --- BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001 (Clause 9-21-6-1-3-پ, PDF p. 463 /
+# Printed p. 443)
+def evaluate_tie_anchor_joist_std_hook(
+    *,
+    in_joist: Optional[bool] = None,
+    bar_diameter_mm: Optional[float] = None,
+    hook_angle_deg: Optional[float] = None,
+    inner_bend_diameter_mm: Optional[float] = None,
+    straight_extension_mm: Optional[float] = None,
+    encloses_longitudinal_bar: Optional[bool] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> CalculationTraceStep:
+    """Evaluate the joist tie deformed-bar standard-hook anchorage
+    (BG-TRANS-TIE-ANCHOR-JOIST-STD-HOOK-001).
+
+    Verified source: Mabhas 9 (1399), Clause 9-21-6-1-3(پ), PDF p. 463 /
+    Printed p. 443, read verbatim from the JPG on 2026-10-06:
+
+        «پ- در تیرچه‌ها، برای میلگردها یا سیم‌های با قطر کوچکتر یا مساوی ۱۲
+          میلی‌متر، وجوب قلاب استاندارد.»
+
+    i.e. "(Pe) — In joists (تيرچه‌ها), for bars or wires with a diameter less
+    than or equal to 12 mm, a standard hook shall be provided."
+
+    The branch-marker glyph was cropped at >=10x magnification and its three
+    sub-bowl dots counted (ب carries one dot, پ carries three) before this
+    branch was attributed to (پ).
+
+    Applicability is EXACTLY the printed condition and nothing more:
+      (1) the member is a joist (تیرچه), AND
+      (2) the bar/wire diameter d_b <= 12 mm.
+    Branch (پ) carries NO f_y condition, NO embedment length and NO outer
+    bend-diameter formula, so `yield_stress_mpa` is deliberately NOT an input
+    of this rule — no condition is invented.
+
+    The "standard hook" is the one of Clause 9-21-2-2-2 / Table 9-21-2 and is
+    DELEGATED to BG-TRANS-STANDARD-HOOK-001; the inner bend diameter, the
+    straight extension, the angle table and the requirement that the hook
+    enclose a longitudinal bar are NOT duplicated here. Clause 9-21-6-1-3(پ)
+    does not name a unique hook angle, so the angle is a caller-supplied typed
+    input validated through the delegated evaluator.
+
+    Outcome semantics:
+      * `in_joist` missing -> BLOCKED; non-bool -> INVALID_INPUT.
+      * `in_joist` False -> NOT_APPLICABLE: branch (پ) does not govern the
+        member; its tie anchorage follows branch (الف) or (ب) instead. This is
+        the same context-precedent pattern as
+        BG-TRANS-TORSION-TIE-WIRE-ROUTE-001.
+      * `in_joist` True and d_b > 12 mm -> BLOCKED: the joist provision is
+        printed only up to 12 mm and this rule never silently falls back to
+        another branch or interpolates a limit.
+      * `in_joist` True and d_b <= 12 mm -> geometry delegated; PASS / FAIL per
+        BG-TRANS-STANDARD-HOOK-001.
+
+    Branch (الف) (BG-TRANS-TIE-ANCHOR-STD-HOOK-001) and branch (ب) (still
+    blocked under BG-TRANS-TIE-ANCHOR-PENDING) are NOT evaluated here; this
+    rule is kept separate because its applicability differs.
+    """
+    rule_id = RULE_BG_TRANS_TIE_ANCHOR_JOIST_STD_HOOK_001.rule_id
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "in_joist": in_joist,
+        "bar_diameter_mm": bar_diameter_mm,
+        "hook_angle_deg": hook_angle_deg,
+        "inner_bend_diameter_mm": inner_bend_diameter_mm,
+        "straight_extension_mm": straight_extension_mm,
+        "encloses_longitudinal_bar": encloses_longitudinal_bar,
+    }
+
+    gate = evaluate_rule_gate(rule_id, active_jurisdiction=jurisdiction_mode)
+    if not gate.allowed:
+        return gate.to_blocked_trace_step(normalized_inputs=raw_inputs, unit="mm")
+    rule = gate.rule
+
+    joist_raw: object = in_joist
+    if joist_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_IN_JOIST",
+                    (
+                        "Whether the member is a joist (تیرچه) is the scope "
+                        "condition of Clause 9-21-6-1-3-پ; it is never "
+                        "assumed. Missing required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="in_joist",
+                )
+            ],
+        )
+    if not isinstance(joist_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_IN_JOIST",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "in_joist must be a bool, got " f"{joist_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="in_joist",
+                )
+            ],
+        )
+    if not joist_raw:
+        return _not_applicable_step(
+            gate,
+            raw_inputs=raw_inputs,
+            unit="mm",
+            message=(
+                "NOT_APPLICABLE: the member is not a joist (تیرچه), so Clause "
+                "9-21-6-1-3-پ does not govern it; the tie anchorage follows "
+                "Clause 9-21-6-1-3-الف (BG-TRANS-TIE-ANCHOR-STD-HOOK-001) or "
+                "Clause 9-21-6-1-3-ب (still blocked) instead."
+            ),
+        )
+
+    encloses_raw: object = encloses_longitudinal_bar
+    if encloses_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_ENCLOSES_LONGITUDINAL_BAR",
+                    (
+                        "Whether the standard hook encloses a longitudinal bar "
+                        "is required by the standard-hook definition the "
+                        "delegate enforces; it is never assumed. Missing "
+                        "required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="encloses_longitudinal_bar",
+                )
+            ],
+        )
+    if not isinstance(encloses_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_ENCLOSES_LONGITUDINAL_BAR",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "encloses_longitudinal_bar must be a bool, got "
+                        f"{encloses_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="encloses_longitudinal_bar",
+                )
+            ],
+        )
+
+    invalid: List[EngineeringDiagnostic] = []
+    missing: List[EngineeringDiagnostic] = []
+    _require_positive(
+        bar_diameter_mm,
+        code="MISSING_BAR_DIAMETER",
+        field_name="bar_diameter_mm",
+        message=(
+            "The bar diameter d_b is required to test the Clause "
+            "9-21-6-1-3-پ <= 12 mm applicability and to select the Table "
+            "9-21-2 diameter row; it is never assumed. Missing required "
+            "input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        hook_angle_deg,
+        code="MISSING_HOOK_ANGLE",
+        field_name="hook_angle_deg",
+        message=(
+            "The standard-hook angle is required to select the Table 9-21-2 "
+            "row; Clause 9-21-6-1-3-پ names no unique angle, so it is supplied "
+            "by the caller and never assumed. Missing required input -> "
+            "BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        inner_bend_diameter_mm,
+        code="MISSING_INNER_BEND_DIAMETER",
+        field_name="inner_bend_diameter_mm",
+        message=(
+            "The inner bend diameter is required for the Table 9-21-2 "
+            "standard-hook check; it is never assumed. Missing required "
+            "input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        straight_extension_mm,
+        code="MISSING_STRAIGHT_EXTENSION",
+        field_name="straight_extension_mm",
+        message=(
+            "The straight extension after the bend is required for the Table "
+            "9-21-2 standard-hook check; it is never assumed. Missing required "
+            "input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    if invalid:
+        return _invalid_step(gate, raw_inputs=raw_inputs, diagnostics=invalid)
+    if missing:
+        return _blocked_step(gate, raw_inputs=raw_inputs, diagnostics=missing)
+    assert bar_diameter_mm is not None
+    assert hook_angle_deg is not None
+    assert inner_bend_diameter_mm is not None
+    assert straight_extension_mm is not None
+
+    # --- Clause 9-21-6-1-3-پ applicability: joist AND d_b <= 12 mm.
+    if bar_diameter_mm > BG_TRANS_TIE_ANCHOR_DB_JOIST_MAX_MM:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "TIE_ANCHOR_JOIST_DB_ABOVE_LIMIT",
+                    (
+                        f"BLOCKED: d_b = {bar_diameter_mm} mm exceeds the "
+                        "12 mm limit printed for joists in Clause "
+                        "9-21-6-1-3-پ. The joist provision is printed only up "
+                        "to 12 mm; no larger diameter is assigned to it and "
+                        "this rule never silently falls back to another "
+                        "branch or interpolates the limit."
+                    ),
+                    rule=rule,
+                    field_name="bar_diameter_mm",
+                )
+            ],
+        )
+
+    # Delegate the standard-hook geometry to the verified standard-hook rule
+    # (Clause 9-21-2-2-2 / Table 9-21-2) instead of duplicating its table.
+    hook_step = evaluate_standard_hook(
+        hook_angle_deg=hook_angle_deg,
+        bar_diameter_mm=bar_diameter_mm,
+        inner_bend_diameter_mm=inner_bend_diameter_mm,
+        straight_extension_mm=straight_extension_mm,
+        encloses_longitudinal_bar=encloses_raw,
+        jurisdiction_mode=jurisdiction_mode,
+    )
+    if hook_step.outcome is EvaluationOutcome.PASS:
+        return _pass_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "in_joist": True,
+                "bar_diameter_mm": bar_diameter_mm,
+                "hook_angle_deg": hook_angle_deg,
+                "inner_bend_diameter_mm": inner_bend_diameter_mm,
+                "straight_extension_mm": straight_extension_mm,
+            },
+            final_result=straight_extension_mm,
+            unit="mm",
+            message=(
+                f"PASS: Clause 9-21-6-1-3-پ applicability (joist, d_b = "
+                f"{bar_diameter_mm} mm <= 12 mm) is satisfied and the "
+                f"anchorage is a standard {hook_angle_deg}-degree hook per "
+                "Table 9-21-2 enclosing the longitudinal bar."
+            ),
+        )
+    if hook_step.outcome is EvaluationOutcome.FAIL:
+        diag = EngineeringDiagnostic(
+            code="TIE_ANCHOR_JOIST_STANDARD_HOOK_GEOMETRY_NOT_SATISFIED",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: the joist tie-anchor standard hook must satisfy the "
+                "standard-hook geometry of Clause 9-21-2-2-2 / Table 9-21-2; "
+                f"{hook_step.message}"
+            ),
+            rule_id=rule_id,
+            field_name="inner_bend_diameter_mm",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "bar_diameter_mm": bar_diameter_mm,
+                "hook_angle_deg": hook_angle_deg,
+            },
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+    if hook_step.outcome is EvaluationOutcome.INVALID_INPUT:
+        return _invalid_step(
+            gate, raw_inputs=raw_inputs, diagnostics=list(hook_step.diagnostics)
+        )
+    return _blocked_step(
+        gate, raw_inputs=raw_inputs, diagnostics=list(hook_step.diagnostics)
     )

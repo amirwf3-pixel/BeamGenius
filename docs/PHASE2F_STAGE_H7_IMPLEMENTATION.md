@@ -1,5 +1,7 @@
 # Phase 2F Stage H.7 — Implementation: §9-21-6-1-3(Alef) Split + Torsion Welded-Wire Route
 
+> **Superseded in part by Stage H.8** (`docs/PHASE2F_STAGE_H8_IMPLEMENTATION.md`), which implemented the branch (Pe) joist case that this document recorded as a remaining promotion candidate, and narrowed `BG-TRANS-TIE-ANCHOR-PENDING` to branch (Be) only. Everything else recorded here still stands.
+
 **Date:** 2026-10-06
 **Branch:** `arena/b9cd291a-beamgenius`
 **Baseline HEAD:** `241a2fd` (parent `a66284b`) — *"feat(detiling): implement verified standard hook and spiral tie rules"*
