@@ -13,12 +13,15 @@ import pytest
 
 from beamgenius.domain.enums import EvaluationOutcome, JurisdictionMode
 from beamgenius.engine.transverse_reinforcement_mabhas9 import (
+    DorgirConstruction,
     SpiralSpliceBarType,
     SpiralSpliceCoating,
     SpiralSpliceEndCondition,
     evaluate_circular_tie_overlap,
     evaluate_closed_tie_lap,
+    evaluate_dorgir,
     evaluate_rect_tie_unrestrained_spacing,
+    evaluate_seismic_hook,
     evaluate_spiral_anchor_turns,
     evaluate_spiral_diameter,
     evaluate_spiral_lap_splice,
@@ -27,12 +30,16 @@ from beamgenius.engine.transverse_reinforcement_mabhas9 import (
     evaluate_tie_diameter,
     evaluate_tie_spacing,
     evaluate_tie_shear_extent,
+    evaluate_torsion_tie_135hook,
+    evaluate_torsion_tie_seismic_hook,
+    evaluate_two_piece_tie,
 )
 from beamgenius.registry.catalog import (
     RULE_BG_TRANS_CIRC_TIE_001,
     RULE_BG_TRANS_CLOSED_TIE_LAP_001,
-    RULE_BG_TRANS_DORGIR_PENDING,
+    RULE_BG_TRANS_DORGIR_001,
     RULE_BG_TRANS_RECT_TIE_001,
+    RULE_BG_TRANS_SEISMIC_HOOK_001,
     RULE_BG_TRANS_SPIRAL_ANCHOR_001,
     RULE_BG_TRANS_SPIRAL_DIA_001,
     RULE_BG_TRANS_SPIRAL_LAP_001,
@@ -43,7 +50,10 @@ from beamgenius.registry.catalog import (
     RULE_BG_TRANS_TIE_DIA_001,
     RULE_BG_TRANS_TIE_SHEAR_EXTENT_001,
     RULE_BG_TRANS_TIE_SPACING_001,
+    RULE_BG_TRANS_TORSION_TIE_135HOOK_001,
     RULE_BG_TRANS_TORSION_TIE_PENDING,
+    RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001,
+    RULE_BG_TRANS_TWO_PIECE_TIE_001,
     RULE_BG_TRANS_WIRE_SUBST_PENDING,
     RULE_BG_TRANS_WIRE_TIE_PENDING,
     get_rule,
@@ -66,6 +76,11 @@ EXECUTABLE_TRANS_RULES = (
     RULE_BG_TRANS_SPIRAL_RATIO_001,
     RULE_BG_TRANS_SPIRAL_ANCHOR_001,
     RULE_BG_TRANS_SPIRAL_LAP_001,
+    RULE_BG_TRANS_SEISMIC_HOOK_001,
+    RULE_BG_TRANS_DORGIR_001,
+    RULE_BG_TRANS_TWO_PIECE_TIE_001,
+    RULE_BG_TRANS_TORSION_TIE_135HOOK_001,
+    RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001,
 )
 
 BLOCKED_TRANS_RULES = (
@@ -74,7 +89,6 @@ BLOCKED_TRANS_RULES = (
     RULE_BG_TRANS_TORSION_TIE_PENDING,
     RULE_BG_TRANS_WIRE_SUBST_PENDING,
     RULE_BG_TRANS_SPIRAL_SPLICE_SEL_PENDING,
-    RULE_BG_TRANS_DORGIR_PENDING,
 )
 
 
@@ -82,15 +96,22 @@ BLOCKED_TRANS_RULES = (
 # Registry / gatekeeper integration
 # ============================================================================
 
-def test_all_eleven_transverse_rules_registered_executable() -> None:
+def test_all_sixteen_transverse_rules_registered_executable() -> None:
     executable_ids = {r.rule_id for r in list_mabhas9_executable_rules()}
+    assert len(EXECUTABLE_TRANS_RULES) == 16
     for rule in EXECUTABLE_TRANS_RULES:
         assert rule.rule_id in executable_ids
         assert rule.execution_allowed is True
         assert rule.status.value == "VERIFIED"
         assert rule.category.value == "CODE_RULE"
         assert rule.jurisdiction is JurisdictionMode.MABHAS_9_COMPLIANCE
-        assert rule.dependencies == ()
+        # Every declared dependency must itself be registered + executable
+        # (e.g. دورگیر / torsion-tie-seismic-hook depend on the seismic hook).
+        for dep_id in rule.dependencies:
+            dep = get_rule(dep_id)
+            assert dep is not None
+            assert dep.execution_allowed is True
+            assert dep.rule_id in executable_ids
 
 
 def test_all_blocked_transverse_rules_not_executable() -> None:
@@ -151,10 +172,14 @@ def test_blocked_tie_anchor_reason_records_boundary_ambiguity() -> None:
     assert "280" in reason  # f_y boundary recorded verbatim, never interpolated
 
 
-def test_blocked_dorgir_reason_records_seismic_hook_dependency() -> None:
-    reason = get_rule("BG-TRANS-DORGIR-PENDING").blocked_reason
-    assert reason is not None
-    assert "seismic" in reason.lower()
+def test_dorgir_rule_records_seismic_hook_dependency() -> None:
+    # Stage H.3 promoted دورگیر: the seismic-hook geometry is now a VERIFIED
+    # executable dependency (BG-TRANS-SEISMIC-HOOK-001), not a block reason.
+    rule = get_rule("BG-TRANS-DORGIR-001")
+    assert rule is not None
+    assert rule.execution_allowed is True
+    assert rule.dependencies == ("BG-TRANS-SEISMIC-HOOK-001",)
+    assert "seismic" in rule.description.lower()
 
 
 def test_engine_module_does_not_import_reference_package() -> None:

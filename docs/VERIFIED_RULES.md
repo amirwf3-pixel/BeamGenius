@@ -1992,13 +1992,52 @@ Formula / Requirement: lap = max(k·d_b, 300 mm), k = 48 or 72 per Table 9-21-7 
 Applicability: spiral lap splices. Required Inputs: splice_bar_type (SpiralSpliceBarType), coating_class (SpiralSpliceCoating), end_condition (SpiralSpliceEndCondition), bar_diameter_mm (missing → BLOCKED; malformed → INVALID_INPUT; unlisted combination → BLOCKED).
 Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_spiral_lap_splice`.
 
-### BLOCKED (not promoted) — §9-21-6-1-3 / §9-21-6-1-4/-1-5 / §9-21-6-1-6/-1-7/-2-7 / §9-21-6-2-3 / §9-21-6-3-5 / §9-21-6-4
+## BG-TRANS-SEISMIC-HOOK-001 — Seismic Hook Geometry (Clause 9-21-2-2-4)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 442 | Printed 442
+
+Formula / Requirement: a seismic hook (قلاب لرزه‌ای) has a bend of at least 135° and a straight extension after the bend of at least 6·d_b **or** 75 mm; in circular دورگیر (دورگیرهای دایروی) the bend may be at least 90°. The geometry is stated inline in 9-21-2-2-4; the terminological phrase «مطابق تعریف فصل ۹-۲۰» is NOT a dependency on Chapter 9-20 and Chapter 9-20 is never imported.
+Applicability: seismic-hook geometry anchor for the Clause 9-21-6-4 دورگیر and Clause 9-21-6-2-7-الف seismic-hook rules. Required Inputs: circular_dorgir (bool; selects the 90° vs 135° bend minimum), bend_angle_deg, straight_extension_mm, bar_diameter_mm (missing → BLOCKED; malformed / bend > 180° / non-bool circular → INVALID_INPUT). Dependencies: none.
+Units: deg / mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_seismic_hook`.
+
+## BG-TRANS-DORGIR-001 — Confinement Tie دورگیر, Closed / Continuous / Multi-Part (Clauses 9-21-6-4-1 & 9-21-6-4-2)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 470 | Printed 450
+
+Formula / Requirement: Clause 9-21-6-4-1 — دورگیر shall consist of closed ties or be wound continuously. Clause 9-21-6-4-2 — دورگیر may be made of several parts, each anchored at both ends by a seismic hook per Clause 9-21-2-2-4; each hook encloses one longitudinal bar; interconnected headed bars (میلگردهای سَر دار متصل به هم) are not permitted as دورگیر. The component hook geometry is delegated to BG-TRANS-SEISMIC-HOOK-001 (not duplicated); no geometry beyond these clauses is invented.
+Applicability: دورگیر confinement ties. Required Inputs: dorgir_construction (DorgirConstruction), uses_interconnected_headed_bars (bool); for MULTI_PART also hook_bend_angle_deg, hook_straight_extension_mm, hook_bar_diameter_mm, hook_circular_dorgir, hook_encloses_longitudinal_bar (missing → BLOCKED; malformed / wrong type → INVALID_INPUT; headed bars → FAIL; bad delegated hook → FAIL). Dependencies: `BG-TRANS-SEISMIC-HOOK-001`.
+Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_dorgir`.
+
+## BG-TRANS-TWO-PIECE-TIE-001 — Two-Piece Torsion / Integrity Tie (Clause 9-21-6-1-7)
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 465 | Printed 445
+
+Formula / Requirement: a tie for torsion/cracking may be made of two parts — a U-shaped tie with 135° bends, and a member (سنگراقی) whose 90° bend shall be adjacent to the member face where the concrete is not susceptible to deterioration from flange/slab confinement. Only these requirements are represented; no bend diameter, embedment length, or other geometry is invented.
+Applicability: two-piece torsion/integrity ties. Required Inputs: u_tie_bend_angle_deg (≥ 135°), second_member_bend_angle_deg (= 90°), second_member_adjacent_nonspalling_face (bool) (missing → BLOCKED; malformed / wrong type → INVALID_INPUT). Dependencies: none.
+Units: deg. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_two_piece_tie`.
+
+## BG-TRANS-TORSION-TIE-135HOOK-001 — Torsion / Integrity Tie 135° Hook, Clause 9-21-6-1-6-الف
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 464 | Printed 444
+
+Formula / Requirement: both ends of the tie shall be terminated with a 135° hook around the longitudinal bar. Only the deterministic (الف) branch is implemented; the (ب) branch delegates to the still-blocked Clauses 9-21-6-1-3 and 9-21-6-1-4 and is NOT executed (kept under `BG-TRANS-TORSION-TIE-PENDING`).
+Applicability: torsion/integrity tie 135°-hook anchorage. Required Inputs: hook_bend_angle_deg (≥ 135°), hook_engages_longitudinal_bar (bool) (missing → BLOCKED; malformed / wrong type / bend > 180° → INVALID_INPUT). Dependencies: none.
+Units: deg. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_torsion_tie_135hook`.
+
+## BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001 — Torsion Tie Seismic-Hook Branch, Clause 9-21-6-2-7-الف
+
+Status: VERIFIED | Type: CODE_RULE | Source: Mabhas 9 (1399, 5th ed.) | PDF 467 | Printed 447
+
+Formula / Requirement: both ends of a torsion tie shall be terminated with a seismic hook around the longitudinal bar, with the bend end anchored in the core concrete. Only the seismic-hook option of 9-21-6-2-7-الف is implemented; the standard 135° hook option depends on Clause 9-21-2-2-2 / Table 9-21-2-2 (not yet verified) and the (ب) branch routes through the still-blocked Clause 9-21-6-1-3 — neither is executed. The seismic-hook geometry is delegated to BG-TRANS-SEISMIC-HOOK-001.
+Applicability: torsion-tie seismic-hook anchorage. Required Inputs: hook_engages_longitudinal_bar (bool), bend_end_anchored_in_core_concrete (bool), and the seismic-hook geometry inputs (hook_bend_angle_deg, hook_straight_extension_mm, hook_bar_diameter_mm, hook_circular_dorgir) (missing → BLOCKED; malformed / wrong type → INVALID_INPUT). Dependencies: `BG-TRANS-SEISMIC-HOOK-001`.
+Units: mm. Executable as `beamgenius.engine.transverse_reinforcement_mabhas9.evaluate_torsion_tie_seismic_hook`.
+
+### BLOCKED (not promoted) — §9-21-6-1-3 / §9-21-6-1-4/-1-5 / §9-21-6-1-6-ب / §9-21-6-2-7-ب / §9-21-6-2-7-الف standard-hook / §9-21-6-2-3 / §9-21-6-3-5
 
 - `BG-TRANS-TIE-ANCHOR-PENDING` (9-21-6-1-3, PDF 463 / Printed 443): tie deformed-bar anchorage. BLOCKED — unresolved boundary ambiguity (الف f_y < 280 MPa vs ب f_y > 280 MPa, exactly 280 MPa in neither; الف d_b ≤ 16 mm & 8–25 mm vs ب 18–25 mm, 17 mm and > 25 mm unassigned). Recorded verbatim, never interpolated/inferred.
 - `BG-TRANS-WIRE-TIE-PENDING` (9-21-6-1-4 & 9-21-6-1-5, PDF 464 / Printed 444): welded-wire tie anchorage. BLOCKED — the 9-21-6-1-4-ب positioning/overlap wording is not interpreted and the 9-21-6-1-5-ب outer-wire condition carries no governing number.
-- `BG-TRANS-TORSION-TIE-PENDING` (9-21-6-1-6/-1-7/-2-7, PDF 464–468 / Printed 444–448): torsion/integrity ties. BLOCKED — requires the 135° standard-hook and seismic-hook bend geometry; no such hook-geometry rule is VERIFIED and execution_allowed=True in the registry (geometry lives in Clause 9-20-6, out of window).
+- `BG-TRANS-TORSION-TIE-PENDING` (remaining branches of 9-21-6-1-6/-2-7, PDF 464–468 / Printed 444–448): the (ب) branches and the §9-21-6-2-7-الف standard-hook option. BLOCKED — §9-21-6-1-6-ب delegates to Clauses 9-21-6-1-3 (boundary gap) and 9-21-6-1-4 (welded-wire); §9-21-6-2-7-ب delegates to Clause 9-21-6-1-3 (blocked) or 9-21-6-4-1 (now executable as BG-TRANS-DORGIR-001, but the 9-21-6-1-3 route stays blocked); the §9-21-6-2-7-الف standard 135° hook option depends on Clause 9-21-2-2-2 / Table 9-21-2-2 (not yet verified). The deterministic branches were promoted in Stage H.3 to BG-TRANS-TORSION-TIE-135HOOK-001, BG-TRANS-TWO-PIECE-TIE-001 and BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001; the obsolete «geometry lives in Clause 9-20-6» reason was corrected in Stage H.1.
 - `BG-TRANS-WIRE-SUBST-PENDING` (9-21-6-2-3, PDF 466 / Printed 446): welded-wire substitute for a deformed tie. BLOCKED — depends on NBC Clause 9-4-8 welded-wire steel specs (out of window, VERIFY_PENDING).
 - `BG-TRANS-SPIRAL-SPLICE-SEL-PENDING` (9-21-6-3-5, PDF 469 / Printed 449): spiral splice method selection. BLOCKED — the (الف) welded/mechanical branch depends on Clause 9-21-4-7 (registered dependency `BG-DEV-SPLICE-WELDED-MECH-PENDING`), itself blocked via NBC Chapter 10 welding (transitive UNVERIFIED_RULE_BLOCKED). The lap-splice LENGTH itself is executable as BG-TRANS-SPIRAL-LAP-001 (9-21-6-3-6).
-- `BG-TRANS-DORGIR-PENDING` (9-21-6-4-1 & 9-21-6-4-2, PDF 470 / Printed 450): دورگیر confinement tie. BLOCKED — fundamentally requires the seismic hook at both ends, and no seismic-hook geometry rule is VERIFIED and execution_allowed=True in the registry (geometry lives in Clause 9-20-6, out of window).
 
-All six are registered with `execution_allowed=False`, `status=VERIFY_PENDING`, and a `blocked_reason`; the Gatekeeper returns `UNVERIFIED_RULE_BLOCKED` for any attempted execution (the spiral-splice-selection rule additionally reports `TRANSITIVE_DEPENDENCY_BLOCKED` via `BG-DEV-SPLICE-WELDED-MECH-PENDING`). No §9-21-6 clause was executed through an unverified branch; §9-22 was not started.
+All five are registered with `execution_allowed=False`, `status=VERIFY_PENDING`, and a `blocked_reason`; the Gatekeeper returns `UNVERIFIED_RULE_BLOCKED` for any attempted execution (the spiral-splice-selection rule additionally reports `TRANSITIVE_DEPENDENCY_BLOCKED` via `BG-DEV-SPLICE-WELDED-MECH-PENDING`). No §9-21-6 clause was executed through an unverified branch; §9-22 was not started. (Stage H.3 promoted the previously-blocked `BG-TRANS-DORGIR-PENDING` to the executable `BG-TRANS-DORGIR-001` and split the deterministic branches of the former combined torsion-tie sentinel into the executable rules above.)

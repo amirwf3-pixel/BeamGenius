@@ -2808,6 +2808,166 @@ RULE_BG_TRANS_SPIRAL_LAP_001 = RuleReference(
     dependencies=(),
 )
 
+RULE_BG_TRANS_SEISMIC_HOOK_001 = RuleReference(
+    rule_id="BG-TRANS-SEISMIC-HOOK-001",
+    title="Mabhas 9 Seismic Hook Geometry",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=442,
+    printed_page=442,
+    clause_or_equation="Clause 9-21-2-2-4 (Printed p. 442 / PDF p. 442)",
+    symbolic_formula=(
+        "seismic hook: bend >= 135 deg (>= 90 deg for circular دورگیر); "
+        "straight extension >= 6*d_b OR >= 75 mm"
+    ),
+    description=(
+        "Clause 9-21-2-2-4: a seismic hook (قلاب لرزه‌ای) has a bend of at "
+        "least 135 degrees and a straight extension after the bend of at "
+        "least 6*d_b or 75 mm; in circular دورگیر (دورگیرهای دایروی) the bend "
+        "may be at least 90 degrees. The geometry is stated inline; the "
+        "terminological phrase 'مطابق تعریف فصل ۹-۲۰' is NOT a dependency on "
+        "Chapter 9-20 and Chapter 9-20 is never imported. circular_dorgir, "
+        "bend angle, straight extension, and bar diameter d_b are REQUIRED "
+        "typed inputs (never assumed). This is the geometry anchor for the "
+        "Clause 9-21-6-4 دورگیر and Clause 9-21-6-2-7-الف seismic-hook rules. "
+        "Visually re-verified 2026-10-06 (page-442 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_DORGIR_001 = RuleReference(
+    rule_id="BG-TRANS-DORGIR-001",
+    title="Mabhas 9 Confinement Tie دورگیر (Closed / Continuous / Multi-Part)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=470,
+    printed_page=450,
+    clause_or_equation=(
+        "Clauses 9-21-6-4-1 & 9-21-6-4-2 (Printed p. 450 / PDF p. 470)"
+    ),
+    symbolic_formula=(
+        "دorgir = closed ties OR wound continuous; multi-part -> each component "
+        "seismic hook (9-21-2-2-4) at both ends enclosing a longitudinal bar; "
+        "interconnected headed bars prohibited"
+    ),
+    description=(
+        "Clause 9-21-6-4-1: دورگیر shall consist of closed ties or be wound "
+        "continuously. Clause 9-21-6-4-2: دورگیر may be made of several parts, "
+        "each anchored at both ends by a seismic hook per Clause 9-21-2-2-4; "
+        "each hook encloses one longitudinal bar; interconnected headed bars "
+        "(میلگردهای سَر دار متصل به هم) are not permitted as دورگیر. The "
+        "component hook geometry is delegated to BG-TRANS-SEISMIC-HOOK-001 "
+        "(Clause 9-21-2-2-4). Construction class, headed-bar use, and (for "
+        "multi-part) the per-component hook geometry and longitudinal-bar "
+        "enclosure are REQUIRED typed inputs (never assumed). Visually "
+        "re-verified 2026-10-06 (page-470 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=("BG-TRANS-SEISMIC-HOOK-001",),
+)
+
+RULE_BG_TRANS_TWO_PIECE_TIE_001 = RuleReference(
+    rule_id="BG-TRANS-TWO-PIECE-TIE-001",
+    title="Mabhas 9 Two-Piece Torsion / Integrity Tie",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=465,
+    printed_page=445,
+    clause_or_equation="Clause 9-21-6-1-7 (Printed p. 445 / PDF p. 465)",
+    symbolic_formula=(
+        "two-piece tie: U-tie with 135-degree bends + member with 90-degree "
+        "bend adjacent to the non-spalling member face"
+    ),
+    description=(
+        "Clause 9-21-6-1-7: a tie for torsion/cracking may be made of two "
+        "parts — a U-shaped tie with 135-degree bends, and a member (سنگراقی) "
+        "whose 90-degree bend shall be adjacent to the member face where the "
+        "concrete is not susceptible to deterioration from flange/slab "
+        "confinement. Only these requirements are represented; no bend "
+        "diameter, embedment length, or other geometry is invented. U-tie bend "
+        "angle, second-member bend angle, and the non-spalling-face placement "
+        "are REQUIRED typed inputs (never assumed). Visually re-verified "
+        "2026-10-06 (page-465 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_TORSION_TIE_135HOOK_001 = RuleReference(
+    rule_id="BG-TRANS-TORSION-TIE-135HOOK-001",
+    title="Mabhas 9 Torsion / Integrity Tie 135-Degree Hook (Clause 9-21-6-1-6-الف)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=464,
+    printed_page=444,
+    clause_or_equation="Clause 9-21-6-1-6-الف (Printed p. 444 / PDF p. 464)",
+    symbolic_formula=(
+        "both tie ends terminate with a 135-degree hook around the "
+        "longitudinal bar"
+    ),
+    description=(
+        "Clause 9-21-6-1-6(الف): both ends of the tie shall be terminated with "
+        "a 135-degree hook around the longitudinal bar. Only the deterministic "
+        "(الف) branch is implemented; the (ب) branch delegates to the "
+        "still-blocked Clauses 9-21-6-1-3 and 9-21-6-1-4 and is NOT executed "
+        "(kept under the blocked BG-TRANS-TORSION-TIE-PENDING sentinel). "
+        "Tie-end hook bend angle and longitudinal-bar engagement are REQUIRED "
+        "typed inputs (never assumed). Visually re-verified 2026-10-06 "
+        "(page-464 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001 = RuleReference(
+    rule_id="BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001",
+    title="Mabhas 9 Torsion Tie Seismic-Hook Branch (Clause 9-21-6-2-7-الف)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=467,
+    printed_page=447,
+    clause_or_equation=(
+        "Clause 9-21-6-2-7-الف seismic-hook option (Printed p. 447 / PDF p. 467); "
+        "hook geometry per Clause 9-21-2-2-4 (PDF p. 442)"
+    ),
+    symbolic_formula=(
+        "both torsion-tie ends terminate with a seismic hook (9-21-2-2-4) "
+        "around the longitudinal bar; bend end anchored in core concrete"
+    ),
+    description=(
+        "Clause 9-21-6-2-7(الف): both ends of a torsion tie shall be terminated "
+        "with a seismic hook around the longitudinal bar, with the bend end "
+        "anchored in the core concrete. Only the seismic-hook option is "
+        "implemented; the standard 135-degree hook option depends on the "
+        "standard-hook requirements of Clause 9-21-2-2-2 / Table 9-21-2-2 (not "
+        "yet verified) and the (ب) branch routes through the still-blocked "
+        "Clause 9-21-6-1-3 — neither is executed (kept under the blocked "
+        "BG-TRANS-TORSION-TIE-PENDING sentinel). The seismic-hook geometry is "
+        "delegated to BG-TRANS-SEISMIC-HOOK-001 (Clause 9-21-2-2-4). Seismic-"
+        "hook geometry, longitudinal-bar engagement, and core-concrete "
+        "anchorage are REQUIRED typed inputs (never assumed). Visually "
+        "re-verified 2026-10-06 (page-467 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=("BG-TRANS-SEISMIC-HOOK-001",),
+)
+
 RULE_BG_TRANS_TIE_ANCHOR_PENDING = RuleReference(
     rule_id="BG-TRANS-TIE-ANCHOR-PENDING",
     title="Mabhas 9 Tie Deformed-Bar Anchorage (PENDING)",
@@ -2868,32 +3028,43 @@ RULE_BG_TRANS_WIRE_TIE_PENDING = RuleReference(
 
 RULE_BG_TRANS_TORSION_TIE_PENDING = RuleReference(
     rule_id="BG-TRANS-TORSION-TIE-PENDING",
-    title="Mabhas 9 Torsion / Integrity Tie Detailing (PENDING)",
+    title="Mabhas 9 Torsion / Integrity Tie — Remaining Blocked Branches (PENDING)",
     category=RuleCategory.CODE_RULE,
     status=VerificationStatus.VERIFY_PENDING,
     jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
     source_document=SOURCE_MABHAS_9,
-    pdf_page=468,
-    printed_page=448,
+    pdf_page=464,
+    printed_page=444,
     clause_or_equation=(
-        "Clauses 9-21-6-1-6, 9-21-6-1-7 & 9-21-6-2-7 (Printed pp. 444-448 / "
-        "PDF pp. 464-468)"
+        "Clause 9-21-6-1-6-ب, Clause 9-21-6-2-7-ب & the Clause 9-21-6-2-7-الف "
+        "standard-hook option (Printed pp. 444-448 / PDF pp. 464-468)"
     ),
     symbolic_formula="UNAVAILABLE (execution blocked)",
     description=(
-        "Torsion and member-integrity ties must be closed and perpendicular "
-        "to the member axis and anchored by 135-degree standard or seismic "
-        "hooks (Clauses 9-21-6-1-6, 9-21-6-1-7, 9-21-6-2-7), with the "
-        "bend ends anchored in the core concrete."
+        "Remaining BLOCKED branches of the torsion / member-integrity tie "
+        "clauses after Stage H.3 promoted the deterministic branches. "
+        "Clause 9-21-6-1-6-ب delegates to Clauses 9-21-6-1-3 (BLOCKED: "
+        "fy/d_b boundary gap) and 9-21-6-1-4 (BLOCKED: welded-wire "
+        "positioning). Clause 9-21-6-2-7-ب delegates to Clause 9-21-6-1-3 "
+        "(BLOCKED) or 9-21-6-4-1 (now executable as BG-TRANS-DORGIR-001, but "
+        "the 9-21-6-1-3 route stays blocked). The Clause 9-21-6-2-7-الف "
+        "standard 135-degree hook option depends on the standard-hook "
+        "requirements of 9-21-2-2-2 / Table 9-21-2-2, which are not yet "
+        "verified. The executable branches are now BG-TRANS-TORSION-TIE-"
+        "135HOOK-001 (9-21-6-1-6-الف), BG-TRANS-TWO-PIECE-TIE-001 (9-21-6-1-7) "
+        "and BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001 (9-21-6-2-7-الف seismic "
+        "option); this sentinel keeps only the blocked branches."
     ),
     execution_allowed=False,
     blocked_reason=(
-        "Execution BLOCKED: these clauses require verifying the 135-degree "
-        "standard-hook and seismic-hook bend geometry, and no such "
-        "hook-geometry rule is VERIFIED and execution_allowed=True in the "
-        "Rule Registry (the geometry lives in Clause 9-20-6, out of the "
-        "verified window). Per Stage G governance the seismic-hook "
-        "prerequisite is not executable here; no formula/number is executed."
+        "Execution BLOCKED: the remaining branches delegate to rules that "
+        "are themselves blocked or unverified — Clause 9-21-6-1-3 (fy=280 / "
+        "d_b=17 / d_b>25 boundary gap), Clause 9-21-6-1-4 (welded-wire "
+        "positioning), and the standard-hook geometry of Clause 9-21-2-2-2 / "
+        "Table 9-21-2-2 (not yet verified). The earlier 'geometry lives in "
+        "Clause 9-20-6' reason was corrected in Stage H.1 (the geometry is "
+        "inline in 9-21-2-2-4 and is now implemented as BG-TRANS-SEISMIC-"
+        "HOOK-001); no formula/number is executed here."
     ),
     dependencies=(),
 )
@@ -2952,37 +3123,6 @@ RULE_BG_TRANS_SPIRAL_SPLICE_SEL_PENDING = RuleReference(
     dependencies=("BG-DEV-SPLICE-WELDED-MECH-PENDING",),
 )
 
-RULE_BG_TRANS_DORGIR_PENDING = RuleReference(
-    rule_id="BG-TRANS-DORGIR-PENDING",
-    title="Mabhas 9 Confinement Tie دورگیر (PENDING)",
-    category=RuleCategory.CODE_RULE,
-    status=VerificationStatus.VERIFY_PENDING,
-    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
-    source_document=SOURCE_MABHAS_9,
-    pdf_page=470,
-    printed_page=450,
-    clause_or_equation=(
-        "Clauses 9-21-6-4-1 & 9-21-6-4-2 (Printed p. 450 / PDF p. 470)"
-    ),
-    symbolic_formula="UNAVAILABLE (execution blocked)",
-    description=(
-        "Clause 9-21-6-4 دورگیر: confinement ties must be closed or wound "
-        "continuous; each piece must be anchored by a seismic hook at both "
-        "ends per Clause 9-21-6-2-4 engaging one longitudinal bar, and "
-        "connected headed bars are not permitted as دورگیر."
-    ),
-    execution_allowed=False,
-    blocked_reason=(
-        "Execution BLOCKED: the دورگیر requirement is fundamentally the "
-        "seismic hook at both ends, and no seismic-hook geometry rule is "
-        "VERIFIED and execution_allowed=True in the Rule Registry (the "
-        "geometry lives in Clause 9-20-6, out of the verified window). Per "
-        "Stage G governance the seismic-hook prerequisite is not executable "
-        "here; no formula/number is executed."
-    ),
-    dependencies=(),
-)
-
 
 _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     # Verified Mabhas 9 rules
@@ -3038,6 +3178,12 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_TRANS_SPIRAL_RATIO_001,
     RULE_BG_TRANS_SPIRAL_ANCHOR_001,
     RULE_BG_TRANS_SPIRAL_LAP_001,
+    # Phase 2F Stage H.3 — verified seismic hook / دورگیر / torsion-tie rules
+    RULE_BG_TRANS_SEISMIC_HOOK_001,
+    RULE_BG_TRANS_DORGIR_001,
+    RULE_BG_TRANS_TWO_PIECE_TIE_001,
+    RULE_BG_TRANS_TORSION_TIE_135HOOK_001,
+    RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001,
     # Isolated Mostofinejad reference rules
     RULE_BG_MOST_5_46,
     RULE_BG_MOST_5_47,
@@ -3095,7 +3241,6 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_TRANS_TORSION_TIE_PENDING,
     RULE_BG_TRANS_WIRE_SUBST_PENDING,
     RULE_BG_TRANS_SPIRAL_SPLICE_SEL_PENDING,
-    RULE_BG_TRANS_DORGIR_PENDING,
     RULE_BG_NEG_EXT_PENDING,
     RULE_BG_SKIN_REINF_PENDING,
     RULE_BG_BENT_ANCHOR_PENDING,

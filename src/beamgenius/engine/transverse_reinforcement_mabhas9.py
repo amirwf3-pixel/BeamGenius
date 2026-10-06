@@ -86,7 +86,9 @@ from beamgenius.engine.detailing_spacing_mabhas9 import (
 from beamgenius.registry.catalog import (
     RULE_BG_TRANS_CIRC_TIE_001,
     RULE_BG_TRANS_CLOSED_TIE_LAP_001,
+    RULE_BG_TRANS_DORGIR_001,
     RULE_BG_TRANS_RECT_TIE_001,
+    RULE_BG_TRANS_SEISMIC_HOOK_001,
     RULE_BG_TRANS_SPIRAL_ANCHOR_001,
     RULE_BG_TRANS_SPIRAL_DIA_001,
     RULE_BG_TRANS_SPIRAL_LAP_001,
@@ -95,6 +97,9 @@ from beamgenius.registry.catalog import (
     RULE_BG_TRANS_TIE_DIA_001,
     RULE_BG_TRANS_TIE_SHEAR_EXTENT_001,
     RULE_BG_TRANS_TIE_SPACING_001,
+    RULE_BG_TRANS_TORSION_TIE_135HOOK_001,
+    RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001,
+    RULE_BG_TRANS_TWO_PIECE_TIE_001,
 )
 from beamgenius.registry.gatekeeper import GatekeeperDecision, evaluate_rule_gate
 
@@ -138,6 +143,38 @@ BG_TRANS_SPIRAL_LAP_MIN_MM: float = 300.0
 BG_TRANS_CLOSED_TIE_LAP_DIVISOR: float = 3.0
 BG_TRANS_CLOSED_TIE_FULL_DEPTH_MIN_DEPTH_MM: float = 450.0
 BG_TRANS_CLOSED_TIE_FULL_DEPTH_MAX_FORCE_N: float = 40_000.0
+
+# --- Clause 9-21-2-2-4 seismic hook geometry (PDF p. 442 / Printed p. 442).
+# Geometry is stated inline in 9-21-2-2-4; the terminological phrase
+# "مطابق تعریف فصل ۹-۲۰" is NOT a dependency on Chapter 9-20 and Chapter 9-20
+# is never imported. The straight extension is satisfied by >= 6*d_b OR
+# >= 75 mm (verbatim "۶d_b و یا ۷۵ میلی‌متر"); the bend is >= 135 deg, relaxed
+# to >= 90 deg only for circular دورگیر (دورگیرهای دایروی).
+BG_TRANS_SEISMIC_HOOK_MIN_BEND_DEG: float = 135.0
+BG_TRANS_SEISMIC_HOOK_CIRCULAR_MIN_BEND_DEG: float = 90.0
+BG_TRANS_SEISMIC_HOOK_EXT_DB_FACTOR: float = 6.0
+BG_TRANS_SEISMIC_HOOK_EXT_ABS_MIN_MM: float = 75.0
+BG_TRANS_SEISMIC_HOOK_MAX_BEND_DEG: float = 180.0
+
+# --- Clause 9-21-6-1-7 two-piece torsion tie (PDF p. 465 / Printed p. 445)
+BG_TRANS_TWO_PIECE_U_BEND_MIN_DEG: float = 135.0
+BG_TRANS_TWO_PIECE_MEMBER_BEND_DEG: float = 90.0
+
+# --- Clause 9-21-6-1-6-الف torsion/integrity tie 135-degree hook (PDF p. 464 / Printed p. 444)
+BG_TRANS_TIE_135_HOOK_MIN_BEND_DEG: float = 135.0
+
+
+class DorgirConstruction(str, Enum):
+    """دورگیر construction class per Clause 9-21-6-4 (PDF p. 470 / Printed p. 450).
+
+    CLOSED_TIE: closed ties (تنگ‌های بسته) — Clause 9-21-6-4-1.
+    WOUND_CONTINUOUS: wound continuously (پیچیده شده به صورت پیوسته) — Clause 9-21-6-4-1.
+    MULTI_PART: several parts, each with a seismic hook at both ends — Clause 9-21-6-4-2.
+    """
+
+    CLOSED_TIE = "closed_tie"
+    WOUND_CONTINUOUS = "wound_continuous"
+    MULTI_PART = "multi_part"
 
 
 class SpiralSpliceBarType(str, Enum):
@@ -1730,4 +1767,1084 @@ def evaluate_spiral_lap_splice(
             f"max({multiplier}*{bar_diameter_mm}, {BG_TRANS_SPIRAL_LAP_MIN_MM}) = "
             f"{lap_mm} mm per Clause 9-21-6-3-6 / Table 9-21-7."
         ),
+    )
+
+
+# --- BG-TRANS-SEISMIC-HOOK-001 (Clause 9-21-2-2-4, PDF p. 442 / Printed p. 442)
+def evaluate_seismic_hook(
+    *,
+    circular_dorgir: Optional[bool] = None,
+    bend_angle_deg: Optional[float] = None,
+    straight_extension_mm: Optional[float] = None,
+    bar_diameter_mm: Optional[float] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> CalculationTraceStep:
+    """Evaluate the seismic-hook geometry (BG-TRANS-SEISMIC-HOOK-001).
+
+    Verified source: Mabhas 9 (1399), Clause 9-21-2-2-4, PDF p. 442 /
+    Printed p. 442: a seismic hook (قلاب لرزه‌ای) has a bend of at least 135
+    degrees and a straight extension after the bend of at least 6*d_b or 75 mm;
+    in circular دورگیر (دورگیرهای دایروی) the bend may be at least 90 degrees.
+    The geometry is stated inline in 9-21-2-2-4; the terminological phrase
+    "مطابق تعریف فصل ۹-۲۰" is NOT a dependency on Chapter 9-20 and Chapter 9-20
+    is never imported.
+
+    ``circular_dorgir`` (whether the circular-dorgir 90-degree exception
+    applies), ``bend_angle_deg``, ``straight_extension_mm`` and
+    ``bar_diameter_mm`` are REQUIRED typed inputs (never assumed or
+    defaulted). Missing/invalid inputs -> BLOCKED/INVALID_INPUT, never PASS.
+    """
+    rule_id = RULE_BG_TRANS_SEISMIC_HOOK_001.rule_id
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "circular_dorgir": circular_dorgir,
+        "bend_angle_deg": bend_angle_deg,
+        "straight_extension_mm": straight_extension_mm,
+        "bar_diameter_mm": bar_diameter_mm,
+    }
+
+    gate = evaluate_rule_gate(rule_id, active_jurisdiction=jurisdiction_mode)
+    if not gate.allowed:
+        return gate.to_blocked_trace_step(normalized_inputs=raw_inputs, unit="mm")
+    rule = gate.rule
+
+    circular_raw: object = circular_dorgir
+    if circular_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_CIRCULAR_DORGIR",
+                    (
+                        "Whether the circular-dorgir 90-degree bend exception "
+                        "of Clause 9-21-2-2-4 applies is required to select the "
+                        "minimum seismic-hook bend (90 vs 135 degrees); it is "
+                        "never assumed. Missing required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="circular_dorgir",
+                )
+            ],
+        )
+    if not isinstance(circular_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_CIRCULAR_DORGIR",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=f"circular_dorgir must be a bool, got {circular_raw!r}.",
+                    rule_id=rule_id,
+                    field_name="circular_dorgir",
+                )
+            ],
+        )
+
+    invalid: List[EngineeringDiagnostic] = []
+    missing: List[EngineeringDiagnostic] = []
+    _require_positive(
+        bend_angle_deg,
+        code="MISSING_BEND_ANGLE",
+        field_name="bend_angle_deg",
+        message=(
+            "The seismic-hook bend angle is required for the Clause 9-21-2-2-4 "
+            "check; it is never assumed. Missing required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        straight_extension_mm,
+        code="MISSING_STRAIGHT_EXTENSION",
+        field_name="straight_extension_mm",
+        message=(
+            "The straight extension after the bend is required for the Clause "
+            "9-21-2-2-4 check; it is never assumed. Missing required input -> "
+            "BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        bar_diameter_mm,
+        code="MISSING_BAR_DIAMETER",
+        field_name="bar_diameter_mm",
+        message=(
+            "The bar diameter d_b is required for the 6*d_b seismic-hook "
+            "extension of Clause 9-21-2-2-4; it is never assumed. Missing "
+            "required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    if invalid:
+        return _invalid_step(gate, raw_inputs=raw_inputs, diagnostics=invalid)
+    if missing:
+        return _blocked_step(gate, raw_inputs=raw_inputs, diagnostics=missing)
+    assert bend_angle_deg is not None
+    assert straight_extension_mm is not None
+    assert bar_diameter_mm is not None
+
+    if bend_angle_deg > BG_TRANS_SEISMIC_HOOK_MAX_BEND_DEG:
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_BEND_ANGLE",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "bend_angle_deg must be in (0, 180] degrees, got "
+                        f"{bend_angle_deg!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="bend_angle_deg",
+                )
+            ],
+        )
+
+    min_bend_deg = (
+        BG_TRANS_SEISMIC_HOOK_CIRCULAR_MIN_BEND_DEG
+        if circular_raw
+        else BG_TRANS_SEISMIC_HOOK_MIN_BEND_DEG
+    )
+    ext_6db_mm = BG_TRANS_SEISMIC_HOOK_EXT_DB_FACTOR * bar_diameter_mm
+    ext_abs_mm = BG_TRANS_SEISMIC_HOOK_EXT_ABS_MIN_MM
+    ext_via_6db = straight_extension_mm >= ext_6db_mm
+    ext_via_75 = straight_extension_mm >= ext_abs_mm
+
+    if bend_angle_deg < min_bend_deg:
+        diag = EngineeringDiagnostic(
+            code="SEISMIC_HOOK_BEND_BELOW_MINIMUM",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                f"FAIL: a seismic hook per Clause 9-21-2-2-4 requires a bend of "
+                f"at least {min_bend_deg} degrees "
+                f"({'circular دورگیر' if circular_raw else 'non-circular'}); the "
+                f"provided bend {bend_angle_deg} degrees is insufficient."
+            ),
+            rule_id=rule_id,
+            field_name="bend_angle_deg",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "bend_angle_deg": bend_angle_deg,
+                "min_bend_deg": min_bend_deg,
+            },
+            final_result=bend_angle_deg,
+            unit="deg",
+            diagnostic=diag,
+        )
+
+    if not (ext_via_6db or ext_via_75):
+        diag = EngineeringDiagnostic(
+            code="SEISMIC_HOOK_EXTENSION_BELOW_MINIMUM",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                f"FAIL: the straight extension after the bend of a seismic hook "
+                f"per Clause 9-21-2-2-4 must be at least 6*d_b = {ext_6db_mm} mm "
+                f"or {ext_abs_mm} mm; the provided extension "
+                f"{straight_extension_mm} mm satisfies neither."
+            ),
+            rule_id=rule_id,
+            field_name="straight_extension_mm",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "straight_extension_mm": straight_extension_mm,
+                "extension_6db_mm": ext_6db_mm,
+                "extension_abs_min_mm": ext_abs_mm,
+            },
+            final_result=straight_extension_mm,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    intermediates: Dict[str, float] = {
+        "bend_angle_deg": bend_angle_deg,
+        "min_bend_deg": min_bend_deg,
+        "straight_extension_mm": straight_extension_mm,
+        "extension_6db_mm": ext_6db_mm,
+        "extension_abs_min_mm": ext_abs_mm,
+    }
+    return _pass_step(
+        gate,
+        raw_inputs=raw_inputs,
+        intermediates=intermediates,
+        final_result=straight_extension_mm,
+        unit="mm",
+        message=(
+            f"PASS: seismic hook per Clause 9-21-2-2-4 — bend {bend_angle_deg} "
+            f"deg >= {min_bend_deg} deg and straight extension "
+            f"{straight_extension_mm} mm >= 6*d_b = {ext_6db_mm} mm "
+            f"(or >= {ext_abs_mm} mm)."
+        ),
+    )
+
+
+# --- BG-TRANS-DORGIR-001 (Clause 9-21-6-4-1 & 9-21-6-4-2, PDF p. 470 / Printed p. 450)
+def evaluate_dorgir(
+    *,
+    dorgir_construction: Optional[DorgirConstruction] = None,
+    uses_interconnected_headed_bars: Optional[bool] = None,
+    hook_bend_angle_deg: Optional[float] = None,
+    hook_straight_extension_mm: Optional[float] = None,
+    hook_bar_diameter_mm: Optional[float] = None,
+    hook_circular_dorgir: Optional[bool] = None,
+    hook_encloses_longitudinal_bar: Optional[bool] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> CalculationTraceStep:
+    """Evaluate the confinement tie دورگیر (BG-TRANS-DORGIR-001).
+
+    Verified source: Mabhas 9 (1399), Clauses 9-21-6-4-1 & 9-21-6-4-2,
+    PDF p. 470 / Printed p. 450. Clause 9-21-6-4-1: دورگیر shall consist of
+    closed ties or be wound continuously. Clause 9-21-6-4-2: دورگیر may be
+    made of several parts, each anchored at both ends by a seismic hook per
+    Clause 9-21-2-2-4; each hook encloses one longitudinal bar; interconnected
+    headed bars (میلگردهای سَر دار متصل به هم) are not permitted as دورگیر.
+
+    ``dorgir_construction`` and ``uses_interconnected_headed_bars`` are
+    REQUIRED typed inputs. For MULTI_PART the per-component seismic-hook
+    geometry (``hook_bend_angle_deg``, ``hook_straight_extension_mm``,
+    ``hook_bar_diameter_mm``, ``hook_circular_dorgir``) and
+    ``hook_encloses_longitudinal_bar`` are REQUIRED; the hook geometry is
+    delegated to the verified seismic-hook rule (BG-TRANS-SEISMIC-HOOK-001,
+    Clause 9-21-2-2-4) rather than duplicated. No geometry beyond these
+    clauses is invented. Missing/invalid inputs -> BLOCKED/INVALID_INPUT,
+    never PASS.
+    """
+    rule_id = RULE_BG_TRANS_DORGIR_001.rule_id
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "dorgir_construction": (
+            dorgir_construction.value
+            if isinstance(dorgir_construction, DorgirConstruction)
+            else dorgir_construction
+        ),
+        "uses_interconnected_headed_bars": uses_interconnected_headed_bars,
+        "hook_bend_angle_deg": hook_bend_angle_deg,
+        "hook_straight_extension_mm": hook_straight_extension_mm,
+        "hook_bar_diameter_mm": hook_bar_diameter_mm,
+        "hook_circular_dorgir": hook_circular_dorgir,
+        "hook_encloses_longitudinal_bar": hook_encloses_longitudinal_bar,
+    }
+
+    gate = evaluate_rule_gate(rule_id, active_jurisdiction=jurisdiction_mode)
+    if not gate.allowed:
+        return gate.to_blocked_trace_step(normalized_inputs=raw_inputs, unit="mm")
+    rule = gate.rule
+
+    constr_raw: object = dorgir_construction
+    if constr_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_DORGIR_CONSTRUCTION",
+                    (
+                        "The دورگیر construction class (closed tie, wound "
+                        "continuous, or multi-part) is required for Clause "
+                        "9-21-6-4; it is never assumed. Missing required input "
+                        "-> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="dorgir_construction",
+                )
+            ],
+        )
+    if not isinstance(constr_raw, DorgirConstruction):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_DORGIR_CONSTRUCTION",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "dorgir_construction must be a DorgirConstruction "
+                        f"value, got {constr_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="dorgir_construction",
+                )
+            ],
+        )
+
+    headed_raw: object = uses_interconnected_headed_bars
+    if headed_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_USES_INTERCONNECTED_HEADED_BARS",
+                    (
+                        "Whether interconnected headed bars are used as دورگیر "
+                        "is required to apply the Clause 9-21-6-4-2 prohibition; "
+                        "it is never assumed. Missing required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="uses_interconnected_headed_bars",
+                )
+            ],
+        )
+    if not isinstance(headed_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_USES_INTERCONNECTED_HEADED_BARS",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "uses_interconnected_headed_bars must be a bool, got "
+                        f"{headed_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="uses_interconnected_headed_bars",
+                )
+            ],
+        )
+
+    if headed_raw:
+        diag = EngineeringDiagnostic(
+            code="DORGIR_HEADED_BARS_PROHIBITED",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: the use of interconnected headed bars (میلگردهای سَر دار "
+                "متصل به هم) as دورگیر is not permitted per Clause 9-21-6-4-2."
+            ),
+            rule_id=rule_id,
+            field_name="uses_interconnected_headed_bars",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    if constr_raw in (
+        DorgirConstruction.CLOSED_TIE,
+        DorgirConstruction.WOUND_CONTINUOUS,
+    ):
+        return _pass_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            message=(
+                "PASS: دورگیر consists of "
+                f"{constr_raw.value.replace('_', ' ')} per Clause 9-21-6-4-1, "
+                "and interconnected headed bars are not used."
+            ),
+        )
+
+    # MULTI_PART -> Clause 9-21-6-4-2
+    encl_raw: object = hook_encloses_longitudinal_bar
+    if encl_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_HOOK_ENCLOSES_LONGITUDINAL_BAR",
+                    (
+                        "Whether each multi-piece دورگیر component hook encloses "
+                        "a longitudinal bar is required for Clause 9-21-6-4-2; "
+                        "it is never assumed. Missing required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="hook_encloses_longitudinal_bar",
+                )
+            ],
+        )
+    if not isinstance(encl_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_HOOK_ENCLOSES_LONGITUDINAL_BAR",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "hook_encloses_longitudinal_bar must be a bool, got "
+                        f"{encl_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="hook_encloses_longitudinal_bar",
+                )
+            ],
+        )
+    if not encl_raw:
+        diag = EngineeringDiagnostic(
+            code="DORGIR_HOOK_NOT_ENCLOSING_LONGITUDINAL_BAR",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: each multi-piece دورگیر component hook must enclose one "
+                "longitudinal bar per Clause 9-21-6-4-2."
+            ),
+            rule_id=rule_id,
+            field_name="hook_encloses_longitudinal_bar",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    # Delegate the component hook geometry to the verified seismic-hook rule
+    # (Clause 9-21-2-2-4) instead of duplicating its formula.
+    hook_step = evaluate_seismic_hook(
+        circular_dorgir=hook_circular_dorgir,
+        bend_angle_deg=hook_bend_angle_deg,
+        straight_extension_mm=hook_straight_extension_mm,
+        bar_diameter_mm=hook_bar_diameter_mm,
+        jurisdiction_mode=jurisdiction_mode,
+    )
+    if hook_step.outcome is EvaluationOutcome.PASS:
+        hook_ext = hook_straight_extension_mm
+        assert hook_ext is not None
+        return _pass_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={"hook_straight_extension_mm": hook_ext},
+            final_result=hook_ext,
+            unit="mm",
+            message=(
+                "PASS: multi-piece دورگیر per Clause 9-21-6-4-2 — each component "
+                "is anchored at both ends by a seismic hook (Clause 9-21-2-2-4) "
+                "that encloses a longitudinal bar, and interconnected headed "
+                "bars are not used."
+            ),
+        )
+    if hook_step.outcome is EvaluationOutcome.FAIL:
+        diag = EngineeringDiagnostic(
+            code="DORGIR_COMPONENT_SEISMIC_HOOK_NOT_SATISFIED",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: a multi-piece دورگیر component hook must satisfy the "
+                "seismic-hook geometry of Clause 9-21-2-2-4; "
+                f"{hook_step.message}"
+            ),
+            rule_id=rule_id,
+            field_name="hook_bend_angle_deg",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+    if hook_step.outcome is EvaluationOutcome.INVALID_INPUT:
+        return _invalid_step(
+            gate, raw_inputs=raw_inputs, diagnostics=list(hook_step.diagnostics)
+        )
+    # hook_step BLOCKED (missing/incomplete seismic-hook inputs) -> propagate.
+    return _blocked_step(
+        gate, raw_inputs=raw_inputs, diagnostics=list(hook_step.diagnostics)
+    )
+
+
+# --- BG-TRANS-TWO-PIECE-TIE-001 (Clause 9-21-6-1-7, PDF p. 465 / Printed p. 445)
+def evaluate_two_piece_tie(
+    *,
+    u_tie_bend_angle_deg: Optional[float] = None,
+    second_member_bend_angle_deg: Optional[float] = None,
+    second_member_adjacent_nonspalling_face: Optional[bool] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> CalculationTraceStep:
+    """Evaluate the two-piece torsion/integrity tie (BG-TRANS-TWO-PIECE-TIE-001).
+
+    Verified source: Mabhas 9 (1399), Clause 9-21-6-1-7, PDF p. 465 /
+    Printed p. 445: a tie for torsion/cracking may be made of two parts — a
+    U-shaped tie with 135-degree bends, and a member (سنگراقی) whose 90-degree
+    bend shall be adjacent to the member face where the concrete is not
+    susceptible to deterioration from flange/slab confinement.
+
+    Only the requirements stated in 9-21-6-1-7 are represented; no bend
+    diameter, embedment length, or other geometry is invented.
+    ``u_tie_bend_angle_deg``, ``second_member_bend_angle_deg`` and
+    ``second_member_adjacent_nonspalling_face`` are REQUIRED typed inputs.
+    Missing/invalid inputs -> BLOCKED/INVALID_INPUT, never PASS.
+    """
+    rule_id = RULE_BG_TRANS_TWO_PIECE_TIE_001.rule_id
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "u_tie_bend_angle_deg": u_tie_bend_angle_deg,
+        "second_member_bend_angle_deg": second_member_bend_angle_deg,
+        "second_member_adjacent_nonspalling_face": (
+            second_member_adjacent_nonspalling_face
+        ),
+    }
+
+    gate = evaluate_rule_gate(rule_id, active_jurisdiction=jurisdiction_mode)
+    if not gate.allowed:
+        return gate.to_blocked_trace_step(normalized_inputs=raw_inputs, unit="deg")
+    rule = gate.rule
+
+    invalid: List[EngineeringDiagnostic] = []
+    missing: List[EngineeringDiagnostic] = []
+    _require_positive(
+        u_tie_bend_angle_deg,
+        code="MISSING_U_TIE_BEND_ANGLE",
+        field_name="u_tie_bend_angle_deg",
+        message=(
+            "The U-tie bend angle is required for the Clause 9-21-6-1-7 "
+            "check; it is never assumed. Missing required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        second_member_bend_angle_deg,
+        code="MISSING_SECOND_MEMBER_BEND_ANGLE",
+        field_name="second_member_bend_angle_deg",
+        message=(
+            "The second-member bend angle is required for the Clause 9-21-6-1-7 "
+            "check; it is never assumed. Missing required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    if invalid:
+        return _invalid_step(gate, raw_inputs=raw_inputs, diagnostics=invalid)
+    if missing:
+        return _blocked_step(gate, raw_inputs=raw_inputs, diagnostics=missing)
+    assert u_tie_bend_angle_deg is not None
+    assert second_member_bend_angle_deg is not None
+
+    face_raw: object = second_member_adjacent_nonspalling_face
+    if face_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_SECOND_MEMBER_ADJACENT_NONSPALLING_FACE",
+                    (
+                        "Whether the second-member 90-degree bend is adjacent to "
+                        "the non-spalling member face is required for Clause "
+                        "9-21-6-1-7; it is never assumed. Missing required input "
+                        "-> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="second_member_adjacent_nonspalling_face",
+                )
+            ],
+        )
+    if not isinstance(face_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_SECOND_MEMBER_ADJACENT_NONSPALLING_FACE",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "second_member_adjacent_nonspalling_face must be a bool, "
+                        f"got {face_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="second_member_adjacent_nonspalling_face",
+                )
+            ],
+        )
+    for angle in (u_tie_bend_angle_deg, second_member_bend_angle_deg):
+        if angle > BG_TRANS_SEISMIC_HOOK_MAX_BEND_DEG:
+            return _invalid_step(
+                gate,
+                raw_inputs=raw_inputs,
+                diagnostics=[
+                    EngineeringDiagnostic(
+                        code="INVALID_BEND_ANGLE",
+                        severity=DiagnosticSeverity.ERROR,
+                        message=(
+                            "bend angles must be in (0, 180] degrees, got "
+                            f"{angle!r}."
+                        ),
+                        rule_id=rule_id,
+                    )
+                ],
+            )
+
+    if u_tie_bend_angle_deg < BG_TRANS_TWO_PIECE_U_BEND_MIN_DEG:
+        diag = EngineeringDiagnostic(
+            code="TWO_PIECE_U_BEND_BELOW_135",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                f"FAIL: the U-tie bends of a two-piece tie per Clause 9-21-6-1-7 "
+                f"must be 135 degrees (>= {BG_TRANS_TWO_PIECE_U_BEND_MIN_DEG}); "
+                f"the provided {u_tie_bend_angle_deg} degrees is insufficient."
+            ),
+            rule_id=rule_id,
+            field_name="u_tie_bend_angle_deg",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "u_tie_bend_angle_deg": u_tie_bend_angle_deg,
+                "min_u_bend_deg": BG_TRANS_TWO_PIECE_U_BEND_MIN_DEG,
+            },
+            final_result=u_tie_bend_angle_deg,
+            unit="deg",
+            diagnostic=diag,
+        )
+
+    if second_member_bend_angle_deg != BG_TRANS_TWO_PIECE_MEMBER_BEND_DEG:
+        diag = EngineeringDiagnostic(
+            code="TWO_PIECE_MEMBER_BEND_NOT_90",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                f"FAIL: the second member of a two-piece tie per Clause "
+                f"9-21-6-1-7 must have a 90-degree bend; the provided "
+                f"{second_member_bend_angle_deg} degrees is not 90 degrees."
+            ),
+            rule_id=rule_id,
+            field_name="second_member_bend_angle_deg",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "second_member_bend_angle_deg": second_member_bend_angle_deg,
+                "required_member_bend_deg": BG_TRANS_TWO_PIECE_MEMBER_BEND_DEG,
+            },
+            final_result=second_member_bend_angle_deg,
+            unit="deg",
+            diagnostic=diag,
+        )
+
+    if not face_raw:
+        diag = EngineeringDiagnostic(
+            code="TWO_PIECE_MEMBER_BEND_NOT_AT_NONSPALLING_FACE",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: the second-member 90-degree bend of a two-piece tie per "
+                "Clause 9-21-6-1-7 must be adjacent to the member face where "
+                "the concrete is not susceptible to deterioration from "
+                "flange/slab confinement."
+            ),
+            rule_id=rule_id,
+            field_name="second_member_adjacent_nonspalling_face",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="deg",
+            diagnostic=diag,
+        )
+
+    intermediates: Dict[str, float] = {
+        "u_tie_bend_angle_deg": u_tie_bend_angle_deg,
+        "second_member_bend_angle_deg": second_member_bend_angle_deg,
+    }
+    return _pass_step(
+        gate,
+        raw_inputs=raw_inputs,
+        intermediates=intermediates,
+        final_result=u_tie_bend_angle_deg,
+        unit="deg",
+        message=(
+            "PASS: two-piece tie per Clause 9-21-6-1-7 — U-tie with 135-degree "
+            "bends and a second member with a 90-degree bend adjacent to the "
+            "non-spalling member face."
+        ),
+    )
+
+
+# --- BG-TRANS-TORSION-TIE-135HOOK-001 (Clause 9-21-6-1-6-الف, PDF p. 464 / Printed p. 444)
+def evaluate_torsion_tie_135hook(
+    *,
+    hook_bend_angle_deg: Optional[float] = None,
+    hook_engages_longitudinal_bar: Optional[bool] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> CalculationTraceStep:
+    """Evaluate the torsion/integrity tie 135-degree hook (BG-TRANS-TORSION-TIE-135HOOK-001).
+
+    Verified source: Mabhas 9 (1399), Clause 9-21-6-1-6(الف), PDF p. 464 /
+    Printed p. 444: both ends of the tie shall be terminated with a 135-degree
+    hook around the longitudinal bar. Only the deterministic (الف) branch is
+    implemented; the (ب) branch delegates to the still-blocked Clauses
+    9-21-6-1-3 and 9-21-6-1-4 and is NOT executed here.
+
+    ``hook_bend_angle_deg`` (the tie-end hook bend, applying to both ends) and
+    ``hook_engages_longitudinal_bar`` are REQUIRED typed inputs. Missing/invalid
+    inputs -> BLOCKED/INVALID_INPUT, never PASS.
+    """
+    rule_id = RULE_BG_TRANS_TORSION_TIE_135HOOK_001.rule_id
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "hook_bend_angle_deg": hook_bend_angle_deg,
+        "hook_engages_longitudinal_bar": hook_engages_longitudinal_bar,
+    }
+
+    gate = evaluate_rule_gate(rule_id, active_jurisdiction=jurisdiction_mode)
+    if not gate.allowed:
+        return gate.to_blocked_trace_step(normalized_inputs=raw_inputs, unit="deg")
+    rule = gate.rule
+
+    invalid: List[EngineeringDiagnostic] = []
+    missing: List[EngineeringDiagnostic] = []
+    _require_positive(
+        hook_bend_angle_deg,
+        code="MISSING_HOOK_BEND_ANGLE",
+        field_name="hook_bend_angle_deg",
+        message=(
+            "The tie-end hook bend angle is required for the Clause 9-21-6-1-6-"
+            "الف check; it is never assumed. Missing required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    if invalid:
+        return _invalid_step(gate, raw_inputs=raw_inputs, diagnostics=invalid)
+    if missing:
+        return _blocked_step(gate, raw_inputs=raw_inputs, diagnostics=missing)
+    assert hook_bend_angle_deg is not None
+
+    engages_raw: object = hook_engages_longitudinal_bar
+    if engages_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_HOOK_ENGAGES_LONGITUDINAL_BAR",
+                    (
+                        "Whether the tie-end hook engages a longitudinal bar is "
+                        "required for the Clause 9-21-6-1-6-الف check; it is "
+                        "never assumed. Missing required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="hook_engages_longitudinal_bar",
+                )
+            ],
+        )
+    if not isinstance(engages_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_HOOK_ENGAGES_LONGITUDINAL_BAR",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "hook_engages_longitudinal_bar must be a bool, got "
+                        f"{engages_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="hook_engages_longitudinal_bar",
+                )
+            ],
+        )
+
+    if hook_bend_angle_deg > BG_TRANS_SEISMIC_HOOK_MAX_BEND_DEG:
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_BEND_ANGLE",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "hook_bend_angle_deg must be in (0, 180] degrees, got "
+                        f"{hook_bend_angle_deg!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="hook_bend_angle_deg",
+                )
+            ],
+        )
+
+    if hook_bend_angle_deg < BG_TRANS_TIE_135_HOOK_MIN_BEND_DEG:
+        diag = EngineeringDiagnostic(
+            code="TORSION_TIE_135_HOOK_BEND_BELOW_135",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                f"FAIL: both tie ends must be terminated with a 135-degree hook "
+                f"per Clause 9-21-6-1-6-الف; the provided bend "
+                f"{hook_bend_angle_deg} degrees is below "
+                f"{BG_TRANS_TIE_135_HOOK_MIN_BEND_DEG} degrees."
+            ),
+            rule_id=rule_id,
+            field_name="hook_bend_angle_deg",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "hook_bend_angle_deg": hook_bend_angle_deg,
+                "min_bend_deg": BG_TRANS_TIE_135_HOOK_MIN_BEND_DEG,
+            },
+            final_result=hook_bend_angle_deg,
+            unit="deg",
+            diagnostic=diag,
+        )
+
+    if not engages_raw:
+        diag = EngineeringDiagnostic(
+            code="TORSION_TIE_135_HOOK_NOT_ENGAGING_LONGITUDINAL_BAR",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: both tie ends must be terminated with a 135-degree hook "
+                "around the longitudinal bar per Clause 9-21-6-1-6-الف; the "
+                "provided hook does not engage a longitudinal bar."
+            ),
+            rule_id=rule_id,
+            field_name="hook_engages_longitudinal_bar",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={"hook_bend_angle_deg": hook_bend_angle_deg},
+            final_result=hook_bend_angle_deg,
+            unit="deg",
+            diagnostic=diag,
+        )
+
+    intermediates: Dict[str, float] = {
+        "hook_bend_angle_deg": hook_bend_angle_deg,
+        "min_bend_deg": BG_TRANS_TIE_135_HOOK_MIN_BEND_DEG,
+    }
+    return _pass_step(
+        gate,
+        raw_inputs=raw_inputs,
+        intermediates=intermediates,
+        final_result=hook_bend_angle_deg,
+        unit="deg",
+        message=(
+            f"PASS: both tie ends terminated with a {hook_bend_angle_deg}-degree "
+            "hook engaging the longitudinal bar per Clause 9-21-6-1-6-الف."
+        ),
+    )
+
+
+# --- BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001 (Clause 9-21-6-2-7-الف seismic-hook branch,
+#     PDF p. 467 / Printed p. 447; hook geometry per Clause 9-21-2-2-4, PDF p. 442)
+def evaluate_torsion_tie_seismic_hook(
+    *,
+    hook_bend_angle_deg: Optional[float] = None,
+    hook_straight_extension_mm: Optional[float] = None,
+    hook_bar_diameter_mm: Optional[float] = None,
+    hook_circular_dorgir: Optional[bool] = None,
+    hook_engages_longitudinal_bar: Optional[bool] = None,
+    bend_end_anchored_in_core_concrete: Optional[bool] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> CalculationTraceStep:
+    """Evaluate the torsion-tie seismic-hook branch (BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001).
+
+    Verified source: Mabhas 9 (1399), Clause 9-21-6-2-7(الف), PDF p. 467 /
+    Printed p. 447: both ends of a torsion tie shall be terminated with a
+    seismic hook around the longitudinal bar, with the bend end anchored in
+    the core concrete. Only the seismic-hook option of 9-21-6-2-7(الف) is
+    implemented here; the standard 135-degree hook option depends on the
+    standard-hook requirements of 9-21-2-2-2 / Table 9-21-2-2 (not yet
+    verified) and the (ب) branch routes through blocked rules — neither is
+    executed. The seismic-hook geometry is delegated to the verified
+    seismic-hook rule (BG-TRANS-SEISMIC-HOOK-001, Clause 9-21-2-2-4).
+
+    ``hook_engages_longitudinal_bar`` and
+    ``bend_end_anchored_in_core_concrete`` plus the seismic-hook geometry
+    inputs are REQUIRED typed inputs. Missing/invalid inputs ->
+    BLOCKED/INVALID_INPUT, never PASS.
+    """
+    rule_id = RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001.rule_id
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "hook_bend_angle_deg": hook_bend_angle_deg,
+        "hook_straight_extension_mm": hook_straight_extension_mm,
+        "hook_bar_diameter_mm": hook_bar_diameter_mm,
+        "hook_circular_dorgir": hook_circular_dorgir,
+        "hook_engages_longitudinal_bar": hook_engages_longitudinal_bar,
+        "bend_end_anchored_in_core_concrete": bend_end_anchored_in_core_concrete,
+    }
+
+    gate = evaluate_rule_gate(rule_id, active_jurisdiction=jurisdiction_mode)
+    if not gate.allowed:
+        return gate.to_blocked_trace_step(normalized_inputs=raw_inputs, unit="mm")
+    rule = gate.rule
+
+    engages_raw: object = hook_engages_longitudinal_bar
+    if engages_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_HOOK_ENGAGES_LONGITUDINAL_BAR",
+                    (
+                        "Whether the torsion-tie seismic hook engages a "
+                        "longitudinal bar is required for Clause 9-21-6-2-7-الف; "
+                        "it is never assumed. Missing required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="hook_engages_longitudinal_bar",
+                )
+            ],
+        )
+    if not isinstance(engages_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_HOOK_ENGAGES_LONGITUDINAL_BAR",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "hook_engages_longitudinal_bar must be a bool, got "
+                        f"{engages_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="hook_engages_longitudinal_bar",
+                )
+            ],
+        )
+
+    core_raw: object = bend_end_anchored_in_core_concrete
+    if core_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_BEND_END_ANCHORED_IN_CORE_CONCRETE",
+                    (
+                        "Whether the bend end is anchored in the core concrete "
+                        "is required for Clause 9-21-6-2-7-الف; it is never "
+                        "assumed. Missing required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="bend_end_anchored_in_core_concrete",
+                )
+            ],
+        )
+    if not isinstance(core_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_BEND_END_ANCHORED_IN_CORE_CONCRETE",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "bend_end_anchored_in_core_concrete must be a bool, got "
+                        f"{core_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="bend_end_anchored_in_core_concrete",
+                )
+            ],
+        )
+
+    if not engages_raw:
+        diag = EngineeringDiagnostic(
+            code="TORSION_TIE_SEISMIC_HOOK_NOT_ENGAGING_LONGITUDINAL_BAR",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: both torsion-tie ends must be terminated with a seismic "
+                "hook around the longitudinal bar per Clause 9-21-6-2-7-الف; "
+                "the provided hook does not engage a longitudinal bar."
+            ),
+            rule_id=rule_id,
+            field_name="hook_engages_longitudinal_bar",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    if not core_raw:
+        diag = EngineeringDiagnostic(
+            code="TORSION_TIE_BEND_END_NOT_IN_CORE_CONCRETE",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: the bend end of the torsion-tie seismic hook must be "
+                "anchored in the core concrete per Clause 9-21-6-2-7-الف."
+            ),
+            rule_id=rule_id,
+            field_name="bend_end_anchored_in_core_concrete",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    # Delegate the seismic-hook geometry to the verified seismic-hook rule
+    # (Clause 9-21-2-2-4) instead of duplicating its formula.
+    hook_step = evaluate_seismic_hook(
+        circular_dorgir=hook_circular_dorgir,
+        bend_angle_deg=hook_bend_angle_deg,
+        straight_extension_mm=hook_straight_extension_mm,
+        bar_diameter_mm=hook_bar_diameter_mm,
+        jurisdiction_mode=jurisdiction_mode,
+    )
+    if hook_step.outcome is EvaluationOutcome.PASS:
+        hook_ext = hook_straight_extension_mm
+        assert hook_ext is not None
+        return _pass_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={"hook_straight_extension_mm": hook_ext},
+            final_result=hook_ext,
+            unit="mm",
+            message=(
+                "PASS: both torsion-tie ends terminated with a seismic hook "
+                "(Clause 9-21-2-2-4) engaging the longitudinal bar, with the "
+                "bend end anchored in the core concrete, per Clause 9-21-6-2-7-"
+                "الف."
+            ),
+        )
+    if hook_step.outcome is EvaluationOutcome.FAIL:
+        diag = EngineeringDiagnostic(
+            code="TORSION_TIE_SEISMIC_HOOK_GEOMETRY_NOT_SATISFIED",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: the torsion-tie seismic hook must satisfy the seismic-"
+                f"hook geometry of Clause 9-21-2-2-4; {hook_step.message}"
+            ),
+            rule_id=rule_id,
+            field_name="hook_bend_angle_deg",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+    if hook_step.outcome is EvaluationOutcome.INVALID_INPUT:
+        return _invalid_step(
+            gate, raw_inputs=raw_inputs, diagnostics=list(hook_step.diagnostics)
+        )
+    return _blocked_step(
+        gate, raw_inputs=raw_inputs, diagnostics=list(hook_step.diagnostics)
     )
