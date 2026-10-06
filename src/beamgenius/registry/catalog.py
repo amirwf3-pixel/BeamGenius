@@ -2953,11 +2953,12 @@ RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001 = RuleReference(
         "Clause 9-21-6-2-7(الف): both ends of a torsion tie shall be terminated "
         "with a seismic hook around the longitudinal bar, with the bend end "
         "anchored in the core concrete. Only the seismic-hook option is "
-        "implemented; the standard 135-degree hook option depends on the "
-        "standard-hook requirements of Clause 9-21-2-2-2 / Table 9-21-2-2 (not "
-        "yet verified) and the (ب) branch routes through the still-blocked "
-        "Clause 9-21-6-1-3 — neither is executed (kept under the blocked "
-        "BG-TRANS-TORSION-TIE-PENDING sentinel). The seismic-hook geometry is "
+        "implemented; the standard 135-degree hook option is implemented "
+        "separately as BG-TRANS-TORSION-TIE-STANDARD-HOOK-001 (geometry per "
+        "Clause 9-21-2-2-2 / Table 9-21-2, PDF pp. 442-443) and the (ب) branch "
+        "routes through the still-blocked Clause 9-21-6-1-3 — neither is "
+        "executed here (kept under the blocked BG-TRANS-TORSION-TIE-PENDING "
+        "sentinel). The seismic-hook geometry is "
         "delegated to BG-TRANS-SEISMIC-HOOK-001 (Clause 9-21-2-2-4). Seismic-"
         "hook geometry, longitudinal-bar engagement, and core-concrete "
         "anchorage are REQUIRED typed inputs (never assumed). Visually "
@@ -2966,6 +2967,176 @@ RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001 = RuleReference(
     execution_allowed=True,
     blocked_reason=None,
     dependencies=("BG-TRANS-SEISMIC-HOOK-001",),
+)
+
+RULE_BG_TRANS_STANDARD_HOOK_001 = RuleReference(
+    rule_id="BG-TRANS-STANDARD-HOOK-001",
+    title="Mabhas 9 Standard Transverse-Bar Hook Geometry (Table 9-21-2)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=443,
+    printed_page=443,
+    clause_or_equation=(
+        "Clause 9-21-2-2-2 & 9-21-2-2-3 (Printed p. 442 / PDF p. 442) with "
+        "Table 9-21-2 (Printed p. 443 / PDF p. 443)"
+    ),
+    symbolic_formula=(
+        "90 deg or 135 deg standard hook: d_b 10-16 mm -> inner bend dia >= "
+        "4*d_b, straight extension >= max(6*d_b, 75 mm); d_b 18-25 mm -> inner "
+        "bend dia >= 6*d_b, straight extension >= 12*d_b; hook encloses a "
+        "longitudinal bar"
+    ),
+    description=(
+        "Clause 9-21-2-2-2: standard hooks for transverse bars shall comply "
+        "with Table 9-21-2, and the hook shall enclose a longitudinal bar. "
+        "Clause 9-21-2-2-3: a standard hook in tension consists of one inward "
+        "bend and one straight portion whose geometry is given by Tables "
+        "9-21-1 and 9-21-2. Table 9-21-2 (verified verbatim, PDF p. 443): for "
+        "both the 90-degree and 135-degree hooks, d_b 10-16 mm -> minimum "
+        "inner bend diameter 4*d_b and straight extension max(6*d_b, 75 mm); "
+        "d_b 18-25 mm -> minimum inner bend diameter 6*d_b and straight "
+        "extension 12*d_b. Implemented for the 90-degree and 135-degree hooks "
+        "only. The 180-degree hook (also printed in Table 9-21-2 with the "
+        "same geometry) is a distinct configuration not exercised by any "
+        "Clause 9-21-6 rule in this stage and is deterministically BLOCKED "
+        "here (deferred, trivially promotable later). Unsupported diameter "
+        "ranges are BLOCKED and never interpolated: d_b < 10 mm and d_b > 25 "
+        "mm are outside the table, and d_b = 17 mm falls in the gap between "
+        "the printed 10-16 mm and 18-25 mm rows. hook angle, bar diameter "
+        "d_b, inner bend diameter, straight extension, and longitudinal-bar "
+        "enclosure are REQUIRED typed inputs (never assumed). Visually "
+        "re-verified 2026-10-06 (page-442 clause + page-443 Table 9-21-2 "
+        "evidence JPGs)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_TORSION_TIE_STANDARD_HOOK_001 = RuleReference(
+    rule_id="BG-TRANS-TORSION-TIE-STANDARD-HOOK-001",
+    title="Mabhas 9 Torsion Tie Standard 135-Degree Hook Branch (Clause 9-21-6-2-7-الف)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=467,
+    printed_page=447,
+    clause_or_equation=(
+        "Clause 9-21-6-2-7-الف standard 135-degree hook option (Printed p. 447 "
+        "/ PDF p. 467); hook geometry per Clause 9-21-2-2-2 / Table 9-21-2 "
+        "(PDF pp. 442-443)"
+    ),
+    symbolic_formula=(
+        "both torsion-tie ends terminate with a standard 135-degree hook "
+        "(Table 9-21-2) around the longitudinal bar; bend end anchored in "
+        "core concrete"
+    ),
+    description=(
+        "Clause 9-21-6-2-7(الف): both ends of a torsion tie shall be "
+        "terminated with a standard 135-degree hook OR a seismic hook around "
+        "the longitudinal bar. This rule implements ONLY the standard "
+        "135-degree hook option; the seismic-hook option is implemented by "
+        "BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001 (delegating to "
+        "BG-TRANS-SEISMIC-HOOK-001, Clause 9-21-2-2-4) and is NOT duplicated "
+        "here. The standard-hook geometry is delegated to "
+        "BG-TRANS-STANDARD-HOOK-001 (Clause 9-21-2-2-2 / Table 9-21-2) rather "
+        "than re-implemented. The (ب) branch of Clause 9-21-6-2-7 remains "
+        "BLOCKED (it delegates to Clause 9-21-6-1-3, which carries the "
+        "fy/d_b boundary gap, and to Clause 9-21-6-1-4) and is NOT included "
+        "in this rule. Bar diameter d_b, inner bend diameter, straight "
+        "extension, longitudinal-bar engagement, and core-concrete anchorage "
+        "of the bend end are REQUIRED typed inputs (never assumed). Visually "
+        "re-verified 2026-10-06 (page-467 evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=("BG-TRANS-STANDARD-HOOK-001",),
+)
+
+RULE_BG_TRANS_WIRE_TIE_UTIE_001 = RuleReference(
+    rule_id="BG-TRANS-WIRE-TIE-UTIE-001",
+    title="Mabhas 9 Welded-Wire U-Tie Leg Anchorage (Clause 9-21-6-1-4)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=464,
+    printed_page=444,
+    clause_or_equation=(
+        "Clause 9-21-6-1-4 (Printed p. 444 / PDF p. 464); Figure 9-21-1 "
+        "(Printed p. 445 / PDF p. 465)"
+    ),
+    symbolic_formula=(
+        "one-of anchorage of a welded-wire U-tie leg: (الف) two longitudinal "
+        "wires at 50 mm spacing in the U-tie upper part; (ب) wire1 < "
+        "0.25*effective_depth from compression face, wire2 closer to the "
+        "compression face than wire1 and > 50 mm from wire1, wire2 on the leg "
+        "or on a hook with bend dia >= 8*tie wire dia"
+    ),
+    description=(
+        "Clause 9-21-6-1-4: the anchorage of one leg of a welded-wire-mesh "
+        "U-stirrup shall satisfy one of the following (Figure 9-21-1). "
+        "(الف) two longitudinal wires at 50 mm spacing in the upper part of "
+        "the U-stirrup. (ب) one longitudinal wire within less than "
+        "one-quarter of the effective depth from the compression face, and a "
+        "second longitudinal wire closer to the compression face than the "
+        "first and more than 50 mm from the first, where the second wire may "
+        "be on the stirrup leg or on a hook with a minimum bend diameter of "
+        "eight times the stirrup wire diameter. Only these numeric conditions "
+        "are represented; no spacing, anchorage, or bend geometry is invented "
+        "beyond them and no geometry is inferred from Figure 9-21-1. The "
+        "caller selects which alternative (الف/ب) is relied upon; each is "
+        "checked strictly. Wire spacings, effective depth, compression-face "
+        "distances, wire2 placement, bend diameter, and tie wire diameter "
+        "are REQUIRED typed inputs (never assumed). Clause 9-21-6-1-5 "
+        "(single-leg welded-wire tie, ambiguous/relative wording) remains "
+        "BLOCKED and is separate. Visually re-verified 2026-10-06 (page-464 "
+        "evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=(),
+)
+
+RULE_BG_TRANS_SPIRAL_SPLICE_LAP_SEL_001 = RuleReference(
+    rule_id="BG-TRANS-SPIRAL-SPLICE-LAP-SEL-001",
+    title="Mabhas 9 Spiral Lap-Splice Method Selection (Clause 9-21-6-3-5-ب)",
+    category=RuleCategory.CODE_RULE,
+    status=VerificationStatus.VERIFIED,
+    jurisdiction=JurisdictionMode.MABHAS_9_COMPLIANCE,
+    source_document=SOURCE_MABHAS_9,
+    pdf_page=469,
+    printed_page=449,
+    clause_or_equation=(
+        "Clause 9-21-6-3-5-ب (Printed p. 448-449 / PDF pp. 468-469); lap "
+        "length per Clause 9-21-6-3-6 / Table 9-21-7 (Printed p. 449 / PDF "
+        "p. 469)"
+    ),
+    symbolic_formula=(
+        "spiral lap-splice route permitted for f_y <= 420 MPa; lap length "
+        "delegated to BG-TRANS-SPIRAL-LAP-001 = max(k*d_b, 300 mm)"
+    ),
+    description=(
+        "Clause 9-21-6-3-5(ب): a spiral lap splice per Clause 9-21-6-3-6 is "
+        "permitted for bars with yield stress f_y <= 420 MPa. This rule "
+        "selects/validates the lap-splice route and delegates the actual lap "
+        "length to the executable BG-TRANS-SPIRAL-LAP-001 (Clause 9-21-6-3-6 "
+        "/ Table 9-21-7: max(k*d_b, 300 mm), k = 48 or 72); the length is "
+        "NOT recomputed here. f_y > 420 MPa is not covered by the lap route "
+        "(the only other route, welded/mechanical splice per Clause "
+        "9-21-4-7, is BLOCKED via National Building Regulations Chapter 10) "
+        "and is deterministically BLOCKED. The welded/mechanical-splice "
+        "route of Clause 9-21-6-3-5(الف) is NOT implemented. Yield stress "
+        "f_y plus the Table 9-21-7 selection inputs are REQUIRED typed "
+        "inputs (never assumed). Visually re-verified 2026-10-06 (page-469 "
+        "evidence JPG)."
+    ),
+    execution_allowed=True,
+    blocked_reason=None,
+    dependencies=("BG-TRANS-SPIRAL-LAP-001",),
 )
 
 RULE_BG_TRANS_TIE_ANCHOR_PENDING = RuleReference(
@@ -3008,20 +3179,27 @@ RULE_BG_TRANS_WIRE_TIE_PENDING = RuleReference(
     pdf_page=464,
     printed_page=444,
     clause_or_equation=(
-        "Clauses 9-21-6-1-4 & 9-21-6-1-5 (Printed p. 444 / PDF p. 464)"
+        "Clause 9-21-6-1-5 (Printed p. 444 / PDF p. 464)"
     ),
     symbolic_formula="UNAVAILABLE (execution blocked)",
     description=(
-        "Anchorage of welded-wire-mesh U-tie legs (Clause 9-21-6-1-4) and "
-        "single-leg welded-wire tie ends (Clause 9-21-6-1-5), including the "
-        "50 mm / quarter-depth / 8x-bend-diameter positioning conditions."
+        "Anchorage of single-leg welded-wire tie ends (Clause 9-21-6-1-5). "
+        "Clause 9-21-6-1-4 (welded-wire U-tie leg anchorage, one-of الف/ب) "
+        "was promoted in Stage H.5 to the executable "
+        "BG-TRANS-WIRE-TIE-UTIE-001 and is no longer covered by this "
+        "sentinel. This sentinel now keeps only Clause 9-21-6-1-5, whose "
+        "conditions remain uninterpreted."
     ),
     execution_allowed=False,
     blocked_reason=(
-        "Execution BLOCKED: the positioning/overlap wording of 9-21-6-1-4-ب "
-        "and the single-leg conditions of 9-21-6-1-5 are not interpreted "
-        "(per Stage G governance); the 9-21-6-1-5-ب outer-wire condition "
-        "carries no governing number. No formula/number is executed."
+        "Execution BLOCKED: the single-leg conditions of Clause 9-21-6-1-5 "
+        "are not interpreted (per Stage G governance) — the 9-21-6-1-5-الف "
+        "inner-wire distance wording (\"more than one-quarter of the "
+        "effective depth AND 50 mm from half the effective depth, whichever "
+        "is greater\") is ambiguous and the 9-21-6-1-5-ب outer-wire "
+        "condition (\"closer to the tension face than the nearest main "
+        "longitudinal bars\") carries no governing number. No formula/number "
+        "is executed."
     ),
     dependencies=(),
 )
@@ -3036,35 +3214,41 @@ RULE_BG_TRANS_TORSION_TIE_PENDING = RuleReference(
     pdf_page=464,
     printed_page=444,
     clause_or_equation=(
-        "Clause 9-21-6-1-6-ب, Clause 9-21-6-2-7-ب & the Clause 9-21-6-2-7-الف "
-        "standard-hook option (Printed pp. 444-448 / PDF pp. 464-468)"
+        "Clause 9-21-6-1-6-ب & Clause 9-21-6-2-7-ب (Printed pp. 444-448 / "
+        "PDF pp. 464-468)"
     ),
     symbolic_formula="UNAVAILABLE (execution blocked)",
     description=(
-        "Remaining BLOCKED branches of the torsion / member-integrity tie "
-        "clauses after Stage H.3 promoted the deterministic branches. "
-        "Clause 9-21-6-1-6-ب delegates to Clauses 9-21-6-1-3 (BLOCKED: "
-        "fy/d_b boundary gap) and 9-21-6-1-4 (BLOCKED: welded-wire "
-        "positioning). Clause 9-21-6-2-7-ب delegates to Clause 9-21-6-1-3 "
-        "(BLOCKED) or 9-21-6-4-1 (now executable as BG-TRANS-DORGIR-001, but "
-        "the 9-21-6-1-3 route stays blocked). The Clause 9-21-6-2-7-الف "
-        "standard 135-degree hook option depends on the standard-hook "
-        "requirements of 9-21-2-2-2 / Table 9-21-2-2, which are not yet "
-        "verified. The executable branches are now BG-TRANS-TORSION-TIE-"
-        "135HOOK-001 (9-21-6-1-6-الف), BG-TRANS-TWO-PIECE-TIE-001 (9-21-6-1-7) "
-        "and BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001 (9-21-6-2-7-الف seismic "
-        "option); this sentinel keeps only the blocked branches."
+        "Remaining BLOCKED (ب) branches of the torsion / member-integrity "
+        "tie clauses after Stage H.3/H.5 promoted the deterministic "
+        "branches. Clause 9-21-6-1-6-ب delegates to Clauses 9-21-6-1-3 "
+        "(BLOCKED: fy/d_b boundary gap) and 9-21-6-1-4. Clause 9-21-6-2-7-ب "
+        "delegates to Clause 9-21-6-1-3-الف/-ب (BLOCKED) OR Clause 9-21-6-1-4 "
+        "(corrected in Stage H.5: the JPG, PDF p. 468, shows 9-21-6-1-3-الف/-ب "
+        "or 9-21-6-1-4, NOT 9-21-6-4-1); because the 9-21-6-1-3 route remains "
+        "blocked, the (ب) branch stays BLOCKED and is not promoted even "
+        "though the 9-21-6-1-4 route is now executable "
+        "(BG-TRANS-WIRE-TIE-UTIE-001). The executable branches are now "
+        "BG-TRANS-TORSION-TIE-135HOOK-001 (9-21-6-1-6-الف), "
+        "BG-TRANS-TWO-PIECE-TIE-001 (9-21-6-1-7), "
+        "BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001 (9-21-6-2-7-الف seismic "
+        "option) and BG-TRANS-TORSION-TIE-STANDARD-HOOK-001 (9-21-6-2-7-الف "
+        "standard 135-degree hook option, geometry per 9-21-2-2-2 / Table "
+        "9-21-2); this sentinel keeps only the (ب) branches."
     ),
     execution_allowed=False,
     blocked_reason=(
-        "Execution BLOCKED: the remaining branches delegate to rules that "
-        "are themselves blocked or unverified — Clause 9-21-6-1-3 (fy=280 / "
-        "d_b=17 / d_b>25 boundary gap), Clause 9-21-6-1-4 (welded-wire "
-        "positioning), and the standard-hook geometry of Clause 9-21-2-2-2 / "
-        "Table 9-21-2-2 (not yet verified). The earlier 'geometry lives in "
-        "Clause 9-20-6' reason was corrected in Stage H.1 (the geometry is "
-        "inline in 9-21-2-2-4 and is now implemented as BG-TRANS-SEISMIC-"
-        "HOOK-001); no formula/number is executed here."
+        "Execution BLOCKED: the remaining (ب) branches delegate to Clause "
+        "9-21-6-1-3, which carries the unresolved fy=280 / d_b=17 / d_b>25 "
+        "boundary gap. Clause 9-21-6-2-7-ب offers an OR-alternative via "
+        "Clause 9-21-6-1-4 (now executable as BG-TRANS-WIRE-TIE-UTIE-001), "
+        "but the 9-21-6-1-3 route stays blocked, so the branch is not "
+        "promoted (blocked OR-delegation semantics preserved). The Clause "
+        "9-21-6-2-7-الف standard-hook option is no longer blocked here "
+        "(promoted to BG-TRANS-TORSION-TIE-STANDARD-HOOK-001, geometry per "
+        "Clause 9-21-2-2-2 / Table 9-21-2, PDF p. 443). The earlier "
+        "'geometry lives in Clause 9-20-6' reason was corrected in Stage "
+        "H.1; no formula/number is executed here."
     ),
     dependencies=(),
 )
@@ -3104,14 +3288,15 @@ RULE_BG_TRANS_SPIRAL_SPLICE_SEL_PENDING = RuleReference(
     source_document=SOURCE_MABHAS_9,
     pdf_page=469,
     printed_page=449,
-    clause_or_equation="Clause 9-21-6-3-5 (Printed p. 449 / PDF p. 469)",
+    clause_or_equation="Clause 9-21-6-3-5-الف (Printed p. 448 / PDF p. 468)",
     symbolic_formula="UNAVAILABLE (execution blocked)",
     description=(
-        "Clause 9-21-6-3-5 spiral splice method: (الف) welded or mechanical "
-        "splice per Clause 9-21-4-7; (ب) lap splice per Clause 9-21-6-3-6 "
-        "for bars with f_y <= 420 MPa. The lap-splice LENGTH itself is "
-        "executable as BG-TRANS-SPIRAL-LAP-001 (Clause 9-21-6-3-6 / Table "
-        "9-21-7); this rule is the splice-METHOD selection and stays blocked."
+        "Clause 9-21-6-3-5-الف: welded or mechanical splice per Clause "
+        "9-21-4-7. The lap-splice route of Clause 9-21-6-3-5-ب (f_y <= 420 "
+        "MPa) was promoted in Stage H.5 to the executable "
+        "BG-TRANS-SPIRAL-SPLICE-LAP-SEL-001 (which delegates the lap length "
+        "to BG-TRANS-SPIRAL-LAP-001, Clause 9-21-6-3-6 / Table 9-21-7); this "
+        "sentinel now keeps only the welded/mechanical-splice route."
     ),
     execution_allowed=False,
     blocked_reason=(
@@ -3184,6 +3369,11 @@ _ALL_RULES_TUPLE: Tuple[RuleReference, ...] = (
     RULE_BG_TRANS_TWO_PIECE_TIE_001,
     RULE_BG_TRANS_TORSION_TIE_135HOOK_001,
     RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001,
+    # Phase 2F Stage H.5 — verified standard hook / wire-tie / spiral-lap-split rules
+    RULE_BG_TRANS_STANDARD_HOOK_001,
+    RULE_BG_TRANS_TORSION_TIE_STANDARD_HOOK_001,
+    RULE_BG_TRANS_WIRE_TIE_UTIE_001,
+    RULE_BG_TRANS_SPIRAL_SPLICE_LAP_SEL_001,
     # Isolated Mostofinejad reference rules
     RULE_BG_MOST_5_46,
     RULE_BG_MOST_5_47,

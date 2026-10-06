@@ -12,8 +12,11 @@ from the committed evidence scan phase2f-source-442-472 @ df8067a):
 
 Every expected outcome was hand-checked against the visually verified source
 text; OCR was never used as authority. The still-blocked delegated branches
-(Clause 9-21-6-1-6-ب, Clause 9-21-6-2-7-ب, and the Clause 9-21-6-2-7-الف standard
-135-degree hook option) are asserted to remain non-executable.
+(Clause 9-21-6-1-6-ب and Clause 9-21-6-2-7-ب) are asserted to remain
+non-executable. In Stage H.5 the Clause 9-21-6-2-7-الف standard 135-degree
+hook option was promoted (BG-TRANS-STANDARD-HOOK-001 /
+BG-TRANS-TORSION-TIE-STANDARD-HOOK-001); its dedicated behaviour tests live
+in test_mabhas9_standard_hook_and_splits.py.
 """
 
 from __future__ import annotations
@@ -32,9 +35,11 @@ from beamgenius.engine.transverse_reinforcement_mabhas9 import (
 from beamgenius.registry.catalog import (
     RULE_BG_TRANS_DORGIR_001,
     RULE_BG_TRANS_SEISMIC_HOOK_001,
+    RULE_BG_TRANS_STANDARD_HOOK_001,
     RULE_BG_TRANS_TORSION_TIE_135HOOK_001,
     RULE_BG_TRANS_TORSION_TIE_PENDING,
     RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001,
+    RULE_BG_TRANS_TORSION_TIE_STANDARD_HOOK_001,
     RULE_BG_TRANS_TWO_PIECE_TIE_001,
     RULE_BG_TRANS_WIRE_SUBST_PENDING,
     RULE_BG_TRANS_WIRE_TIE_PENDING,
@@ -91,11 +96,18 @@ def test_dependent_rules_depend_on_seismic_hook() -> None:
         RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001.dependencies
         == ("BG-TRANS-SEISMIC-HOOK-001",)
     )
+    # Stage H.5: the torsion-tie standard-hook rule depends on the standard hook.
+    assert (
+        RULE_BG_TRANS_TORSION_TIE_STANDARD_HOOK_001.dependencies
+        == ("BG-TRANS-STANDARD-HOOK-001",)
+    )
     # The dependency is itself executable, so both rules are gate-allowed.
     ex = {r.rule_id for r in list_mabhas9_executable_rules()}
     assert "BG-TRANS-SEISMIC-HOOK-001" in ex
+    assert "BG-TRANS-STANDARD-HOOK-001" in ex
     assert evaluate_rule_gate("BG-TRANS-DORGIR-001").allowed
     assert evaluate_rule_gate("BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001").allowed
+    assert evaluate_rule_gate("BG-TRANS-TORSION-TIE-STANDARD-HOOK-001").allowed
 
 
 def test_dorgir_pending_sentinel_removed() -> None:
@@ -116,13 +128,24 @@ def test_delegated_blocked_branches_remain_blocked(rule) -> None:
     assert rule.rule_id in {r.rule_id for r in list_blocked_rules()}
 
 
-def test_no_standard_hook_rule_was_implemented() -> None:
-    # The Clause 9-21-6-2-7-الف standard 135-degree hook option (Table 9-21-2-2)
-    # must remain non-executable: no executable rule implements it, and the
-    # narrowed torsion-tie sentinel still carries it as blocked.
+def test_standard_hook_rule_now_implemented_and_be_branch_blocked() -> None:
+    # Stage H.5: the Clause 9-21-6-2-7-الف standard 135-degree hook option is
+    # now executable (BG-TRANS-STANDARD-HOOK-001 geometry +
+    # BG-TRANS-TORSION-TIE-STANDARD-HOOK-001 branch), while the (ب) branch
+    # remains blocked under the narrowed torsion-tie sentinel.
     executable_ids = {r.rule_id for r in list_mabhas9_executable_rules()}
-    assert not any("STANDARD" in rid for rid in executable_ids)
-    assert "Table 9-21-2-2" in (RULE_BG_TRANS_TORSION_TIE_PENDING.description or "")
+    assert "BG-TRANS-STANDARD-HOOK-001" in executable_ids
+    assert "BG-TRANS-TORSION-TIE-STANDARD-HOOK-001" in executable_ids
+    # Corrected metadata: the table is "Table 9-21-2" (the "Table 9-21-2-2"
+    # mislabel is gone) and the (ب) delegation is to 9-21-6-1-4 (the old
+    # erroneous "9-21-6-4-1 (now executable as BG-TRANS-DORGIR-001)" is gone).
+    desc = RULE_BG_TRANS_TORSION_TIE_PENDING.description or ""
+    assert "Table 9-21-2-2" not in desc
+    assert "Table 9-21-2" in desc
+    assert "9-21-6-4-1 (now executable" not in desc
+    assert "9-21-6-1-4" in desc
+    # The (ب) branch stays blocked (OR-delegation via 9-21-6-1-3 preserved).
+    assert RULE_BG_TRANS_TORSION_TIE_PENDING.execution_allowed is False
 
 
 # ============================================================================

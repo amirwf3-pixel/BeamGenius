@@ -94,12 +94,16 @@ from beamgenius.registry.catalog import (
     RULE_BG_TRANS_SPIRAL_LAP_001,
     RULE_BG_TRANS_SPIRAL_RATIO_001,
     RULE_BG_TRANS_SPIRAL_SPACING_001,
+    RULE_BG_TRANS_SPIRAL_SPLICE_LAP_SEL_001,
+    RULE_BG_TRANS_STANDARD_HOOK_001,
     RULE_BG_TRANS_TIE_DIA_001,
     RULE_BG_TRANS_TIE_SHEAR_EXTENT_001,
     RULE_BG_TRANS_TIE_SPACING_001,
     RULE_BG_TRANS_TORSION_TIE_135HOOK_001,
     RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001,
+    RULE_BG_TRANS_TORSION_TIE_STANDARD_HOOK_001,
     RULE_BG_TRANS_TWO_PIECE_TIE_001,
+    RULE_BG_TRANS_WIRE_TIE_UTIE_001,
 )
 from beamgenius.registry.gatekeeper import GatekeeperDecision, evaluate_rule_gate
 
@@ -156,6 +160,41 @@ BG_TRANS_SEISMIC_HOOK_EXT_DB_FACTOR: float = 6.0
 BG_TRANS_SEISMIC_HOOK_EXT_ABS_MIN_MM: float = 75.0
 BG_TRANS_SEISMIC_HOOK_MAX_BEND_DEG: float = 180.0
 
+# --- Clause 9-21-2-2-2 & Table 9-21-2 standard transverse-bar hook geometry
+# (PDF pp. 442-443 / Printed pp. 442-443). Verbatim visual reads of Table
+# 9-21-2 (PDF p. 443): for BOTH the 90-degree and 135-degree standard hooks,
+# d_b 10-16 mm -> minimum inner bend diameter 4*d_b and straight extension
+# max(6*d_b, 75 mm); d_b 18-25 mm -> minimum inner bend diameter 6*d_b and
+# straight extension 12*d_b. d_b = 17 mm is the gap between the printed
+# 10-16 and 18-25 rows; d_b < 10 mm and d_b > 25 mm are outside the table;
+# all three are deterministically BLOCKED (never interpolated). The
+# 180-degree hook (also printed with the same geometry) is a distinct
+# configuration not exercised by any Clause 9-21-6 rule in this stage and is
+# deterministically BLOCKED (deferred).
+BG_TRANS_STD_HOOK_DB_SMALL_MIN_MM: float = 10.0
+BG_TRANS_STD_HOOK_DB_SMALL_MAX_MM: float = 16.0
+BG_TRANS_STD_HOOK_DB_LARGE_MIN_MM: float = 18.0
+BG_TRANS_STD_HOOK_DB_LARGE_MAX_MM: float = 25.0
+BG_TRANS_STD_HOOK_SMALL_INNER_DB_FACTOR: float = 4.0
+BG_TRANS_STD_HOOK_LARGE_INNER_DB_FACTOR: float = 6.0
+BG_TRANS_STD_HOOK_SMALL_EXT_DB_FACTOR: float = 6.0
+BG_TRANS_STD_HOOK_SMALL_EXT_ABS_MIN_MM: float = 75.0
+BG_TRANS_STD_HOOK_LARGE_EXT_DB_FACTOR: float = 12.0
+BG_TRANS_STD_HOOK_SUPPORTED_ANGLES: tuple[float, ...] = (90.0, 135.0)
+
+# --- Clause 9-21-6-1-4 welded-wire U-tie leg anchorage (PDF p. 464 /
+# Printed p. 444). Verbatim numeric conditions (one-of الف/ب).
+BG_TRANS_WIRE_TIE_UTIE_ALEF_SPACING_MM: float = 50.0
+BG_TRANS_WIRE_TIE_UTIE_BE_QUARTER_DEPTH: float = 0.25
+BG_TRANS_WIRE_TIE_UTIE_BE_MIN_SPACING_MM: float = 50.0
+BG_TRANS_WIRE_TIE_UTIE_BE_BEND_DIA_FACTOR: float = 8.0
+
+# --- Clause 9-21-6-3-5-ب spiral lap-splice route yield-stress limit
+# (PDF pp. 468-469 / Printed pp. 448-449). The lap route is permitted for
+# f_y <= 420 MPa; f_y > 420 MPa is not covered and is deterministically
+# BLOCKED.
+BG_TRANS_SPIRAL_SPLICE_LAP_MAX_FY_MPA: float = 420.0
+
 # --- Clause 9-21-6-1-7 two-piece torsion tie (PDF p. 465 / Printed p. 445)
 BG_TRANS_TWO_PIECE_U_BEND_MIN_DEG: float = 135.0
 BG_TRANS_TWO_PIECE_MEMBER_BEND_DEG: float = 90.0
@@ -200,6 +239,21 @@ class SpiralSpliceEndCondition(str, Enum):
 
     NO_HOOK = "no_hook"
     STANDARD_TRANSVERSE_HOOK = "standard_transverse_hook"
+
+
+class WireTieUtieAlternative(str, Enum):
+    """Welded-wire U-tie leg anchorage alternative per Clause 9-21-6-1-4.
+
+    ALEF (الف): two longitudinal wires at 50 mm spacing in the U-tie upper
+    part. BE (ب): one wire < 1/4 effective depth from the compression face,
+    a second wire closer to the compression face than the first and > 50 mm
+    from it, the second on the leg or on a hook with bend dia >= 8x tie wire
+    dia. Clause 9-21-6-1-4 is a one-of condition; the caller selects the
+    alternative relied upon.
+    """
+
+    ALEF = "alef"
+    BE = "be"
 
 
 # Table 9-21-7 multiplier (k in lap = k*d_b) keyed by
@@ -2658,11 +2712,12 @@ def evaluate_torsion_tie_seismic_hook(
     Printed p. 447: both ends of a torsion tie shall be terminated with a
     seismic hook around the longitudinal bar, with the bend end anchored in
     the core concrete. Only the seismic-hook option of 9-21-6-2-7(الف) is
-    implemented here; the standard 135-degree hook option depends on the
-    standard-hook requirements of 9-21-2-2-2 / Table 9-21-2-2 (not yet
-    verified) and the (ب) branch routes through blocked rules — neither is
-    executed. The seismic-hook geometry is delegated to the verified
-    seismic-hook rule (BG-TRANS-SEISMIC-HOOK-001, Clause 9-21-2-2-4).
+    implemented here; the standard 135-degree hook option is implemented
+    separately as BG-TRANS-TORSION-TIE-STANDARD-HOOK-001 (geometry per the
+    verified Table 9-21-2, PDF pp. 442-443) and the (ب) branch routes through
+    blocked rules — neither is executed here. The seismic-hook geometry is
+    delegated to the verified seismic-hook rule (BG-TRANS-SEISMIC-HOOK-001,
+    Clause 9-21-2-2-4).
 
     ``hook_engages_longitudinal_bar`` and
     ``bend_end_anchored_in_core_concrete`` plus the seismic-hook geometry
@@ -2847,4 +2902,1234 @@ def evaluate_torsion_tie_seismic_hook(
         )
     return _blocked_step(
         gate, raw_inputs=raw_inputs, diagnostics=list(hook_step.diagnostics)
+    )
+
+
+# --- BG-TRANS-STANDARD-HOOK-001 (Clause 9-21-2-2-2 & Table 9-21-2, PDF pp. 442-443)
+def evaluate_standard_hook(
+    *,
+    hook_angle_deg: Optional[float] = None,
+    bar_diameter_mm: Optional[float] = None,
+    inner_bend_diameter_mm: Optional[float] = None,
+    straight_extension_mm: Optional[float] = None,
+    encloses_longitudinal_bar: Optional[bool] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> CalculationTraceStep:
+    """Evaluate the standard transverse-bar hook geometry (BG-TRANS-STANDARD-HOOK-001).
+
+    Verified source: Mabhas 9 (1399), Clause 9-21-2-2-2 & 9-21-2-2-3 with
+    Table 9-21-2, PDF pp. 442-443 / Printed pp. 442-443: standard hooks for
+    transverse bars shall comply with Table 9-21-2 and shall enclose a
+    longitudinal bar. For BOTH the 90-degree and 135-degree standard hooks,
+    d_b 10-16 mm -> minimum inner bend diameter 4*d_b and straight extension
+    max(6*d_b, 75 mm); d_b 18-25 mm -> minimum inner bend diameter 6*d_b and
+    straight extension 12*d_b. The 180-degree hook (printed with the same
+    geometry but not exercised by any Clause 9-21-6 rule this stage),
+    d_b = 17 mm (gap between the printed rows), d_b < 10 mm and d_b > 25 mm
+    are deterministically BLOCKED and never interpolated.
+
+    hook_angle_deg, bar_diameter_mm, inner_bend_diameter_mm,
+    straight_extension_mm and encloses_longitudinal_bar are REQUIRED typed
+    inputs (never assumed). Missing/invalid inputs -> BLOCKED/INVALID_INPUT.
+    """
+    rule_id = RULE_BG_TRANS_STANDARD_HOOK_001.rule_id
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "hook_angle_deg": hook_angle_deg,
+        "bar_diameter_mm": bar_diameter_mm,
+        "inner_bend_diameter_mm": inner_bend_diameter_mm,
+        "straight_extension_mm": straight_extension_mm,
+        "encloses_longitudinal_bar": encloses_longitudinal_bar,
+    }
+
+    gate = evaluate_rule_gate(rule_id, active_jurisdiction=jurisdiction_mode)
+    if not gate.allowed:
+        return gate.to_blocked_trace_step(normalized_inputs=raw_inputs, unit="mm")
+    rule = gate.rule
+
+    encloses_raw: object = encloses_longitudinal_bar
+    if encloses_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_ENCLOSES_LONGITUDINAL_BAR",
+                    (
+                        "Whether the standard hook encloses a longitudinal bar "
+                        "is required by Clause 9-21-2-2-2; it is never assumed. "
+                        "Missing required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="encloses_longitudinal_bar",
+                )
+            ],
+        )
+    if not isinstance(encloses_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_ENCLOSES_LONGITUDINAL_BAR",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "encloses_longitudinal_bar must be a bool, got "
+                        f"{encloses_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="encloses_longitudinal_bar",
+                )
+            ],
+        )
+
+    invalid: List[EngineeringDiagnostic] = []
+    missing: List[EngineeringDiagnostic] = []
+    _require_positive(
+        hook_angle_deg,
+        code="MISSING_HOOK_ANGLE",
+        field_name="hook_angle_deg",
+        message=(
+            "The standard-hook angle is required to select the Table 9-21-2 "
+            "row; it is never assumed. Missing required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        bar_diameter_mm,
+        code="MISSING_BAR_DIAMETER",
+        field_name="bar_diameter_mm",
+        message=(
+            "The bar diameter d_b is required to select the Table 9-21-2 "
+            "diameter row and the 4*d_b / 6*d_b bend and 6*d_b / 12*d_b "
+            "extension limits; it is never assumed. Missing required input "
+            "-> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        inner_bend_diameter_mm,
+        code="MISSING_INNER_BEND_DIAMETER",
+        field_name="inner_bend_diameter_mm",
+        message=(
+            "The inner bend diameter is required for the Table 9-21-2 "
+            "standard-hook check; it is never assumed. Missing required "
+            "input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        straight_extension_mm,
+        code="MISSING_STRAIGHT_EXTENSION",
+        field_name="straight_extension_mm",
+        message=(
+            "The straight extension after the bend is required for the Table "
+            "9-21-2 standard-hook check; it is never assumed. Missing "
+            "required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    if invalid:
+        return _invalid_step(gate, raw_inputs=raw_inputs, diagnostics=invalid)
+    if missing:
+        return _blocked_step(gate, raw_inputs=raw_inputs, diagnostics=missing)
+    assert hook_angle_deg is not None
+    assert bar_diameter_mm is not None
+    assert inner_bend_diameter_mm is not None
+    assert straight_extension_mm is not None
+
+    # Hook-angle support: only 90 and 135 degrees are implemented this stage.
+    if hook_angle_deg == 180.0:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "STANDARD_HOOK_180_DEG_NOT_IMPLEMENTED",
+                    (
+                        "BLOCKED: the 180-degree hook is printed in Table "
+                        "9-21-2 with the same geometry, but it is a distinct "
+                        "configuration not exercised by any Clause 9-21-6 rule "
+                        "in this stage and is deferred to a future stage. "
+                        "Supply a 90-degree or 135-degree standard hook."
+                    ),
+                    rule=rule,
+                    field_name="hook_angle_deg",
+                )
+            ],
+        )
+    if hook_angle_deg not in BG_TRANS_STD_HOOK_SUPPORTED_ANGLES:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "STANDARD_HOOK_ANGLE_NOT_IN_TABLE_9_21_2",
+                    (
+                        "BLOCKED: Table 9-21-2 specifies only the 90-degree, "
+                        "135-degree, and 180-degree standard hooks; the "
+                        f"provided hook angle {hook_angle_deg} degrees is not "
+                        "a supported standard-hook configuration and is never "
+                        "interpreted. Supply a 90-degree or 135-degree hook."
+                    ),
+                    rule=rule,
+                    field_name="hook_angle_deg",
+                )
+            ],
+        )
+
+    # Diameter range selection from Table 9-21-2 (never interpolated).
+    if bar_diameter_mm < BG_TRANS_STD_HOOK_DB_SMALL_MIN_MM:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "STANDARD_HOOK_DB_BELOW_TABLE",
+                    (
+                        f"BLOCKED: d_b = {bar_diameter_mm} mm is below the "
+                        "smallest diameter row (10-16 mm) printed in Table "
+                        "9-21-2; the range is never extrapolated."
+                    ),
+                    rule=rule,
+                    field_name="bar_diameter_mm",
+                )
+            ],
+        )
+    if bar_diameter_mm > BG_TRANS_STD_HOOK_DB_LARGE_MAX_MM:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "STANDARD_HOOK_DB_ABOVE_TABLE",
+                    (
+                        f"BLOCKED: d_b = {bar_diameter_mm} mm is above the "
+                        "largest diameter row (18-25 mm) printed in Table "
+                        "9-21-2; the range is never extrapolated."
+                    ),
+                    rule=rule,
+                    field_name="bar_diameter_mm",
+                )
+            ],
+        )
+    if (
+        BG_TRANS_STD_HOOK_DB_SMALL_MAX_MM
+        < bar_diameter_mm
+        < BG_TRANS_STD_HOOK_DB_LARGE_MIN_MM
+    ):
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "STANDARD_HOOK_DB_IN_GAP",
+                    (
+                        f"BLOCKED: d_b = {bar_diameter_mm} mm falls in the gap "
+                        "between the printed 10-16 mm and 18-25 mm rows of "
+                        "Table 9-21-2 (no 17 mm row is printed); the gap is "
+                        "never interpolated."
+                    ),
+                    rule=rule,
+                    field_name="bar_diameter_mm",
+                )
+            ],
+        )
+
+    if bar_diameter_mm <= BG_TRANS_STD_HOOK_DB_SMALL_MAX_MM:
+        min_inner_bend_mm = (
+            BG_TRANS_STD_HOOK_SMALL_INNER_DB_FACTOR * bar_diameter_mm
+        )
+        min_extension_mm = max(
+            BG_TRANS_STD_HOOK_SMALL_EXT_DB_FACTOR * bar_diameter_mm,
+            BG_TRANS_STD_HOOK_SMALL_EXT_ABS_MIN_MM,
+        )
+        db_range_label = "10-16 mm"
+    else:
+        min_inner_bend_mm = (
+            BG_TRANS_STD_HOOK_LARGE_INNER_DB_FACTOR * bar_diameter_mm
+        )
+        min_extension_mm = (
+            BG_TRANS_STD_HOOK_LARGE_EXT_DB_FACTOR * bar_diameter_mm
+        )
+        db_range_label = "18-25 mm"
+
+    if not encloses_raw:
+        diag = EngineeringDiagnostic(
+            code="STANDARD_HOOK_NOT_ENCLOSING_LONGITUDINAL_BAR",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: a standard hook for transverse bars per Clause "
+                "9-21-2-2-2 shall enclose a longitudinal bar; the provided "
+                "hook does not enclose one."
+            ),
+            rule_id=rule_id,
+            field_name="encloses_longitudinal_bar",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    if inner_bend_diameter_mm < min_inner_bend_mm:
+        diag = EngineeringDiagnostic(
+            code="STANDARD_HOOK_INNER_BEND_BELOW_MINIMUM",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                f"FAIL: the inner bend diameter of a {hook_angle_deg}-degree "
+                f"standard hook for d_b = {bar_diameter_mm} mm (row "
+                f"{db_range_label}) must be at least {min_inner_bend_mm} mm "
+                f"per Table 9-21-2; the provided inner bend diameter "
+                f"{inner_bend_diameter_mm} mm is insufficient."
+            ),
+            rule_id=rule_id,
+            field_name="inner_bend_diameter_mm",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "inner_bend_diameter_mm": inner_bend_diameter_mm,
+                "min_inner_bend_diameter_mm": min_inner_bend_mm,
+            },
+            final_result=inner_bend_diameter_mm,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    if straight_extension_mm < min_extension_mm:
+        diag = EngineeringDiagnostic(
+            code="STANDARD_HOOK_EXTENSION_BELOW_MINIMUM",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                f"FAIL: the straight extension after the bend of a "
+                f"{hook_angle_deg}-degree standard hook for d_b = "
+                f"{bar_diameter_mm} mm (row {db_range_label}) must be at "
+                f"least {min_extension_mm} mm per Table 9-21-2; the provided "
+                f"extension {straight_extension_mm} mm is insufficient."
+            ),
+            rule_id=rule_id,
+            field_name="straight_extension_mm",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "straight_extension_mm": straight_extension_mm,
+                "min_straight_extension_mm": min_extension_mm,
+            },
+            final_result=straight_extension_mm,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    intermediates: Dict[str, float] = {
+        "hook_angle_deg": hook_angle_deg,
+        "bar_diameter_mm": bar_diameter_mm,
+        "inner_bend_diameter_mm": inner_bend_diameter_mm,
+        "min_inner_bend_diameter_mm": min_inner_bend_mm,
+        "straight_extension_mm": straight_extension_mm,
+        "min_straight_extension_mm": min_extension_mm,
+    }
+    return _pass_step(
+        gate,
+        raw_inputs=raw_inputs,
+        intermediates=intermediates,
+        final_result=straight_extension_mm,
+        unit="mm",
+        message=(
+            f"PASS: {hook_angle_deg}-degree standard hook per Clause "
+            f"9-21-2-2-2 / Table 9-21-2 (d_b = {bar_diameter_mm} mm, row "
+            f"{db_range_label}) — inner bend {inner_bend_diameter_mm} mm >= "
+            f"{min_inner_bend_mm} mm, straight extension "
+            f"{straight_extension_mm} mm >= {min_extension_mm} mm, enclosing "
+            "a longitudinal bar."
+        ),
+    )
+
+
+# --- BG-TRANS-TORSION-TIE-STANDARD-HOOK-001 (Clause 9-21-6-2-7-الف standard-hook option)
+def evaluate_torsion_tie_standard_hook(
+    *,
+    hook_bar_diameter_mm: Optional[float] = None,
+    hook_inner_bend_diameter_mm: Optional[float] = None,
+    hook_straight_extension_mm: Optional[float] = None,
+    hook_engages_longitudinal_bar: Optional[bool] = None,
+    bend_end_anchored_in_core_concrete: Optional[bool] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> CalculationTraceStep:
+    """Evaluate the torsion-tie standard 135-degree hook branch
+    (BG-TRANS-TORSION-TIE-STANDARD-HOOK-001).
+
+    Verified source: Mabhas 9 (1399), Clause 9-21-6-2-7(الف), PDF p. 467 /
+    Printed p. 447: both ends of a torsion tie shall be terminated with a
+    standard 135-degree hook OR a seismic hook around the longitudinal bar,
+    with the bend end anchored in the core concrete. Only the standard
+    135-degree hook option is implemented here; the seismic-hook option is
+    implemented by BG-TRANS-TORSION-TIE-SEISMIC-HOOK-001 and is NOT
+    duplicated. The standard-hook geometry is delegated to
+    BG-TRANS-STANDARD-HOOK-001 (Clause 9-21-2-2-2 / Table 9-21-2). The (ب)
+    branch of Clause 9-21-6-2-7 is NOT included (it remains blocked).
+
+    hook geometry inputs, hook_engages_longitudinal_bar and
+    bend_end_anchored_in_core_concrete are REQUIRED typed inputs.
+    Missing/invalid -> BLOCKED/INVALID_INPUT, never PASS.
+    """
+    rule_id = RULE_BG_TRANS_TORSION_TIE_STANDARD_HOOK_001.rule_id
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "hook_bar_diameter_mm": hook_bar_diameter_mm,
+        "hook_inner_bend_diameter_mm": hook_inner_bend_diameter_mm,
+        "hook_straight_extension_mm": hook_straight_extension_mm,
+        "hook_engages_longitudinal_bar": hook_engages_longitudinal_bar,
+        "bend_end_anchored_in_core_concrete": bend_end_anchored_in_core_concrete,
+    }
+
+    gate = evaluate_rule_gate(rule_id, active_jurisdiction=jurisdiction_mode)
+    if not gate.allowed:
+        return gate.to_blocked_trace_step(normalized_inputs=raw_inputs, unit="mm")
+    rule = gate.rule
+
+    engages_raw: object = hook_engages_longitudinal_bar
+    if engages_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_HOOK_ENGAGES_LONGITUDINAL_BAR",
+                    (
+                        "Whether the torsion-tie standard hook engages a "
+                        "longitudinal bar is required for Clause 9-21-6-2-7-"
+                        "الف; it is never assumed. Missing required input -> "
+                        "BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="hook_engages_longitudinal_bar",
+                )
+            ],
+        )
+    if not isinstance(engages_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_HOOK_ENGAGES_LONGITUDINAL_BAR",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "hook_engages_longitudinal_bar must be a bool, got "
+                        f"{engages_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="hook_engages_longitudinal_bar",
+                )
+            ],
+        )
+
+    core_raw: object = bend_end_anchored_in_core_concrete
+    if core_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_BEND_END_ANCHORED_IN_CORE_CONCRETE",
+                    (
+                        "Whether the bend end is anchored in the core concrete "
+                        "is required for Clause 9-21-6-2-7-الف; it is never "
+                        "assumed. Missing required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="bend_end_anchored_in_core_concrete",
+                )
+            ],
+        )
+    if not isinstance(core_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_BEND_END_ANCHORED_IN_CORE_CONCRETE",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "bend_end_anchored_in_core_concrete must be a bool, "
+                        f"got {core_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="bend_end_anchored_in_core_concrete",
+                )
+            ],
+        )
+
+    if not engages_raw:
+        diag = EngineeringDiagnostic(
+            code="TORSION_TIE_STANDARD_HOOK_NOT_ENGAGING_LONGITUDINAL_BAR",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: both torsion-tie ends must be terminated with a "
+                "standard 135-degree hook around the longitudinal bar per "
+                "Clause 9-21-6-2-7-الف; the provided hook does not engage a "
+                "longitudinal bar."
+            ),
+            rule_id=rule_id,
+            field_name="hook_engages_longitudinal_bar",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    if not core_raw:
+        diag = EngineeringDiagnostic(
+            code="TORSION_TIE_BEND_END_NOT_IN_CORE_CONCRETE",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: the bend end of the torsion-tie standard hook must be "
+                "anchored in the core concrete per Clause 9-21-6-2-7-الف."
+            ),
+            rule_id=rule_id,
+            field_name="bend_end_anchored_in_core_concrete",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    # Delegate the standard 135-degree hook geometry to the verified
+    # standard-hook rule (Clause 9-21-2-2-2 / Table 9-21-2) instead of
+    # duplicating its table. Longitudinal-bar engagement is already verified
+    # above, so it is passed through as enclosing.
+    hook_step = evaluate_standard_hook(
+        hook_angle_deg=135.0,
+        bar_diameter_mm=hook_bar_diameter_mm,
+        inner_bend_diameter_mm=hook_inner_bend_diameter_mm,
+        straight_extension_mm=hook_straight_extension_mm,
+        encloses_longitudinal_bar=True,
+        jurisdiction_mode=jurisdiction_mode,
+    )
+    if hook_step.outcome is EvaluationOutcome.PASS:
+        hook_ext = hook_straight_extension_mm
+        assert hook_ext is not None
+        return _pass_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={"hook_straight_extension_mm": hook_ext},
+            final_result=hook_ext,
+            unit="mm",
+            message=(
+                "PASS: both torsion-tie ends terminated with a standard "
+                "135-degree hook (Table 9-21-2) engaging the longitudinal "
+                "bar, with the bend end anchored in the core concrete, per "
+                "Clause 9-21-6-2-7-الف."
+            ),
+        )
+    if hook_step.outcome is EvaluationOutcome.FAIL:
+        diag = EngineeringDiagnostic(
+            code="TORSION_TIE_STANDARD_HOOK_GEOMETRY_NOT_SATISFIED",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: the torsion-tie standard 135-degree hook must satisfy "
+                "the standard-hook geometry of Clause 9-21-2-2-2 / Table "
+                f"9-21-2; {hook_step.message}"
+            ),
+            rule_id=rule_id,
+            field_name="hook_inner_bend_diameter_mm",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+    if hook_step.outcome is EvaluationOutcome.INVALID_INPUT:
+        return _invalid_step(
+            gate, raw_inputs=raw_inputs, diagnostics=list(hook_step.diagnostics)
+        )
+    return _blocked_step(
+        gate, raw_inputs=raw_inputs, diagnostics=list(hook_step.diagnostics)
+    )
+
+
+# --- BG-TRANS-WIRE-TIE-UTIE-001 (Clause 9-21-6-1-4, PDF p. 464 / Printed p. 444)
+def evaluate_wire_tie_utie(
+    *,
+    alternative: Optional[WireTieUtieAlternative] = None,
+    wire_spacing_mm: Optional[float] = None,
+    wires_in_upper_part_of_utie: Optional[bool] = None,
+    effective_depth_mm: Optional[float] = None,
+    wire1_dist_from_compression_mm: Optional[float] = None,
+    wire2_dist_from_compression_mm: Optional[float] = None,
+    wire1_to_wire2_spacing_mm: Optional[float] = None,
+    wire2_on_hook: Optional[bool] = None,
+    bend_diameter_mm: Optional[float] = None,
+    tie_wire_diameter_mm: Optional[float] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> CalculationTraceStep:
+    """Evaluate the welded-wire U-tie leg anchorage (BG-TRANS-WIRE-TIE-UTIE-001).
+
+    Verified source: Mabhas 9 (1399), Clause 9-21-6-1-4, PDF p. 464 /
+    Printed p. 444 (Figure 9-21-1, PDF p. 465): the anchorage of one leg of
+    a welded-wire-mesh U-stirrup shall satisfy one of the following.
+    (الف) two longitudinal wires at 50 mm spacing in the upper part of the
+    U-stirrup. (ب) one longitudinal wire less than one-quarter of the
+    effective depth from the compression face, and a second longitudinal
+    wire closer to the compression face than the first and more than 50 mm
+    from the first, where the second wire may be on the stirrup leg or on a
+    hook with a minimum bend diameter of eight times the stirrup wire
+    diameter. Only these numeric conditions are represented; no geometry is
+    inferred from Figure 9-21-1 and no spacing/anchorage/bend requirement is
+    invented. The caller selects which alternative (الف/ب) is relied upon.
+
+    ``alternative`` and the selected alternative's geometry are REQUIRED
+    typed inputs (never assumed). Missing/invalid -> BLOCKED/INVALID_INPUT.
+    """
+    rule_id = RULE_BG_TRANS_WIRE_TIE_UTIE_001.rule_id
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "alternative": alternative.value if isinstance(alternative, WireTieUtieAlternative) else alternative,
+        "wire_spacing_mm": wire_spacing_mm,
+        "wires_in_upper_part_of_utie": wires_in_upper_part_of_utie,
+        "effective_depth_mm": effective_depth_mm,
+        "wire1_dist_from_compression_mm": wire1_dist_from_compression_mm,
+        "wire2_dist_from_compression_mm": wire2_dist_from_compression_mm,
+        "wire1_to_wire2_spacing_mm": wire1_to_wire2_spacing_mm,
+        "wire2_on_hook": wire2_on_hook,
+        "bend_diameter_mm": bend_diameter_mm,
+        "tie_wire_diameter_mm": tie_wire_diameter_mm,
+    }
+
+    gate = evaluate_rule_gate(rule_id, active_jurisdiction=jurisdiction_mode)
+    if not gate.allowed:
+        return gate.to_blocked_trace_step(normalized_inputs=raw_inputs, unit="mm")
+    rule = gate.rule
+
+    alternative_raw: object = alternative
+    if alternative_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_ALTERNATIVE",
+                    (
+                        "The Clause 9-21-6-1-4 alternative relied upon (الف or "
+                        "ب) is required; it is never assumed. Missing required "
+                        "input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="alternative",
+                )
+            ],
+        )
+    if not isinstance(alternative_raw, WireTieUtieAlternative):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_ALTERNATIVE",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "alternative must be a WireTieUtieAlternative value, "
+                        f"got {alternative_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="alternative",
+                )
+            ],
+        )
+
+    if alternative_raw is WireTieUtieAlternative.ALEF:
+        return _evaluate_wire_tie_utie_alef(
+            gate,
+            rule=rule,
+            raw_inputs=raw_inputs,
+            wire_spacing_mm=wire_spacing_mm,
+            wires_in_upper_part_of_utie=wires_in_upper_part_of_utie,
+        )
+    return _evaluate_wire_tie_utie_be(
+        gate,
+        rule=rule,
+        raw_inputs=raw_inputs,
+        effective_depth_mm=effective_depth_mm,
+        wire1_dist_from_compression_mm=wire1_dist_from_compression_mm,
+        wire2_dist_from_compression_mm=wire2_dist_from_compression_mm,
+        wire1_to_wire2_spacing_mm=wire1_to_wire2_spacing_mm,
+        wire2_on_hook=wire2_on_hook,
+        bend_diameter_mm=bend_diameter_mm,
+        tie_wire_diameter_mm=tie_wire_diameter_mm,
+    )
+
+
+def _evaluate_wire_tie_utie_alef(
+    gate: GatekeeperDecision,
+    *,
+    rule: RuleReference,
+    raw_inputs: Dict[str, ScalarInputValue],
+    wire_spacing_mm: Optional[float],
+    wires_in_upper_part_of_utie: Optional[bool],
+) -> CalculationTraceStep:
+    """Clause 9-21-6-1-4-الف: two longitudinal wires at 50 mm in the U upper part."""
+    rule_id = rule.rule_id
+    upper_raw: object = wires_in_upper_part_of_utie
+    if upper_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_WIRES_IN_UPPER_PART",
+                    (
+                        "Whether the two longitudinal wires are in the upper "
+                        "part of the U-stirrup is required for Clause "
+                        "9-21-6-1-4-الف; it is never assumed. Missing required "
+                        "input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="wires_in_upper_part_of_utie",
+                )
+            ],
+        )
+    if not isinstance(upper_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_WIRES_IN_UPPER_PART",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=(
+                        "wires_in_upper_part_of_utie must be a bool, got "
+                        f"{upper_raw!r}."
+                    ),
+                    rule_id=rule_id,
+                    field_name="wires_in_upper_part_of_utie",
+                )
+            ],
+        )
+
+    invalid: List[EngineeringDiagnostic] = []
+    missing: List[EngineeringDiagnostic] = []
+    _require_positive(
+        wire_spacing_mm,
+        code="MISSING_WIRE_SPACING",
+        field_name="wire_spacing_mm",
+        message=(
+            "The spacing between the two longitudinal wires is required for "
+            "the Clause 9-21-6-1-4-الف 50 mm check; it is never assumed. "
+            "Missing required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    if invalid:
+        return _invalid_step(gate, raw_inputs=raw_inputs, diagnostics=invalid)
+    if missing:
+        return _blocked_step(gate, raw_inputs=raw_inputs, diagnostics=missing)
+    assert wire_spacing_mm is not None
+
+    if not upper_raw:
+        diag = EngineeringDiagnostic(
+            code="WIRE_TIE_UTIE_ALEF_NOT_IN_UPPER_PART",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: Clause 9-21-6-1-4-الف requires the two longitudinal "
+                "wires to be in the upper part of the U-stirrup; the provided "
+                "wires are not."
+            ),
+            rule_id=rule_id,
+            field_name="wires_in_upper_part_of_utie",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    if wire_spacing_mm != BG_TRANS_WIRE_TIE_UTIE_ALEF_SPACING_MM:
+        diag = EngineeringDiagnostic(
+            code="WIRE_TIE_UTIE_ALEF_SPACING_NOT_50MM",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                f"FAIL: Clause 9-21-6-1-4-الف requires two longitudinal wires "
+                f"at 50 mm spacing; the provided spacing "
+                f"{wire_spacing_mm} mm is not 50 mm."
+            ),
+            rule_id=rule_id,
+            field_name="wire_spacing_mm",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "wire_spacing_mm": wire_spacing_mm,
+                "required_spacing_mm": BG_TRANS_WIRE_TIE_UTIE_ALEF_SPACING_MM,
+            },
+            final_result=wire_spacing_mm,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    return _pass_step(
+        gate,
+        raw_inputs=raw_inputs,
+        intermediates={
+            "wire_spacing_mm": wire_spacing_mm,
+            "required_spacing_mm": BG_TRANS_WIRE_TIE_UTIE_ALEF_SPACING_MM,
+        },
+        final_result=wire_spacing_mm,
+        unit="mm",
+        message=(
+            "PASS: Clause 9-21-6-1-4-الف — two longitudinal wires at 50 mm "
+            "spacing in the upper part of the U-stirrup."
+        ),
+    )
+
+
+def _evaluate_wire_tie_utie_be(
+    gate: GatekeeperDecision,
+    *,
+    rule: RuleReference,
+    raw_inputs: Dict[str, ScalarInputValue],
+    effective_depth_mm: Optional[float],
+    wire1_dist_from_compression_mm: Optional[float],
+    wire2_dist_from_compression_mm: Optional[float],
+    wire1_to_wire2_spacing_mm: Optional[float],
+    wire2_on_hook: Optional[bool],
+    bend_diameter_mm: Optional[float],
+    tie_wire_diameter_mm: Optional[float],
+) -> CalculationTraceStep:
+    """Clause 9-21-6-1-4-ب: quarter-depth wire + closer second wire > 50 mm
+    away, on leg or hook with bend dia >= 8x tie wire dia."""
+    rule_id = rule.rule_id
+    on_hook_raw: object = wire2_on_hook
+    if on_hook_raw is None:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "MISSING_WIRE2_ON_HOOK",
+                    (
+                        "Whether the second wire is on the stirrup leg or on a "
+                        "hook is required for Clause 9-21-6-1-4-ب (it selects "
+                        "whether the 8x bend-diameter condition applies); it "
+                        "is never assumed. Missing required input -> BLOCKED."
+                    ),
+                    rule=rule,
+                    field_name="wire2_on_hook",
+                )
+            ],
+        )
+    if not isinstance(on_hook_raw, bool):
+        return _invalid_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                EngineeringDiagnostic(
+                    code="INVALID_WIRE2_ON_HOOK",
+                    severity=DiagnosticSeverity.ERROR,
+                    message=f"wire2_on_hook must be a bool, got {on_hook_raw!r}.",
+                    rule_id=rule_id,
+                    field_name="wire2_on_hook",
+                )
+            ],
+        )
+
+    invalid: List[EngineeringDiagnostic] = []
+    missing: List[EngineeringDiagnostic] = []
+    _require_positive(
+        effective_depth_mm,
+        code="MISSING_EFFECTIVE_DEPTH",
+        field_name="effective_depth_mm",
+        message=(
+            "The effective depth is required for the Clause 9-21-6-1-4-ب "
+            "one-quarter-depth condition; it is never assumed. Missing "
+            "required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        wire1_dist_from_compression_mm,
+        code="MISSING_WIRE1_DIST",
+        field_name="wire1_dist_from_compression_mm",
+        message=(
+            "The first wire distance from the compression face is required "
+            "for the Clause 9-21-6-1-4-ب one-quarter-depth condition; it is "
+            "never assumed. Missing required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        wire2_dist_from_compression_mm,
+        code="MISSING_WIRE2_DIST",
+        field_name="wire2_dist_from_compression_mm",
+        message=(
+            "The second wire distance from the compression face is required "
+            "for the Clause 9-21-6-1-4-ب closer-to-compression condition; it "
+            "is never assumed. Missing required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    _require_positive(
+        wire1_to_wire2_spacing_mm,
+        code="MISSING_WIRE1_TO_WIRE2_SPACING",
+        field_name="wire1_to_wire2_spacing_mm",
+        message=(
+            "The spacing between the first and second wires is required for "
+            "the Clause 9-21-6-1-4-ب more-than-50 mm condition; it is never "
+            "assumed. Missing required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    if on_hook_raw:
+        _require_positive(
+            bend_diameter_mm,
+            code="MISSING_BEND_DIAMETER",
+            field_name="bend_diameter_mm",
+            message=(
+                "The bend diameter is required for the Clause 9-21-6-1-4-ب "
+                "8x-tie-wire-diameter condition when the second wire is on a "
+                "hook; it is never assumed. Missing required input -> BLOCKED."
+            ),
+            rule=rule,
+            missing=missing,
+            invalid=invalid,
+        )
+        _require_positive(
+            tie_wire_diameter_mm,
+            code="MISSING_TIE_WIRE_DIAMETER",
+            field_name="tie_wire_diameter_mm",
+            message=(
+                "The tie/stirrup wire diameter is required for the Clause "
+                "9-21-6-1-4-ب 8x-tie-wire-diameter condition when the second "
+                "wire is on a hook; it is never assumed. Missing required "
+                "input -> BLOCKED."
+            ),
+            rule=rule,
+            missing=missing,
+            invalid=invalid,
+        )
+    if invalid:
+        return _invalid_step(gate, raw_inputs=raw_inputs, diagnostics=invalid)
+    if missing:
+        return _blocked_step(gate, raw_inputs=raw_inputs, diagnostics=missing)
+    assert effective_depth_mm is not None
+    assert wire1_dist_from_compression_mm is not None
+    assert wire2_dist_from_compression_mm is not None
+    assert wire1_to_wire2_spacing_mm is not None
+
+    quarter_depth_mm = (
+        BG_TRANS_WIRE_TIE_UTIE_BE_QUARTER_DEPTH * effective_depth_mm
+    )
+
+    if wire1_dist_from_compression_mm >= quarter_depth_mm:
+        diag = EngineeringDiagnostic(
+            code="WIRE_TIE_UTIE_BE_WIRE1_NOT_WITHIN_QUARTER_DEPTH",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: Clause 9-21-6-1-4-ب requires the first longitudinal "
+                f"wire to be less than one-quarter of the effective depth "
+                f"(< {quarter_depth_mm} mm) from the compression face; the "
+                f"provided distance {wire1_dist_from_compression_mm} mm does "
+                "not satisfy this."
+            ),
+            rule_id=rule_id,
+            field_name="wire1_dist_from_compression_mm",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "wire1_dist_from_compression_mm": wire1_dist_from_compression_mm,
+                "quarter_effective_depth_mm": quarter_depth_mm,
+            },
+            final_result=wire1_dist_from_compression_mm,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    if wire2_dist_from_compression_mm >= wire1_dist_from_compression_mm:
+        diag = EngineeringDiagnostic(
+            code="WIRE_TIE_UTIE_BE_WIRE2_NOT_CLOSER_TO_COMPRESSION",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: Clause 9-21-6-1-4-ب requires the second longitudinal "
+                "wire to be closer to the compression face than the first; "
+                f"the provided wire2 distance {wire2_dist_from_compression_mm} "
+                f"mm is not less than the wire1 distance "
+                f"{wire1_dist_from_compression_mm} mm."
+            ),
+            rule_id=rule_id,
+            field_name="wire2_dist_from_compression_mm",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "wire1_dist_from_compression_mm": wire1_dist_from_compression_mm,
+                "wire2_dist_from_compression_mm": wire2_dist_from_compression_mm,
+            },
+            final_result=wire2_dist_from_compression_mm,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    if wire1_to_wire2_spacing_mm <= BG_TRANS_WIRE_TIE_UTIE_BE_MIN_SPACING_MM:
+        diag = EngineeringDiagnostic(
+            code="WIRE_TIE_UTIE_BE_SPACING_NOT_ABOVE_50MM",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: Clause 9-21-6-1-4-ب requires the second wire to be "
+                f"more than 50 mm from the first; the provided spacing "
+                f"{wire1_to_wire2_spacing_mm} mm is not greater than 50 mm."
+            ),
+            rule_id=rule_id,
+            field_name="wire1_to_wire2_spacing_mm",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "wire1_to_wire2_spacing_mm": wire1_to_wire2_spacing_mm,
+                "min_spacing_mm": BG_TRANS_WIRE_TIE_UTIE_BE_MIN_SPACING_MM,
+            },
+            final_result=wire1_to_wire2_spacing_mm,
+            unit="mm",
+            diagnostic=diag,
+        )
+
+    if on_hook_raw:
+        assert bend_diameter_mm is not None
+        assert tie_wire_diameter_mm is not None
+        min_bend_dia_mm = (
+            BG_TRANS_WIRE_TIE_UTIE_BE_BEND_DIA_FACTOR * tie_wire_diameter_mm
+        )
+        if bend_diameter_mm < min_bend_dia_mm:
+            diag = EngineeringDiagnostic(
+                code="WIRE_TIE_UTIE_BE_BEND_DIA_BELOW_8X",
+                severity=DiagnosticSeverity.ERROR,
+                message=(
+                    "FAIL: when the second wire is on a hook, Clause "
+                    "9-21-6-1-4-ب requires a minimum bend diameter of eight "
+                    f"times the tie wire diameter (>= {min_bend_dia_mm} mm); "
+                    f"the provided bend diameter {bend_diameter_mm} mm is "
+                    "insufficient."
+                ),
+                rule_id=rule_id,
+                field_name="bend_diameter_mm",
+            )
+            return _fail_step(
+                gate,
+                raw_inputs=raw_inputs,
+                intermediates={
+                    "bend_diameter_mm": bend_diameter_mm,
+                    "min_bend_diameter_mm": min_bend_dia_mm,
+                    "tie_wire_diameter_mm": tie_wire_diameter_mm,
+                },
+                final_result=bend_diameter_mm,
+                unit="mm",
+                diagnostic=diag,
+            )
+
+    return _pass_step(
+        gate,
+        raw_inputs=raw_inputs,
+        intermediates={
+            "quarter_effective_depth_mm": quarter_depth_mm,
+            "wire1_dist_from_compression_mm": wire1_dist_from_compression_mm,
+            "wire2_dist_from_compression_mm": wire2_dist_from_compression_mm,
+            "wire1_to_wire2_spacing_mm": wire1_to_wire2_spacing_mm,
+        },
+        final_result=wire1_to_wire2_spacing_mm,
+        unit="mm",
+        message=(
+            "PASS: Clause 9-21-6-1-4-ب — first wire within one-quarter of "
+            "the effective depth from the compression face, second wire "
+            "closer to the compression face and more than 50 mm from the "
+            "first"
+            + (
+                ", with bend diameter >= 8x tie wire diameter."
+                if on_hook_raw
+                else ", on the stirrup leg."
+            )
+        ),
+    )
+
+
+# --- BG-TRANS-SPIRAL-SPLICE-LAP-SEL-001 (Clause 9-21-6-3-5-ب, PDF pp. 468-469)
+def evaluate_spiral_splice_lap_sel(
+    *,
+    yield_stress_mpa: Optional[float] = None,
+    splice_bar_type: Optional[SpiralSpliceBarType] = None,
+    coating_class: Optional[SpiralSpliceCoating] = None,
+    end_condition: Optional[SpiralSpliceEndCondition] = None,
+    bar_diameter_mm: Optional[float] = None,
+    jurisdiction_mode: JurisdictionMode = JurisdictionMode.MABHAS_9_COMPLIANCE,
+) -> CalculationTraceStep:
+    """Evaluate the spiral lap-splice method selection
+    (BG-TRANS-SPIRAL-SPLICE-LAP-SEL-001).
+
+    Verified source: Mabhas 9 (1399), Clause 9-21-6-3-5(ب), PDF pp. 468-469 /
+    Printed pp. 448-449: a spiral lap splice per Clause 9-21-6-3-6 is
+    permitted for bars with yield stress f_y <= 420 MPa. The lap LENGTH is
+    delegated to the executable BG-TRANS-SPIRAL-LAP-001 (Clause 9-21-6-3-6 /
+    Table 9-21-7: max(k*d_b, 300 mm)) and is NOT recomputed here. f_y > 420
+    MPa is not covered by the lap route and is deterministically BLOCKED (the
+    only other route, welded/mechanical splice per Clause 9-21-4-7, is
+    BLOCKED via National Building Regulations Chapter 10). The
+    welded/mechanical route of Clause 9-21-6-3-5(الف) is NOT implemented.
+
+    yield_stress_mpa and the Table 9-21-7 selection inputs are REQUIRED typed
+    inputs (never assumed). Missing/invalid -> BLOCKED/INVALID_INPUT.
+    """
+    rule_id = RULE_BG_TRANS_SPIRAL_SPLICE_LAP_SEL_001.rule_id
+    raw_inputs: Dict[str, ScalarInputValue] = {
+        "yield_stress_mpa": yield_stress_mpa,
+        "splice_bar_type": (
+            splice_bar_type.value if isinstance(splice_bar_type, SpiralSpliceBarType) else splice_bar_type
+        ),
+        "coating_class": (
+            coating_class.value if isinstance(coating_class, SpiralSpliceCoating) else coating_class
+        ),
+        "end_condition": (
+            end_condition.value if isinstance(end_condition, SpiralSpliceEndCondition) else end_condition
+        ),
+        "bar_diameter_mm": bar_diameter_mm,
+    }
+
+    gate = evaluate_rule_gate(rule_id, active_jurisdiction=jurisdiction_mode)
+    if not gate.allowed:
+        return gate.to_blocked_trace_step(normalized_inputs=raw_inputs, unit="mm")
+    rule = gate.rule
+
+    invalid: List[EngineeringDiagnostic] = []
+    missing: List[EngineeringDiagnostic] = []
+    _require_positive(
+        yield_stress_mpa,
+        code="MISSING_YIELD_STRESS",
+        field_name="yield_stress_mpa",
+        message=(
+            "The bar yield stress f_y is required to confirm the Clause "
+            "9-21-6-3-5-ب lap-splice route (f_y <= 420 MPa); it is never "
+            "assumed. Missing required input -> BLOCKED."
+        ),
+        rule=rule,
+        missing=missing,
+        invalid=invalid,
+    )
+    if invalid:
+        return _invalid_step(gate, raw_inputs=raw_inputs, diagnostics=invalid)
+    if missing:
+        return _blocked_step(gate, raw_inputs=raw_inputs, diagnostics=missing)
+    assert yield_stress_mpa is not None
+
+    if yield_stress_mpa > BG_TRANS_SPIRAL_SPLICE_LAP_MAX_FY_MPA:
+        return _blocked_step(
+            gate,
+            raw_inputs=raw_inputs,
+            diagnostics=[
+                _missing_input_diagnostic(
+                    "SPIRAL_SPLICE_LAP_FY_ABOVE_420",
+                    (
+                        f"BLOCKED: f_y = {yield_stress_mpa} MPa exceeds the "
+                        "420 MPa limit of the Clause 9-21-6-3-5-ب lap-splice "
+                        "route; the only other spiral-splice route (welded / "
+                        "mechanical per Clause 9-21-6-3-5-الف -> 9-21-4-7) is "
+                        "BLOCKED via National Building Regulations Chapter 10. "
+                        "No lap route is available for this f_y."
+                    ),
+                    rule=rule,
+                    field_name="yield_stress_mpa",
+                )
+            ],
+        )
+
+    # Delegate the actual lap length to the verified spiral-lap rule
+    # (Clause 9-21-6-3-6 / Table 9-21-7) instead of duplicating its table.
+    lap_step = evaluate_spiral_lap_splice(
+        splice_bar_type=splice_bar_type,
+        coating_class=coating_class,
+        end_condition=end_condition,
+        bar_diameter_mm=bar_diameter_mm,
+        jurisdiction_mode=jurisdiction_mode,
+    )
+    if lap_step.outcome is EvaluationOutcome.COMPUTED:
+        lap_mm = lap_step.final_result
+        assert lap_mm is not None
+        return _computed_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={
+                "yield_stress_mpa": yield_stress_mpa,
+                "max_lap_route_fy_mpa": BG_TRANS_SPIRAL_SPLICE_LAP_MAX_FY_MPA,
+                "spiral_lap_length_mm": lap_mm,
+            },
+            final_result=lap_mm,
+            unit="mm",
+            message=(
+                f"Spiral lap-splice route selected (f_y = {yield_stress_mpa} "
+                f"MPa <= {BG_TRANS_SPIRAL_SPLICE_LAP_MAX_FY_MPA} MPa); lap "
+                f"length per Clause 9-21-6-3-6 / Table 9-21-7 = {lap_mm} mm "
+                "(delegated to BG-TRANS-SPIRAL-LAP-001)."
+            ),
+        )
+    if lap_step.outcome is EvaluationOutcome.FAIL:
+        diag = EngineeringDiagnostic(
+            code="SPIRAL_SPLICE_LAP_DELEGATED_FAILURE",
+            severity=DiagnosticSeverity.ERROR,
+            message=(
+                "FAIL: the delegated spiral lap-length evaluation failed; "
+                f"{lap_step.message}"
+            ),
+            rule_id=rule_id,
+            field_name="splice_bar_type",
+        )
+        return _fail_step(
+            gate,
+            raw_inputs=raw_inputs,
+            intermediates={},
+            final_result=None,
+            unit="mm",
+            diagnostic=diag,
+        )
+    if lap_step.outcome is EvaluationOutcome.INVALID_INPUT:
+        return _invalid_step(
+            gate, raw_inputs=raw_inputs, diagnostics=list(lap_step.diagnostics)
+        )
+    return _blocked_step(
+        gate, raw_inputs=raw_inputs, diagnostics=list(lap_step.diagnostics)
     )

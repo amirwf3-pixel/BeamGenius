@@ -45,7 +45,9 @@ from beamgenius.registry.catalog import (
     RULE_BG_TRANS_SPIRAL_LAP_001,
     RULE_BG_TRANS_SPIRAL_RATIO_001,
     RULE_BG_TRANS_SPIRAL_SPACING_001,
+    RULE_BG_TRANS_SPIRAL_SPLICE_LAP_SEL_001,
     RULE_BG_TRANS_SPIRAL_SPLICE_SEL_PENDING,
+    RULE_BG_TRANS_STANDARD_HOOK_001,
     RULE_BG_TRANS_TIE_ANCHOR_PENDING,
     RULE_BG_TRANS_TIE_DIA_001,
     RULE_BG_TRANS_TIE_SHEAR_EXTENT_001,
@@ -53,9 +55,11 @@ from beamgenius.registry.catalog import (
     RULE_BG_TRANS_TORSION_TIE_135HOOK_001,
     RULE_BG_TRANS_TORSION_TIE_PENDING,
     RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001,
+    RULE_BG_TRANS_TORSION_TIE_STANDARD_HOOK_001,
     RULE_BG_TRANS_TWO_PIECE_TIE_001,
     RULE_BG_TRANS_WIRE_SUBST_PENDING,
     RULE_BG_TRANS_WIRE_TIE_PENDING,
+    RULE_BG_TRANS_WIRE_TIE_UTIE_001,
     get_rule,
     list_blocked_rules,
     list_mabhas9_executable_rules,
@@ -81,6 +85,10 @@ EXECUTABLE_TRANS_RULES = (
     RULE_BG_TRANS_TWO_PIECE_TIE_001,
     RULE_BG_TRANS_TORSION_TIE_135HOOK_001,
     RULE_BG_TRANS_TORSION_TIE_SEISMIC_HOOK_001,
+    RULE_BG_TRANS_STANDARD_HOOK_001,
+    RULE_BG_TRANS_TORSION_TIE_STANDARD_HOOK_001,
+    RULE_BG_TRANS_WIRE_TIE_UTIE_001,
+    RULE_BG_TRANS_SPIRAL_SPLICE_LAP_SEL_001,
 )
 
 BLOCKED_TRANS_RULES = (
@@ -96,9 +104,9 @@ BLOCKED_TRANS_RULES = (
 # Registry / gatekeeper integration
 # ============================================================================
 
-def test_all_sixteen_transverse_rules_registered_executable() -> None:
+def test_all_twenty_transverse_rules_registered_executable() -> None:
     executable_ids = {r.rule_id for r in list_mabhas9_executable_rules()}
-    assert len(EXECUTABLE_TRANS_RULES) == 16
+    assert len(EXECUTABLE_TRANS_RULES) == 20
     for rule in EXECUTABLE_TRANS_RULES:
         assert rule.rule_id in executable_ids
         assert rule.execution_allowed is True
