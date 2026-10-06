@@ -89,6 +89,8 @@ def test_mabhas9_executable_rules_exact_set() -> None:
         "BG-TRANS-TORSION-TIE-STANDARD-HOOK-001",
         "BG-TRANS-WIRE-TIE-UTIE-001",
         "BG-TRANS-SPIRAL-SPLICE-LAP-SEL-001",
+        "BG-TRANS-TIE-ANCHOR-STD-HOOK-001",
+        "BG-TRANS-TORSION-TIE-WIRE-ROUTE-001",
     )
     for rule in list_mabhas9_executable_rules():
         assert rule.status == VerificationStatus.VERIFIED
