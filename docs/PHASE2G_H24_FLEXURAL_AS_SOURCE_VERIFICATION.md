@@ -506,7 +506,7 @@ MYPY:                 Success: no issues found in 23 source files
 
 DOCUMENT:             docs/PHASE2G_H24_FLEXURAL_AS_SOURCE_VERIFICATION.md
 
-COMMIT:               see §16 backfill
+COMMIT:               be0c310 (stage commit; SHA backfilled by a content-only follow-up)
 
 ORIGIN/MAIN:          df8067a750ffc7984c9dc5d80220ad9013503aa6 — untouched
 
