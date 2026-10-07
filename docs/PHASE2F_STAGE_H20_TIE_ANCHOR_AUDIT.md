@@ -390,11 +390,12 @@ never interpolated.
 ## 19. Commit SHA
 
 **Baseline at stage start: `22111f8`.**
-**This stage's commit: recorded below** — the SHA is inserted as a follow-up content commit
-(never by amending or rewriting history).
+**This stage's commit (introduces this file): `0598116`.**
 
-*Commit SHAs are recorded in the stage close-out; no history was rewritten, no rebase and
-no force-push was used.*
+The value above is the true hash of the commit that introduced this document; it was
+backfilled by a **separate content-only follow-up commit**. No amend, no rebase, no
+history rewrite and no force-push was used — both commits are ordinary fast-forward
+commits on `arena/b9cd291a-beamgenius`.
 
 ---
 
