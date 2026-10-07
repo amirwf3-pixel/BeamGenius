@@ -1895,7 +1895,7 @@ Units: deg. Executable as `beamgenius.engine.development_lap_splice_mabhas9.eval
 
 - `BG-DEV-LAP-WIRE-DEFORMED-PENDING` (9-21-4-3, PDF 458 / Printed 438): welded deformed-wire mesh lap. BLOCKED — §9-4-8 itself is now visually verified (Stage H.14); the residual dependency is conformity to INSO 11558 via §9-4-8-7 (Stage H.15, unresolved), and it branches to 9-21-4-4.
 - `BG-DEV-LAP-WIRE-PLAIN-PENDING` (9-21-4-4, PDF 459 / Printed 439): welded plain-wire mesh lap. BLOCKED — the 9-21-4-4-1-ب «و یا» disjunct («…۵۰ میلی‌متر، و یا ۱۵۰ میلی‌متر») is unresolved (VERIFY_PENDING; recorded verbatim, never interpreted/executed) plus the Chapter 9-4 dependency.
-- `BG-DEV-SPLICE-WELDED-MECH-PENDING` (9-21-4-7, PDF 460–461 / Printed 440–441): welded/mechanical splices. BLOCKED — 9-21-4-7-3 requires NBC Chapter 10 welding compliance (out of window, VERIFY_PENDING) and the mechanical-splice strength coefficient glyph was not independently re-confirmed.
+- `BG-DEV-SPLICE-WELDED-MECH-PENDING` (9-21-4-7, PDF 460–461 / Printed 440–441): welded/mechanical splices. BLOCKED — 9-21-4-7-3 requires NBC Chapter 10 welding compliance (out of window, VERIFY_PENDING). (Stage H.21 correction: the former second reason — that the 9-21-4-7-6 strength-transfer coefficient glyph had not been independently re-confirmed — was stale and has been removed; the coefficient was re-read from the page image as the document's 1.25 notation. No status changed.)
 
 All three are registered with `execution_allowed=False`, `status=VERIFY_PENDING`, and a `blocked_reason`; the Gatekeeper returns `UNVERIFIED_RULE_BLOCKED` for any attempted execution.
 

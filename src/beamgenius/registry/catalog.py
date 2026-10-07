@@ -2465,9 +2465,13 @@ RULE_BG_DEV_SPLICE_WELDED_MECH_PENDING = RuleReference(
     blocked_reason=(
         "Execution BLOCKED: Clause 9-21-4-7-3 requires welding to satisfy "
         "National Building Regulations Chapter 10, whose pages are out of "
-        "the verified window (VERIFY_PENDING), and the mechanical-splice "
+        "the verified window (VERIFY_PENDING). (Stage H.21 correction: the "
+        "previously recorded second reason - that the mechanical-splice "
         "strength-transfer coefficient glyph was not independently "
-        "re-confirmed. No formula/number is executed."
+        "re-confirmed - was STALE and is removed; the Clause 9-21-4-7-6 "
+        "coefficient was re-read from the page image and is the document's "
+        "1.25 notation. This documentation correction changes no status, no "
+        "count and no execution behaviour.) No formula/number is executed."
     ),
     dependencies=(),
 )
