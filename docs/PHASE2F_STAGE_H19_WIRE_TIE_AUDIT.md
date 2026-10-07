@@ -384,11 +384,11 @@ required to reach this stage's conclusion and would not change any status.
 
 **Baseline at stage start: `940490d`** (H.18).
 
-This stage's commit — the one introducing this file — is recorded in the follow-up
-one-line commit below it. The SHA is backfilled in a second, content-only commit (never
-by amending or rewriting history) so that the value printed here is a **true, verifiable
-hash** rather than a placeholder. No history rewrite, no rebase, no force-push was used;
-both commits are ordinary fast-forward commits on `arena/b9cd291a-beamgenius`.
+**This stage's commit (introduces this file): `cc79715`.**
+A follow-up one-line commit backfills this value. The SHA was **not** inserted by
+amending or rewriting history — the value printed above is a true, verifiable hash of the
+commit that introduced this document, and both commits are ordinary fast-forward commits
+on `arena/b9cd291a-beamgenius`.
 
 ---
 
