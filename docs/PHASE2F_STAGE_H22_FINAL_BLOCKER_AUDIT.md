@@ -409,8 +409,12 @@ reduction of the blocker count. The five sentinels remain `VERIFY_PENDING` with
 ## 18. Commit SHA
 
 **Baseline at stage start: `36c387b`.**
-**This stage's commit: recorded below** — the SHA is inserted by a **separate content-only
-follow-up commit**. No amend, no rebase, no force-push, no history rewrite.
+**This stage's commit (introduces this file): `ad1ecba`.**
+
+The value above is the true hash of the commit that introduced this document; it was
+backfilled by a **separate content-only follow-up commit**. No amend, no rebase, no
+force-push and no history rewrite was used — both commits are ordinary fast-forward commits
+on `arena/b9cd291a-beamgenius`.
 
 ---
 
