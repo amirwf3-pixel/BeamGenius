@@ -423,8 +423,12 @@ new document is **prose inside two existing strings/lines**.
 ## 17. Commit SHA
 
 **Baseline at stage start: `3df5091`.**
-**This stage's commit: recorded below** — the SHA is inserted by a **separate content-only
-follow-up commit**. No amend, no rebase, no force-push, no history rewrite was used.
+**This stage's commit (introduces this file): `67e3edd`.**
+
+The value above is the true hash of the commit that introduced this document; it was
+backfilled by a **separate content-only follow-up commit**. No amend, no rebase, no
+force-push and no history rewrite was used — both commits are ordinary fast-forward commits
+on `arena/b9cd291a-beamgenius`.
 
 ---
 
